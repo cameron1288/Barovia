@@ -1,0 +1,73 @@
+<head>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<div class="map-container">
+
+  <img src="./images/map.jpg" alt="Map of Barovia" style="width: 100%; height: auto;" class="map-image">
+  
+  <!-- Pinpoint locations -->
+<!-- Example of using text or an icon instead of just a location pin -->
+
+<!-- Yester Hill -->
+<button class="map-pin" style="top: 57%; left: 6%;" onclick="showInfo('Yester Hill')">📍</button>
+
+<!-- Wizard of Wines / Winery -->
+<button class="map-pin" style="top: 45%; left: 10%;" onclick="showInfo('Wizard of Wines / Winery')">📍</button>
+
+<!-- Vallaki -->
+<button class="map-pin" style="top: 32%; left: 40%;" onclick="showInfo('Vallaki')">📍</button>
+
+<!-- Old Bonegrinder Mill -->
+<button class="map-pin" style="top: 42%; left: 50%;" onclick="showInfo('Old Bonegrinder Mill')">📍</button>
+
+<!-- Tser Pool Encampment -->
+<button class="map-pin" style="top: 56%; left: 65.5%;" onclick="showInfo('Tser Pool Encampment')">📍</button>
+
+<!-- Amber Temple -->
+<button class="map-pin" style="top: 65%; left: 45%;" onclick="showInfo('Amber Temple (Unknown)')">📍</button>
+
+<!-- Castle Ravenloft -->
+<button class="map-pin" style="top: 40%; left: 72.5%;" onclick="showInfo('Castle Ravenloft')">📍</button>
+
+<!-- Lake Baratok -->
+<button class="map-pin" style="top: 22%; left: 22%;" onclick="showInfo('Lake Baratok')">📍</button>
+
+<!-- Argynvostholt -->
+<button class="map-pin" style="top: 45%; left: 33%;" onclick="showInfo('Argynvostholt')">📍</button>
+
+<!-- Ruins of Berez -->
+<button class="map-pin" style="top: 60%; left: 31%;" onclick="showInfo('Ruins of Berez')">📍</button>
+
+<!-- Durst Mansion (Death House) -->
+<button class="map-pin" style="top: 52%; left: 98%;" onclick="showInfo('Durst Mansion (Death House)')">📍</button>
+
+<!-- Krezk -->
+<button class="map-pin" style="top: 29%; left: 11%;" onclick="showInfo('Krezk')">📍</button>
+
+<!-- Village of Barovia -->
+<button class="map-pin" style="top: 56%; left: 79%;" onclick="showInfo('Village of Barovia')">📍</button>
+
+<!-- Lake Zarovich -->
+<button class="map-pin" style="top: 21%; left: 45%;" onclick="showInfo('Lake Zarovich')">📍</button>
+
+<!-- Tser Falls -->
+<button class="map-pin" style="top: 49%; left: 58%;" onclick="showInfo('Tser Falls')">📍</button>
+
+<!-- Kazan's Tower (Lake Baratok causeway) -->
+<button class="map-pin" style="top: 24.8%; left: 23.8%;" onclick="showInfo('Kazan\'s Tower')">📍</button>
+
+<!-- Tsolenka Pass -->
+<button class="map-pin" style="top: 50%; left: 22%;" onclick="showInfo('Tsolenka Pass')">📍</button>
+
+<!-- Svalich Woods - clicking the map label -->
+<button class="map-pin svalich-pin" style="top: 38%; left: 88%;" onclick="showInfo('The Svalich Woods')">🌲</button>
+
+<div class="map-legend">
+  <h3>Other Realms & Regions</h3>
+  <button class="map-pin legend-pin" onclick="showInfo('Ethereal Plane')">🌀 Ethereal Plane</button>
+  <button class="map-pin legend-pin" onclick="showInfo('The Fanes')">🌿 The Fanes</button>
+  <button class="map-pin legend-pin" onclick="showInfo('The Old Svalich Road')">🛤️ The Old Svalich Road</button>
+</div>
+
+<!-- Interactive Map of Barovia: Click on the pins to learn more about each location.  -->
+

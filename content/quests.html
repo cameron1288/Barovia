@@ -1,0 +1,285 @@
+<!-- Quests Tab -->
+        <div id="quests-tab" class="tab-content active">
+            <h2>Fates & Active Quests</h2>
+
+            <table id="questTable">
+                <thead>
+                    <tr>
+                        <th style="width: 5%">ID</th>
+                        <th style="width: 25%">Quest Objective</th>
+                        <th style="width: 10%">Current Status</th>
+                        <th style="width: 60%">Chronicle Insights & Clues</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">1</span></td>
+        <td><strong>Reach the Amber Temple</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Strahd told Flint: &#x27;Amber Temple has noticed you. I know it.&#x27; Seriac&#x27;s final message: &#x27;Seek out the mountain, find the temple — let&#x27;s hunt a vampire.&#x27; This is where Strahd made his original pact with the Dark Powers. It almost certainly contains the Sunsword (Tarokka Card 3: amber prison). Getting there likely requires going through Argynvostholt first.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">2</span></td>
+        <td><strong>Find the History/Knowledge of the Acients (Tarokka Card 1)</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete" selected>Complete</option>
+            </select>
+        </td>
+        <td>The party has has stumbled across the prophecy of the Card of History with Stella Wachter leading us to Leo Delinzia to the long-lost Tome of Strahd. By unearthing this ancient text, they have pierced the veil of Barovia’s illusions and exposed the dark, tragic truths of the vampire lord’s mortal life, his jealousy, and his blood pact with darkness. With the tyrant&#x27;s deepest secrets and weaknesses now laid bare in their hands, this crucial thread of Madam Eva&#x27;s fortune is officially resolved, forever changing how the companions face the master of Ravenloft.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">3</span></td>
+        <td><strong>Find the Sunsword (Tarokka Card 3)</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>The one weapon Strahd truly fears — confirmed by his own Tome: &#x27;That cursed sword that Sergei brought! I must dispose of that awful tool!&#x27; Hidden in &#x27;an amber prison, where the devil fears to tread.&#x27; Argynvostholt (House of the Fallen Dragon) is a required step before finding it. The Sunsword has a platinum hilt with a deep blue sapphire — a blade of pure sunlight.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">4</span></td>
+        <td><strong>Find the Holy Symbol of Ravenkind (Tarokka Card 2)</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>A powerful holy relic in a wolf&#x27;s den in the hills overlooking a mountain lake. Once belonging to Mother Night (Fiona is Daughter of Mother Night), the dark deity of lycanthropes. Most likely location: hills above Lake Baratok in the northwest, where the spectral knight warned about werewolves. One of the three artifacts needed to fight Strahd.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">5</span></td>
+        <td><strong>Find the Tarokka Ally (Tarokka Card 4)</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>A female Vistana wanderer searching for her mentor — find her at Saint Markovia&#x27;s Abbey in Krezk. She moves constantly. Most likely: Esmeralda Davenir, Van Richter&#x27;s student, whose wagon was already at Kazan&#x27;s Tower.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">6</span></td>
+        <td><strong>Travel to Krezk</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete"selected>Complete</option>
+            </select>
+        </td>
+        <td>Multiple reasons: (1) Tarokka ally at Saint Markovia&#x27;s Abbey. (2) The blessed pool there has significance. (3) The Abbey itself may connect to other quests. (4) Zolt and Matilda (trappers from Krezk) are potential contacts.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">7</span></td>
+        <td><strong>Visit Argynvostholt</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Both the spectral bridge knight and Tarokka Card 3 point here. Find Ser Godfrey Gwilym of the Order of the Silver Dragon. Argynvostholt is the &#x27;House of the Fallen Dragon&#x27; from the Tarokka reading — a required step before the Sunsword. South of the walled town on the ash-grey path.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">8</span></td>
+        <td><strong>Strahd&#x27;s Dinner Invitation</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Rahadin delivered Strahd&#x27;s invitation in Session 27: dine at Castle Ravenloft in six days, safe passage both ways promised. Strahd also offered a separate reward at Yester Hill — meet him at the base of the whispering wall after the ritual. Almost certainly a test, a trap, or both. Refusing likely also carries consequences.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (High Priority)">
+        <td><span class="gothic-id">9</span></td>
+        <td><strong>Strahd&#x27;s Counter-Reading — Beware the Traitor</strong></td>
+        <td>
+            <select class="status-select status-active-high" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)" selected>Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Vel overheard Strahd speaking in verse that appeared to mock or subvert the Tarokka reading: &#x27;She thinks the cards speak truth, that rivers can be dammed / The Sword lies in the hand of the Dead / The Ally walks in the Shadow / Cast a light on the Traitor and call him friend / They will trust the wrong soul, let them chase a ghost.&#x27; Someone the party trusts may betray them. The Sunsword may be with a dead person. The ally may not be trustworthy — or may be hidden. Keep this in mind at all times.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (Medium Priority)">
+        <td><span class="gothic-id">10</span></td>
+        <td><strong>Recover the 3 Winery Gemstones</strong></td>
+        <td>
+            <select class="status-select status-active-med" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)" selected>Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Three enchanted gemstones that power &#x27;Champagne de La Stomp&#x27; were stolen: (1) An unknown raven while Erwin failed to watch. (2) Baba Lasaga&#x27;s scarecrows took the Red Dragon Crush gem. (3) The Forest Folk took the third. The Keepers of the Feather need them to maintain the winery and their resistance efforts.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (Medium Priority)">
+        <td><span class="gothic-id">11</span></td>
+        <td><strong>Confront Baba Lasaga</strong></td>
+        <td>
+            <select class="status-select status-active-med" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)" selected>Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>The witch in the Ruins of Berez created the flying blight creatures, stole a winery gem, and has sworn to destroy the Martikov family. Her base may also be connected to the Swamp Fane — one of Strahd&#x27;s three ancient power sources.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (Medium Priority)">
+        <td><span class="gothic-id">12</span></td>
+        <td><strong>The Three Fanes of Barovia</strong></td>
+        <td>
+            <select class="status-select status-active-med" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)" selected>Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Strahd&#x27;s Tome confirms he claimed power from three Fanes: Swamp, Forest, and Mountain. This is why the land itself obeys him. Restoring these could significantly weaken his power. Likely locations: Swamp Fane near Ruins of Berez?, Forest Fane near Yester Hill?, Mountain Fane unknown?</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (Low Priority)">
+        <td><span class="gothic-id">13</span></td>
+        <td><strong>Retrieve Franz&#x27;s Children</strong></td>
+        <td>
+            <select class="status-select status-active-low" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)" selected>Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Franz&#x27;s children Josephia and Camel were found in a bookcase at Old Bonegrinder in Session 26. Were they actually freed and returned to him? Also need to address Franz&#x27;s wasting disease.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Active (Medium Priority)">
+        <td><span class="gothic-id">14</span></td>
+        <td><strong>Investigate the Sacred Tome of Strahd</strong></td>
+        <td>
+            <select class="status-select status-active-med" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)" selected>Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete">Complete</option>
+            </select>
+        </td>
+        <td>Flint collected the Deep Crimson Red Tome in Session 29. Key contents: Strahd&#x27;s personal history, obsession with Tatyana, pact with Death, fear of the Sunsword, and the three Fanes. The final page has a triangle symbol inscribed &#x27;Exechanter&#x27;</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">15</span></td>
+        <td><strong>Restore the Bones of St. Andral</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete" selected>Complete</option>
+            </select>
+        </td>
+        <td>Recovered from the coffin maker&#x27;s shop and returned to Father Lucian in Session 16. Church protection restored.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">16</span></td>
+        <td><strong>Kill Isek</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete" selected>Complete</option>
+            </select>
+        </td>
+        <td>Killed at Lake Zarovich in Session 23. Loot: Silvered Battle Axe, Amber Shard, 35gp, Studded Leather.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">17</span></td>
+        <td><strong>Save Stella Wachter&#x27;s Soul</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete" selected>Complete</option>
+            </select>
+        </td>
+        <td>Ethereal Plane ritual performed in Session 28. Stella entered the binding circle. Viktor confirmed she was back in her body when the party returned.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">18</span></td>
+        <td><strong>Defeat Morganta and the Nightmare Hags</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete" selected>Complete</option>
+            </select>
+        </td>
+        <td>Morganta and daughters killed in Sessions 26-27. Heartstone retrieved. Franz&#x27;s children found in the mill.</td>
+    </tr>
+    
+    <tr class="quest-row" data-status="Complete">
+        <td><span class="gothic-id">19</span></td>
+        <td><strong>Winery Rescue</strong></td>
+        <td>
+            <select class="status-select status-complete" onchange="updateQuestStatus(this)">
+                <option value="Active (High Priority)">Active (High Priority)</option>
+                <option value="Active (Medium Priority)">Active (Medium Priority)</option>
+                <option value="Active (Low Priority)">Active (Low Priority)</option>
+                <option value="Complete" selected>Complete</option>
+            </select>
+        </td>
+        <td>Spiggot destroyed Wand in Session 33. Every blight froze and crumbled. Martikovs returned safely. 2000xp.</td>
+    </tr>
+    
+                </tbody>
+            </table>
+        </div>
+
