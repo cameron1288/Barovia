@@ -1,0 +1,695 @@
+
+<!-- Timeline Tab -->
+<div id="timeline-tab">
+
+  <div style="margin-bottom: 24px;">
+    <h2 style="color: #f87171; margin-bottom: 4px;">Chronicle of Events (Under Construction)</h2>
+    <p style="color: #a1a1aa; font-style: italic; font-size: 0.95rem;">Year 735 of Barovia &mdash; Month of Neyavr &nbsp;|&nbsp; Sessions 1&ndash;39</p>
+  </div>
+
+  <!-- Filter Buttons -->
+  <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:28px;">
+    <button type="button" class="tl-filter active" onclick="filterTimeline('all', this)">All</button>
+    <button type="button" class="tl-filter" onclick="filterTimeline('combat', this)">⚔️ Combat</button>
+    <button type="button" class="tl-filter" onclick="filterTimeline('lore', this)">📜 Lore</button>
+    <button type="button" class="tl-filter" onclick="filterTimeline('travel', this)">🗺️ Travel</button>
+    <button type="button" class="tl-filter" onclick="filterTimeline('strahd', this)">🧛 Strahd</button>
+    <button type="button" class="tl-filter" onclick="filterTimeline('milestone', this)">⭐ Milestone</button>
+  </div>
+
+  <div class="tl-container">
+
+    <!-- ── Octyavr ───────────────────────────── -->
+    <div class="tl-month-label">Octyavr — Historical Context</div>
+
+    <div class="tl-entry" data-tags="lore strahd">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~3 Months Before Arrival</span>
+            <h3 class="tl-title">Doru's Rebellion</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-strahd">Strahd</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Doru raised a rebellion against Strahd, awakening him from his sleep. Six nights of horror followed across Barovia. Doru was turned into a vampire spawn and imprisoned in the crypt beneath Father Donavich's church. Father Donavich has not left the church since.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~6 Months Before Arrival</span>
+            <h3 class="tl-title">Stella Wachter's Soul Trapped</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>While attempting to build a teleportation circle together, Stella Wachter and Viktor Vallakovich triggered a catastrophic accident. Stella's soul was ripped from her body and trapped in the Ethereal Plane. She has roughly one week before she is lost forever — a ticking clock when the party arrives in Vallaki.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ARRIVAL ───────────────────────────────────── -->
+    <div class="tl-month-label">Arrival in Barovia — Sessions 1–11</div>
+
+    <div class="tl-entry" data-tags="travel milestone">
+      <div class="tl-dot tl-dot-milestone"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~24th–26th Octyavr &nbsp;|&nbsp; Sessions 1–2</span>
+            <h3 class="tl-title">Arrival — The Daguerfort Orphanage (Death House)</h3>
+            <div class="tl-tags"><span class="tl-tag tag-milestone">Milestone</span><span class="tl-tag tag-travel">Travel</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party arrived through the mists and were drawn into the Daguerfort Orphanage — the Durst family home. They discovered the tragic Durst family history, bloodied letters, and an ancient dagger. They were then spirited through a misty gateway into the Svalich Woods as the Harvest Festival began in Barovia village.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="travel strahd">
+      <div class="tl-dot tl-dot-strahd"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">Day 2–4 &nbsp;|&nbsp; Sessions 3–4</span>
+            <h3 class="tl-title">Village of Barovia — First Encounter with Strahd</h3>
+            <div class="tl-tags"><span class="tl-tag tag-strahd">Strahd</span><span class="tl-tag tag-travel">Travel</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party travelled through the Svalich Woods, passing a body at the 7th tree and a horse corpse with saddle and rations. They arrived at the Village of Barovia, where they met <strong>Ismark</strong> at the Blood of the Vine Tavern. Over the following days, Strahd's carriage appeared on the road, Rahadin delivered a scroll on a phantom steed, and Strahd himself appeared — claiming Ireena as his own.</p>
+          <p>Ireena's cache was recovered: a moonstone gem brooch, yarrow flower wooden charm, and a tarnished bracelet bearing the inscription <em>"May you find your path, and may you find light even in the darkest places."</em></p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore travel">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">Day 7–8 &nbsp;|&nbsp; Sessions 5–10</span>
+            <h3 class="tl-title">Tser Pool — Madam Eva's Tarokka Reading</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party escorted Ireena westward to the Tser Pool Vistani encampment, where Madam Eva had been expecting them. At midnight, she delivered the full Tarokka reading at the River Ylivis Cemetery:</p>
+          <ul class="tl-list">
+            <li><strong>Card 1 — The Traitor:</strong> History / Knowledge of the Ancients — "The lost soul will lead you to him" (ancient foe of a noble house)</li>
+            <li><strong>Card 2 — The Myrmidon:</strong> Holy Symbol of Great Hope — wolf's den in the hills overlooking a mountain lake; treasure belongs to Mother Night</li>
+            <li><strong>Card 3 — The Bishop:</strong> Weapon of Vengeance (Sunblade) — amber prison where the devil fears to tread; House of the Fallen Dragon leads the way</li>
+            <li><strong>Card 4 — The Mists:</strong> Ally — a Vistana wanderer searching for her mentor; seek her at Saint Markovia's Abbey</li>
+            <li><strong>Card 5 — The Marionette:</strong> Enemy's Location — Castle Ravenloft's heights; the beating heart of the castle</li>
+          </ul>
+          <p>Madam Eva also warned: <em>"Be wise, don't believe everything you hear. Strahd received a reading this very morning. We were brought here so that we see the death march."</em></p>
+          <p>Before departing, Eliza (Vistani guard) joined the party.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore travel">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">Day 9 &nbsp;|&nbsp; Session 11</span>
+            <h3 class="tl-title">The Bridge Knight — Argynvostholt Pointed</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-travel">Travel</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Travelling west from Tser Pool, the party encountered a ghostly figure on the bridge over the Luna River — <strong>Ser Godfrey Guillem</strong>, an oath-bound revenant of the Order of the Silver Dragon. He warned against werewolves to the west and directed the party to Argynvostholt: <em>"Head south from the walled town along the ash-grey path."</em></p>
+          <p>Vel found a broken silver pendant later identified as belonging to the Order of the Silver Dragon. A conspiracy of ravens began following the party.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 3RD OF NEYAVR ─────────────────────────────── -->
+    <div class="tl-month-label">✅ 3rd of Neyavr, 735 — Sessions 12–13</div>
+
+    <div class="tl-entry" data-tags="travel lore">
+      <div class="tl-dot tl-dot-confirmed"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">3rd Neyavr &nbsp;|&nbsp; Sessions 12–13</span>
+            <h3 class="tl-title">Arrive in Vallaki — Bones of St. Andral Stolen</h3>
+            <div class="tl-tags"><span class="tl-tag tag-travel">Travel</span><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party arrived at Vallaki (~1,200 people), passing Morgantha on the road carrying bundled figures in bags. Baron Vargas Vallakovich rules; Isek is the real power. Refugees from Barovia are camping outside, not permitted inside.</p>
+          <p>At the <strong>Blue Water Inn</strong> they met Rictavio (a disguised Van Richten), the Wachter brothers Nikolai and Karl, and wolf hunters Szoldar and Yvgeni.</p>
+          <p>At <strong>St. Andral's Church</strong>, Father Lucian revealed the sacred Bones of Saint Andral were stolen just after 9pm the previous night by a hooded figure. The <strong>Festival of the Blazing Sun is on the 7th</strong> — if the bones are not returned, the Hallow spell protecting the church will fail. Vel agreed to recover them.</p>
+          <p>Flint identified a silver dragon amulet belonging to the Order of the Silver Dragon — it binds a revenant to obey a leader's command.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 4TH OF NEYAVR ─────────────────────────────── -->
+    <div class="tl-month-label">✅ 4th of Neyavr, 735 — Sessions 14–19</div>
+
+    <div class="tl-entry" data-tags="combat lore">
+      <div class="tl-dot tl-dot-confirmed"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">4th Neyavr &nbsp;|&nbsp; Sessions 14–16</span>
+            <h3 class="tl-title">Coffin Maker's Shop — Vampire Nest & Bones Recovered</h3>
+            <div class="tl-tags"><span class="tl-tag tag-combat">Combat</span><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Investigation led the party to Henrik Vandervoort's coffin shop, where the bones had been hidden in a wardrobe. Upon discovery an alarm triggered and vampires <strong>Ludmila and Anastasia</strong> confronted the party — "Skinny new plaything." The party fought their way out and recovered the bones, restoring divine protection to St. Andral's Church.</p>
+          <p>In parallel, the Baron publicly humiliated and punished <strong>Udo the shoemaker</strong> for refusing to attend the festival. Vel disguised as Isek to steal the Ireena doll from Blinksy's.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore strahd">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">4th Neyavr &nbsp;|&nbsp; Session 17</span>
+            <h3 class="tl-title">Vistani Camp — Arabelle Missing, Yan Found Dead</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>At the Vistani camp southwest of Vallaki, the party met <strong>Luvash</strong>, leader and father of <strong>Arabelle</strong> (whose 10th birthday it was). Arabelle had been kidnapped while her drunken guard Alexi slept — having been deliberately given wine by the traitor <strong>Yan</strong>.</p>
+          <p>Yan's decapitated body was found near the Luna River alongside a mysterious signet ring. <strong>Kasimir</strong> (a Dusk Elf with frostbitten hands — he had crossed Mt. Ghakis recently) possessed the ring. Research at the Baron's library revealed the ring bore Kazan's personal symbol, and his tower sits on a causeway into Lake Baratok.</p>
+          <p>At the Baron's mansion, a restless spirit had been haunting the mirrors for two months. Victor reluctantly revealed it was his friend <strong>Stella Wachter</strong> — her soul trapped in the Ethereal Plane during a teleportation experiment. She has one week left.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">4th Neyavr Evening &nbsp;|&nbsp; Session 19</span>
+            <h3 class="tl-title">Dinner at Lady Fiona Wachter's — Plan to Kill Isek</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party dined at Wachterhaus. Lady Fiona revealed key intelligence: Isek is the true power behind Baron Vargas Vallakovich, who has ruled for 11 years (his father died suspiciously in his sleep at 50). The Baron founded the town over 500 years ago. <strong>Full moon is on the 8th</strong> — someone in Krezk may be able to help Spiggot.</p>
+          <p>Fiona confirmed she has ties to Strahd but believes a Barovia without Isek could be reformed. She proposed a plan: lure Isek out with wine, poison him, and release Udo's mother. In exchange: compensation and political change in Vallaki.</p>
+          <p>The party freed <strong>Udo</strong> from a closet in the Baron's mansion, where Ripley also discovered Isek's attic lined with Ireena dolls.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 5TH–6TH OF NEYAVR ─────────────────────────── -->
+    <div class="tl-month-label">5th–6th of Neyavr, 735 — Sessions 20–22</div>
+
+    <div class="tl-entry" data-tags="travel lore">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">5th–6th Neyavr &nbsp;|&nbsp; Sessions 20–22</span>
+            <h3 class="tl-title">Kazan's Tower — Van Richten Revealed, Arabelle Safe</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-travel">Travel</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party headed to Lake Baratok and Kazan's Tower. A barrel-topped wagon outside bore the inscription <em>"Home of Esmeralda Davenir."</em> The iron tower door radiated Abjuration magic. Gargoyles attacked as they entered.</p>
+          <p>Inside they found: a colourful beaded bracelet wrapped around a silver dagger, the Tarokka card <strong>The Hooded One</strong>, and Van Richter's burned journal alongside a sketch of Rictavio. Three ceramic pots in the lily pads revealed a devastating personal note — Van Richter's child had been murdered by a vampire.</p>
+          <p>Back in Vallaki, Rictavio was confronted at Arasek's Stockyard and finally admitted the truth: he is <strong>Dr. Rudolph Van Richten</strong>. <strong>Arabelle</strong> had been hidden safely in his wagon the whole time, creating an amulet of Protection. Aragail agreed not to report information to Strahd in exchange for Arabelle's safety — and gave the party a standing favour: one planted piece of misinformation, to be used whenever they choose.</p>
+          <p>Van Richten advised the party to heal Spiggot's lycanthropy before the full moon — wolfsbane grows in the blessed pool at Krezk (1,250 XP reward).</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 8TH OF NEYAVR ─────────────────────────────── -->
+    <div class="tl-month-label">✅ 8th of Neyavr, 735 — FULL MOON — Sessions 23–24</div>
+
+    <div class="tl-entry" data-tags="combat milestone">
+      <div class="tl-dot tl-dot-milestone"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">8th Neyavr — Full Moon &nbsp;|&nbsp; Sessions 23–24</span>
+            <h3 class="tl-title">⭐ Isek Killed at Lake Zarovich</h3>
+            <div class="tl-tags"><span class="tl-tag tag-combat">Combat</span><span class="tl-tag tag-milestone">Milestone</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>On the Festival of the Blazing Sun, the party tracked Isek through his afternoon rounds, following him as he drained a bottle of poisoned Red Dragon Crush wine (poisoned by Aragail). They cornered and killed him at Lake Zarovich.</p>
+          <p>Loot: Silvered Battle Axe, Amber Shard, 35gp, Studded Leather. The amber shard was later identified as a fragment of a larger binding framework — with a unique property that it only speaks when the bearer drops to zero hit points. <strong>Flint's shard was from the same source.</strong></p>
+          <p>Isek's head was delivered to Wachterhaus. Blinksy had already fled the city.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── 9TH–11TH OF NEYAVR ────────────────────────── -->
+    <div class="tl-month-label">9th–11th of Neyavr, 735 — Sessions 24–30</div>
+
+    <div class="tl-entry" data-tags="strahd lore">
+      <div class="tl-dot tl-dot-strahd"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">9th Neyavr &nbsp;|&nbsp; Session 24</span>
+            <h3 class="tl-title">Rahadin's Letter — Dinner Invitation to Castle Ravenloft</h3>
+            <div class="tl-tags"><span class="tl-tag tag-strahd">Strahd</span><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Walking back to the inn, Rahadin appeared with a letter: Strahd formally invited the party to dine at Castle Ravenloft in <strong>six days — the 15th of Neyavr</strong>. Safe travel to and from the castle promised.</p>
+          <p>Arabelle delivered a cryptic prophecy: <em>"In darkness' night the light shall flee / no dawn to break with no reprieve / from the grave the dead shall rise (to be saved)."</em> The prophecy mirrors Madam Eva's warnings.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="combat milestone">
+      <div class="tl-dot tl-dot-milestone"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~10th Neyavr &nbsp;|&nbsp; Sessions 26–27</span>
+            <h3 class="tl-title">⭐ Morgantha & the Nightmare Hags Defeated</h3>
+            <div class="tl-tags"><span class="tl-tag tag-combat">Combat</span><span class="tl-tag tag-milestone">Milestone</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party confronted Morgantha and her daughters at the Old Bonegrinder Mill. Flint delivered the killing blow with an Upspell Guiding Bolt critical hit and retrieved the <strong>Heartstone</strong>. Franz's children Josephia and Camel were found hidden in a bookcase upstairs.</p>
+          <p>Mel cast Remove Curse on Spiggot, curing his lycanthropy. The Heartstone is required (but not consumed) for the ritual to retrieve Stella — and the Wachterhaus cellar contains the necessary Ley Line.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore strahd">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~10th Neyavr &nbsp;|&nbsp; Session 28</span>
+            <h3 class="tl-title">Mock Trial & Fiona's Cellar Ritual — Stella Retrieved</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-strahd">Strahd</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>In the town square, Rahadin staged a mock trial; Henrik and Milovoj were found guilty and sentenced (15 lashings and loss of hand respectively). Lady Fiona used the moment to consolidate power in Vallaki.</p>
+          <p>The party entered the Ethereal Plane via ritual in Fiona's cellar. The walls bore the inscription <em>"In Silence, Death"</em> and the word <em>"Traitor"</em>. Strahd appeared briefly on his Nightmare steed during the ritual. Stella was successfully retrieved — confirmed by Viktor the following morning. The party gained a <strong>Spirit Mirror</strong> and <strong>Lantern of Revealing</strong>.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore milestone">
+      <div class="tl-dot tl-dot-milestone"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~11th Neyavr &nbsp;|&nbsp; Session 29</span>
+            <h3 class="tl-title">⭐ The Sacred Tome of Strahd Recovered</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-milestone">Milestone</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Through the Ley Line ritual and encounter with Leo Delinzia (a Lich), the party uncovered the full history of Strahd's pact with the Dark Powers. Flint delivered the final blow and collected <strong>The Sacred Deep Crimson Red Tome of Strahd</strong> — Tarokka Card 1 resolved.</p>
+          <p>Key contents: Strahd's obsession with Tatyana, his pact with Death, his fear of the Sunsword, and his claim over the three Fanes. The final page bears a triangle symbol inscribed <em>"Exechanter."</em></p>
+          <p>Strahd's verse (overheard by Vel) subverted the Tarokka reading: <em>"The Sword lies in the hand of the Dead / The Ally walks in the Shadow / Cast a light on the Traitor and call him friend / They will trust the wrong soul, let them chase a ghost."</em></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── WINERY / YESTER HILL ───────────────────────── -->
+    <div class="tl-month-label">✅ 10th–11th of Neyavr, 735 — Sessions 30–36</div>
+
+    <div class="tl-entry" data-tags="travel combat">
+      <div class="tl-dot"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">~10th Neyavr &nbsp;|&nbsp; Sessions 30–33</span>
+            <h3 class="tl-title">⭐ Wizard of Wines — Druids Defeated, Winery Cleansed</h3>
+            <div class="tl-tags"><span class="tl-tag tag-combat">Combat</span><span class="tl-tag tag-travel">Travel</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Erwin reported the winery was two days overdue. The party travelled south with Muriel as guide. Druids had invaded three days prior, led by an Elder Druid wielding the <strong>Winter Splinter</strong> — a wand of petrified wood connected to the Gultiest tree at Yester Hill.</p>
+          <p>The Martikov family (Stefania, Dag, Martin, Viggo, Yolanda, Claudio, Adrian, Elvir) were sheltering in a hidden cavern beneath the winery. After clearing multiple floors of Needle Blights, Vine Blights, Twig Blights, and four Druids, <strong>Spiggot destroyed the Winter Splinter wand.</strong> Every blight froze and crumbled. The Gultiest tree dissolved into grey sludge as cleansing rain washed the winery clean.</p>
+          <p><strong>+2,000 XP.</strong> The Martikovs revealed they are were-ravens and members of the Keepers of the Feather.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="strahd milestone lore">
+      <div class="tl-dot tl-dot-strahd"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">✅ 10th Neyavr &nbsp;|&nbsp; Session 34</span>
+            <h3 class="tl-title">⭐ Yester Hill — Strahd Kills Flint; The Amber Pact</h3>
+            <div class="tl-tags"><span class="tl-tag tag-strahd">Strahd</span><span class="tl-tag tag-milestone">Milestone</span><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>At Yester Hill, Strahd appeared astride his Nightmare Beucephalus and paused upon seeing Flint: <em>"Amber Temple has noticed you. I know it."</em> He offered to not interfere if they succeeded.</p>
+          <p>Thirteen cloaked figures surrounded a stone statue at the base. A dark-skinned woman (later identified as connected to Baba Lasaga) led the ritual. Spiggot defied Strahd — and <strong>Flint was killed</strong> as punishment. Isek's amber shard began rotating around Flint's body.</p>
+          <p>Strahd offered: <em>"You have seen enough to be useful. Die here normally — or accept the pact."</em> <strong>Flint accepted the Amber Pact, selecting Isek's shard.</strong> He no longer has a heartbeat or breath. The ravens vowed to find a way to help.</p>
+          <p>Strahd's Tarokka counter-reading was revealed (overheard by Vel): The Sword is with the Dead, the Ally walks in Shadow, and a Traitor walks among trusted friends.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore strahd">
+      <div class="tl-dot tl-dot-strahd"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">11th Neyavr &nbsp;|&nbsp; Session 35–36</span>
+            <h3 class="tl-title">Yester Hill Aftermath — Kavan's Spirit & the Whispering Wall</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-strahd">Strahd</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party sought out the spirit of <strong>Kavan the Blood Drinker</strong> in the Slavich Woods — a druidic chieftain whose spear was stolen by the Forest Folk. He revealed the three green winery gemstones are actually <strong>Gems of the Fanes</strong> — they must be brought to Soldau in the Balinoks, where two waterfalls meet, to restore the Ladies' power.</p>
+          <p>Ripley and Spiggot recovered the green gemstone from the statue before it detonated. The party then met Strahd at the <strong>Whispering Wall</strong> — <em>"the tomb of an ancient god"</em> said to offer visions to those who enter. Strahd pocketed a small trinket and congratulated them before vanishing.</p>
+          <p>Davian revealed more Martikov family history. The party received an <strong>obsidian whistle</strong> and gained <strong>+2,500 XP — Level Up.</strong> Muriel revealed she overheard Strahd's personal Tarokka reading.</p>
+          <p>Elric (Muriel's betrothed and Ervir's twin) had joined Doru's rebellion and never returned — confirmed to have been a were-raven killed at Ravenloft. Muriel herself is a were-raven.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── KREZK ───────────────────────────────────────── -->
+    <div class="tl-month-label">✅ 11th of Neyavr, 735 — Sessions 37–39 (Current)</div>
+
+    <div class="tl-entry" data-tags="travel lore">
+      <div class="tl-dot tl-dot-confirmed"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">✅ 11th Neyavr &nbsp;|&nbsp; Session 37</span>
+            <h3 class="tl-title">Arrive in Krezk — Dimitri Krezkov, the Shrine</h3>
+            <div class="tl-tags"><span class="tl-tag tag-travel">Travel</span><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party arrived at Krezk — 20-foot walls, granted entry because of the wine delivery. They met <strong>Zelly</strong> (possibly Esmerelda Davenir; olive-skinned Vistani, two different boots, one prosthetic leg) and <strong>Dimitri Krezkov</strong>, the Baron of Krezk.</p>
+          <p>The pool at the <strong>Shrine of the White Sun</strong> never freezes. Dimitri revealed the Krezkov family curse: lycanthropy manifests after a child turns 13. His daughter <strong>Kala</strong> (age 8) was killed by his son <strong>Ilya</strong> after a failed potion attempt to cure Ilya's werewolf condition. Ilya then fled and went missing.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry" data-tags="lore milestone">
+      <div class="tl-dot tl-dot-milestone"></div>
+      <div class="tl-card">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">11th Neyavr &nbsp;|&nbsp; Session 38</span>
+            <h3 class="tl-title">🌙 Long Rest — Esmerelda Confirmed in Krezk</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-milestone">Milestone</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Long rest confirmed. Flint distributed new infusions and tinkering: Spiggot (Radiant weapon), Mel (Mind Sharpener), Vel (Sonic Disruptor), Ripley (Recoil Dampener).</p>
+          <p><strong>Esmerelda</strong> is confirmed to be in Krezk, living at the Abbey after being attacked by wolves 3–4 weeks ago. The party offered to find Ilya. Dimitri's sister <strong>Zeleeka</strong> — a werewolf, unseen in Krezk for 30 years — is also connected. Ilya escaped on <strong>Octapore 22</strong> (the preceding month).</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-entry tl-current" data-tags="lore travel">
+      <div class="tl-dot tl-dot-current"></div>
+      <div class="tl-card tl-card-current">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">12th Neyavr &nbsp;|&nbsp; Session 39 — CURRENT</span>
+            <h3 class="tl-title">📍 Inside the Abbey — Zelly, Ilya's Den Located</h3>
+            <div class="tl-tags"><span class="tl-tag tag-travel">Travel</span><span class="tl-tag tag-lore">Lore</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The party entered Saint Markovia's Abbey. A Patchwork Golem guarded the east wing. Vel gave a necklace to it — no response. Inside they found Zelly, who remembered Flint's workshop antics, Spiggot's stories, and Vel singing on a roof — but could not place Vel herself. Zelly confirmed she is Vistana and comes and goes freely. She returned because Van Richten (her friend) came back three months ago, and she felt something <em>bizarre</em> in the Abbey.</p>
+          <p>Through a pentagram chalk circle, contact was made with spirits. <strong>Ilya's location confirmed: a wolf den in a cavern at the spur of Mt. Garble — approximately 12 werewolves, three nights ago.</strong></p>
+          <p>The Abbott was described as growing increasingly unstable.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── UPCOMING ────────────────────────────────────── -->
+    <div class="tl-month-label">⏳ Upcoming — 14th of Neyavr, 735</div>
+
+    <div class="tl-entry" data-tags="strahd milestone">
+      <div class="tl-dot tl-dot-upcoming"></div>
+      <div class="tl-card tl-card-upcoming">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">✅ 14th Neyavr — 3 Days Away</span>
+            <h3 class="tl-title">⚠️ Strahd's Dinner at Castle Ravenloft</h3>
+            <div class="tl-tags"><span class="tl-tag tag-strahd">Strahd</span><span class="tl-tag tag-milestone">Milestone</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>Rahadin delivered Strahd's formal invitation in Session 27 — dinner at Castle Ravenloft on the 14th of Neyavr (note: originally stated as 15th; the 14th is the confirmed target date per Session 34). Safe passage both ways promised.</p>
+          <p>Strahd also offered a separate reward at Yester Hill — meet him at the base of the Whispering Wall after the ritual (already fulfilled). The dinner itself is almost certainly a test, a trap, or both. Refusing likely carries consequences. The party has 3 days as of Session 39.</p>
+        </div>
+      </div>
+    </div>
+
+  <div class="tl-month-label">⏳ Upcoming — 23RD of Neyavr, 735</div>
+
+    <div class="tl-entry" data-tags="strahd milestone">
+      <div class="tl-dot tl-dot-upcoming"></div>
+      <div class="tl-card tl-card-upcoming">
+        <div class="tl-card-header" onclick="toggleTL(this)">
+          <div>
+            <span class="tl-date">✅ 23RD Neyavr — 11 Days Away</span>
+            <h3 class="tl-title">⚠️ The Abbott takes Anna's Heart</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-milestone">Milestone</span></div>
+          </div>
+          <span class="tl-arrow">▼</span>
+        </div>
+        <div class="tl-body">
+          <p>The Abbott gave Anna 30 days until he takes her heart.</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <!-- end .tl-container -->
+
+</div>
+
+<style>
+  .tl-container {
+    position: relative;
+    padding-left: 36px;
+  }
+  .tl-container::before {
+    content: '';
+    position: absolute;
+    left: 10px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: linear-gradient(to bottom, #561c1c, #2a1818, #561c1c);
+  }
+
+  .tl-month-label {
+    position: relative;
+    margin: 32px 0 16px -36px;
+    padding: 8px 16px;
+    background: #1c0d0d;
+    border: 1px solid #561c1c;
+    border-left: 4px solid #b91c1c;
+    border-radius: 0 4px 4px 0;
+    color: #f87171;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+  }
+
+  .tl-entry {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .tl-dot {
+    position: absolute;
+    left: -30px;
+    top: 18px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #561c1c;
+    border: 2px solid #b91c1c;
+    z-index: 1;
+  }
+  .tl-dot-milestone { background: #b91c1c; border-color: #f87171; box-shadow: 0 0 8px #b91c1c; }
+  .tl-dot-strahd    { background: #1a0a0a; border-color: #ef4444; }
+  .tl-dot-confirmed { background: #064e3b; border-color: #34d399; }
+  .tl-dot-current   { background: #f87171; border-color: #fff; box-shadow: 0 0 10px #f87171; }
+  .tl-dot-upcoming  { background: #78350f; border-color: #fbbf24; }
+
+  .tl-card {
+    background: #121214;
+    border: 1px solid #2e2e33;
+    border-left: 4px solid #561c1c;
+    border-radius: 6px;
+    overflow: hidden;
+  }
+  .tl-card-current  { border-left-color: #f87171; box-shadow: 0 0 12px rgba(248,113,113,0.15); }
+  .tl-card-upcoming { border-left-color: #fbbf24; }
+
+  .tl-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .tl-card-header:hover { background: #1a1a1c; }
+
+  .tl-date {
+    display: block;
+    font-size: 0.75rem;
+    color: #a1a1aa;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+  }
+
+  .tl-title {
+    margin: 0 0 6px;
+    font-size: 1rem;
+    color: #f1f5f9;
+  }
+
+  .tl-arrow {
+    font-size: 0.7rem;
+    color: #a1a1aa;
+    margin-left: 12px;
+    flex-shrink: 0;
+    margin-top: 4px;
+    transition: transform 0.2s;
+  }
+
+  .tl-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .tl-tag {
+    font-size: 0.7rem;
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: bold;
+  }
+  .tag-combat    { background: #7f1d1d; color: #fca5a5; }
+  .tag-lore      { background: #1e1b4b; color: #c4b5fd; }
+  .tag-travel    { background: #14532d; color: #86efac; }
+  .tag-strahd    { background: #1a0a0a; color: #ef4444; border: 1px solid #7f1d1d; }
+  .tag-milestone { background: #78350f; color: #fde68a; }
+
+  .tl-body {
+    display: none;
+    padding: 0 16px 16px;
+    border-top: 1px solid #1f1f24;
+  }
+  .tl-body p {
+    color: #d1d5db;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-top: 12px;
+  }
+  .tl-body p:first-child { margin-top: 12px; }
+
+  .tl-list {
+    margin: 10px 0 0 0;
+    padding-left: 20px;
+  }
+  .tl-list li {
+    color: #d1d5db;
+    font-size: 0.9rem;
+    line-height: 1.7;
+    margin-bottom: 6px;
+  }
+
+  /* Filter buttons */
+  .tl-filter {
+    padding: 6px 14px;
+    background: #1a1a1c;
+    border: 1px solid #2e2e33;
+    border-radius: 4px;
+    color: #94a3b8;
+    cursor: pointer;
+    font-family: Georgia, serif;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+  }
+  .tl-filter:hover  { border-color: #b91c1c; color: #f87171; }
+  .tl-filter.active { background: #451a1a; color: #f87171; border-color: #b91c1c; }
+
+  /* Hidden by filter */
+  .tl-entry.tl-hidden { display: none; }
+
+  @media (max-width: 600px) {
+    .tl-container { padding-left: 28px; }
+    .tl-month-label { margin-left: -28px; font-size: 0.75rem; }
+    .tl-dot { left: -22px; }
+    .tl-title { font-size: 0.95rem; }
+  }
+</style>
+
+<script>
+  function toggleTL(header) {
+    const body = header.nextElementSibling;
+    const arrow = header.querySelector('.tl-arrow');
+    const isOpen = body.style.display === 'block';
+    body.style.display = isOpen ? 'none' : 'block';
+    arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+  }
+
+  function filterTimeline(tag, btn) {
+    document.querySelectorAll('.tl-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tl-entry').forEach(entry => {
+      if (tag === 'all') {
+        entry.classList.remove('tl-hidden');
+      } else {
+        const tags = entry.dataset.tags || '';
+        entry.classList.toggle('tl-hidden', !tags.includes(tag));
+      }
+    });
+  }
+</script>

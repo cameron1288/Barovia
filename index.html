@@ -16,6 +16,7 @@
         <div class="tab-menu" id="tabMenu">
 		<button class="tab-btn" onclick="loadFragment('players', event)">Companions</button>
 		<button class="tab-btn" onclick="loadFragment('sessions', event)">Chronicles</button>
+    <button class="tab-btn" onclick="loadFragment('timeline', event)">Timeline</button>
 		<button class="tab-btn" onclick="loadFragment('npcs', event)">Denizens</button>
 		<button class="tab-btn" onclick="loadFragment('quests', event)">Quests</button>
 		<button class="tab-btn" onclick="loadFragment('lore', event)">Lore</button>
@@ -184,6 +185,30 @@ function showInfo(locationName) {
 
   desc.innerHTML = html;
   panel.classList.remove('hidden');
+}
+
+async function loadFragment(filename, event) {
+    const response = await fetch(`content/${filename}.html`);
+    const html = await response.text();
+
+    document.getElementById('content-area').innerHTML = html;
+
+    // Re-execute any scripts in the loaded fragment
+    document.querySelectorAll('#content-area script').forEach(oldScript => {
+        const newScript = document.createElement('script');
+        newScript.textContent = oldScript.textContent;
+        document.body.appendChild(newScript);
+        oldScript.remove();
+    });
+
+    // Fix map pins
+    document.querySelectorAll('.map-pin').forEach(btn => {
+        btn.setAttribute('type', 'button');
+    });
+
+    document.getElementById('liveSearch').value = '';
+    document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
 }
 
 </script>
