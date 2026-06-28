@@ -396,3 +396,27 @@ details[open] .library-header-block::after {
   border-radius: 4px;
   background-color: #1a1a1c !important;
 }
+
+/* Status Badges (spans, used in NPC cards) */
+.status-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+.status-friendly   { background-color: #064e3b; color: #a7f3d0; }
+.status-hostile    { background-color: #7f1d1d; color: #fca5a5; }
+.status-neutral    { background-color: #1e293b; color: #94a3b8; }
+.status-mystery    { background-color: #3b1f6e; color: #c4b5fd; }
+.status-suspicious { background-color: #4a3000; color: #fbbf24; }
+
+/* Quest status selects (used in quest cards) */
+.status-active-high { background-color: #7f1d1d !important; color: #fca5a5 !important; }
+.status-active-med  { background-color: #78350f !important; color: #fde68a !important; }
+.status-active-low  { background-color: #1e3a5f !important; color: #93c5fd !important; }
+.status-complete    { background-color: #064e3b !important; color: #a7f3d0 !important; }
