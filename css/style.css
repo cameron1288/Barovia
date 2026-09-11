@@ -420,3 +420,130 @@ details[open] .library-header-block::after {
 .status-active-med  { background-color: #78350f !important; color: #fde68a !important; }
 .status-active-low  { background-color: #1e3a5f !important; color: #93c5fd !important; }
 .status-complete    { background-color: #064e3b !important; color: #a7f3d0 !important; }
+
+/* ===================== Battles Tab ===================== */
+.battle-meta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+    margin: 10px 0 16px;
+}
+
+.outcome-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.outcome-victory  { background-color: #064e3b; color: #a7f3d0; }
+.outcome-retreat  { background-color: #78350f; color: #fde68a; }
+.outcome-mixed    { background-color: #1e293b; color: #94a3b8; }
+.outcome-tragedy  { background-color: #7f1d1d; color: #fca5a5; }
+
+.enemy-tag {
+    display: inline-block;
+    background-color: #1a1111;
+    border: 1px solid #561c1c;
+    color: #fca5a5;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.78rem;
+    margin: 2px 4px 2px 0;
+}
+
+.hero-play-box {
+    background-color: #1a1111;
+    border-left: 3px solid #b91c1c;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin: 8px 0;
+    font-size: 0.9rem;
+    color: #e2e8f0;
+}
+.hero-play-box strong { color: #fbbf24; }
+
+.battle-section-label {
+    color: #a1a1aa;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: bold;
+    margin: 14px 0 6px;
+    display: block;
+}
+
+/* ===================== Codex Tab ===================== */
+.codex-category {
+    margin-bottom: 36px;
+}
+
+.codex-category-header {
+    color: #f87171;
+    font-size: 1.3rem;
+    border-bottom: 2px solid #561c1c;
+    padding-bottom: 8px;
+    margin-bottom: 6px;
+}
+
+.codex-category-desc {
+    color: #a1a1aa;
+    font-style: italic;
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+}
+
+.codex-item {
+    border-bottom: 1px solid #27272a;
+    margin-bottom: 8px;
+}
+
+.codex-header-block {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    list-style: none;
+    padding: 12px 0;
+}
+.codex-header-block::-webkit-details-marker { display: none; }
+.codex-header-block h4 {
+    margin: 0;
+    font-size: 1.05rem;
+    color: #e4e4e7;
+}
+.codex-header-block::after {
+    content: "▼";
+    font-size: 0.75em;
+    color: #a1a1aa;
+    margin-left: 15px;
+    flex-shrink: 0;
+}
+details[open] .codex-header-block::after {
+    content: "▲";
+    color: #ef4444;
+}
+.codex-body-block {
+    padding: 0 0 20px 0;
+}
+.codex-body-block p {
+    line-height: 1.6;
+    color: #d1d5db;
+    margin-bottom: 12px;
+    font-size: 0.92rem;
+}
+.codex-tag {
+    display: inline-block;
+    background-color: #1e1b4b;
+    color: #c4b5fd;
+    padding: 2px 9px;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-right: 6px;
+}
