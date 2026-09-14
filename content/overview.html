@@ -17,6 +17,87 @@
         </div>
     </div>
 
+    <!-- Quest Progress -->
+    <div class="ov-progress-wrap">
+        <div class="ov-progress-label">
+            <span>Quest Progress</span>
+            <span>11 / 29 Complete (38%)</span>
+        </div>
+        <div class="ov-progress-bar">
+            <div class="ov-progress-fill" style="width: 38%;"></div>
+        </div>
+    </div>
+
+    <!-- Story Arc Roadmap -->
+    <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">🗺️ The Current Arc</h3>
+    <div class="ov-roadmap">
+
+        <div class="ov-step ov-step-done">
+            <div class="ov-step-dot">✓</div>
+            <div class="ov-step-content">
+                <strong>Wolf Den &amp; Holy Symbol</strong>
+                <span>Session 40–41</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-done">
+            <div class="ov-step-dot">✓</div>
+            <div class="ov-step-content">
+                <strong>Argynvostholt &amp; Sir Godfrey Gwilym</strong>
+                <span>Session 41</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-done">
+            <div class="ov-step-dot">✓</div>
+            <div class="ov-step-content">
+                <strong>Zorya Freed &amp; the Vault Uncovered</strong>
+                <span>Sessions 42–43</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-done">
+            <div class="ov-step-dot">✓</div>
+            <div class="ov-step-content">
+                <strong>Brother Marek &amp; the Icon of Dawn's Grace</strong>
+                <span>Session 44</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-done">
+            <div class="ov-step-dot">✓</div>
+            <div class="ov-step-content">
+                <strong>Vladimir Confronted — Gargoyle's Prophecy</strong>
+                <span>Session 45</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-current">
+            <div class="ov-step-dot">●</div>
+            <div class="ov-step-content">
+                <strong>Retrieve Argynvost's Remains</strong>
+                <span>Up Next</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-upcoming">
+            <div class="ov-step-dot">○</div>
+            <div class="ov-step-content">
+                <strong>Strahd's Dinner at Castle Ravenloft</strong>
+                <span>Tomorrow — 14th Neyavr</span>
+            </div>
+        </div>
+
+        <div class="ov-step ov-step-upcoming">
+            <div class="ov-step-dot">○</div>
+            <div class="ov-step-content">
+                <strong>Rescue Emil Tornesku</strong>
+                <span>Deadline: Day After New Moon (15th)</span>
+            </div>
+        </div>
+
+    </div>
+
     <!-- Recently Completed -->
     <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">✅ Recently Completed</h3>
     <div class="lore-collapsible-container" style="margin-top: 0; margin-bottom: 30px;">
@@ -26,7 +107,7 @@
         </div>
 
         <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
-            <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 44:</strong> Recovered Brother Marek's prayer book from the spider-infested ballroom and summoned his spirit — he named the Icon of Dawn's Grace and pointed the party toward Zorya.</p>
+            <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 44:</strong> Recovered Brother Marek's prayer book from the spider-infested ballroom and summoned his spirit — he named the Icon of Dawn's Grace and left a cryptic clue about "the younger of the twin dragons," still unidentified.</p>
         </div>
 
         <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
@@ -41,6 +122,20 @@
 
     <!-- Imminent Deadlines -->
     <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">⚠️ Imminent Deadlines</h3>
+
+    <div class="ov-countdown-grid">
+        <div class="ov-countdown-card">
+            <div class="ov-countdown-number">1</div>
+            <div class="ov-countdown-label">Day Until<br>Strahd's Dinner</div>
+            <div class="ov-urgency-bar"><div class="ov-urgency-fill" style="width:95%;"></div></div>
+        </div>
+        <div class="ov-countdown-card">
+            <div class="ov-countdown-number">~2</div>
+            <div class="ov-countdown-label">Days Until<br>Mother Night's Curse</div>
+            <div class="ov-urgency-bar"><div class="ov-urgency-fill" style="width:88%;"></div></div>
+        </div>
+    </div>
+
     <div class="cards-grid" style="margin-bottom: 30px;">
 
         <div class="card" style="border-left: 4px solid #ef4444;">
@@ -103,3 +198,147 @@
 
     <p style="color:#71717a; font-size:0.8rem; margin-top:24px; font-style:italic;">For the full picture: Quests has everything active and complete, Codex has the lore grouped by mystery, and Timeline has the day-by-day chronology.</p>
 </div>
+
+<style>
+    /* Quest progress bar */
+    .ov-progress-wrap {
+        margin-bottom: 30px;
+    }
+    .ov-progress-label {
+        display: flex;
+        justify-content: space-between;
+        color: #a1a1aa;
+        font-size: 0.85rem;
+        margin-bottom: 6px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .ov-progress-bar {
+        width: 100%;
+        height: 14px;
+        background-color: #1a1a1c;
+        border: 1px solid #2e2e33;
+        border-radius: 7px;
+        overflow: hidden;
+    }
+    .ov-progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #7f1d1d, #b91c1c, #f87171);
+        border-radius: 7px 0 0 7px;
+    }
+
+    /* Story arc roadmap */
+    .ov-roadmap {
+        position: relative;
+        margin: 0 0 30px 10px;
+        padding-left: 30px;
+    }
+    .ov-roadmap::before {
+        content: '';
+        position: absolute;
+        left: 9px;
+        top: 4px;
+        bottom: 4px;
+        width: 2px;
+        background: linear-gradient(to bottom, #561c1c, #2a1818);
+    }
+    .ov-step {
+        position: relative;
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+    .ov-step-dot {
+        position: absolute;
+        left: -30px;
+        top: 0;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+    .ov-step-done .ov-step-dot {
+        background-color: #064e3b;
+        border: 2px solid #34d399;
+        color: #a7f3d0;
+    }
+    .ov-step-current .ov-step-dot {
+        background-color: #f87171;
+        border: 2px solid #fff;
+        color: #1a0a0a;
+        box-shadow: 0 0 10px #f87171;
+    }
+    .ov-step-upcoming .ov-step-dot {
+        background-color: #1a1a1c;
+        border: 2px solid #52525b;
+        color: #71717a;
+    }
+    .ov-step-content {
+        display: flex;
+        flex-direction: column;
+    }
+    .ov-step-content strong {
+        color: #e4e4e7;
+        font-size: 0.95rem;
+    }
+    .ov-step-done .ov-step-content strong { color: #a7f3d0; }
+    .ov-step-current .ov-step-content strong { color: #f87171; }
+    .ov-step-content span {
+        color: #71717a;
+        font-size: 0.78rem;
+        margin-top: 2px;
+    }
+
+    /* Deadline countdown cards */
+    .ov-countdown-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+    .ov-countdown-card {
+        background-color: #1a1111;
+        border: 1px solid #7f1d1d;
+        border-radius: 8px;
+        padding: 18px;
+        text-align: center;
+    }
+    .ov-countdown-number {
+        font-size: 2.6rem;
+        font-weight: bold;
+        color: #f87171;
+        line-height: 1;
+        text-shadow: 0 0 12px rgba(248,113,113,0.4);
+    }
+    .ov-countdown-label {
+        color: #d1d5db;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-top: 8px;
+        line-height: 1.4;
+    }
+    .ov-urgency-bar {
+        width: 100%;
+        height: 6px;
+        background-color: #2a1414;
+        border-radius: 3px;
+        overflow: hidden;
+        margin-top: 12px;
+    }
+    .ov-urgency-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #b91c1c, #f87171);
+    }
+
+    @media (max-width: 600px) {
+        .ov-roadmap { padding-left: 26px; margin-left: 4px; }
+        .ov-step-dot { left: -26px; }
+    }
+</style>
