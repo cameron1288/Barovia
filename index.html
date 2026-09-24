@@ -29,7 +29,7 @@
             <button class="tab-btn" onclick="loadFragment('library', event)">Library</button>
         </div>
 
-        <div class="search-wrapper" style="padding: 15px;">
+        <div class="search-wrapper" style="padding: 8px 15px;">
             <input type="text" id="liveSearch" class="search-bar" placeholder="Search current tab..." onkeyup="filterContent()">
         </div>
 
@@ -65,10 +65,15 @@
         // Live-filters cards/rows in the current tab by search text.
         function filterContent() {
             const input = document.getElementById('liveSearch').value.toLowerCase();
-            const items = document.querySelectorAll('#content-area .card, #content-area tr');
+            // .lore-item/.codex-item/.library-item cover the <details>-based tabs
+            // (Lore, Codex, Combat, Library), which don't use the .card class.
+            const items = document.querySelectorAll('#content-area .card, #content-area tr, #content-area .lore-item, #content-area .codex-item, #content-area .library-item');
 
             items.forEach(item => {
-                const text = item.innerText.toLowerCase();
+                // textContent (not innerText) so search also matches text inside
+                // collapsed <details> sections (Chronicles, Lore, Codex), which
+                // innerText ignores because it isn't currently rendered/visible.
+                const text = item.textContent.toLowerCase();
                 item.style.display = text.includes(input) ? '' : 'none';
             });
         }

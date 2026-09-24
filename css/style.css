@@ -17,30 +17,30 @@ body {
     background-color: #0d0d0f;
     color: #e2e8f0;
     line-height: 1.6;
-    padding: 20px;
+    padding: 12px;
 }
 
 /* Header */
 header {
     text-align: center;
-    padding: 30px 10px;
+    padding: 8px 10px;
     background: linear-gradient(135deg, #1c0d0d 0%, #0d0d0f 100%);
     border: 2px solid #561c1c;
     border-radius: 8px;
-    margin-bottom: 25px;
+    margin-bottom: 8px;
     box-shadow: 0 4px 15px rgba(0,0,0,0.7);
 }
 
 header h1 {
-    font-size: 2.5rem;
+    font-size: 1.3rem;
     color: var(--header-red);
     text-transform: uppercase;
     letter-spacing: 3px;
     text-shadow: 2px 2px 4px #000;
-    margin-bottom: 5px;
+    margin-bottom: 1px;
 }
 
-header p { color: #a1a1aa; font-style: italic; font-size: 1.1rem; }
+header p { color: #a1a1aa; font-style: italic; font-size: 0.85rem; }
 
 /* Tabs */
 .tabs-container {
@@ -61,15 +61,15 @@ header p { color: #a1a1aa; font-style: italic; font-size: 1.1rem; }
 .tab-btn {
     background: none;
     border: none;
-    padding: 15px 25px;
+    padding: 6px 10px;
     color: #cbd5e1;
-    font-size: 1.1rem;
+    font-size: 0.78rem;
     font-weight: bold;
     cursor: pointer;
     font-family: 'Georgia', serif;
     border-right: 1px solid #2e2e33;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     transition: all 0.3s;
 }
 
@@ -80,7 +80,7 @@ header p { color: #a1a1aa; font-style: italic; font-size: 1.1rem; }
     border-bottom: 3px solid var(--header-red);
 }
 
-.tab-content { display: none; padding: 25px; }
+.tab-content { display: none; padding: 8px 25px 14px; }
 .tab-content.active { display: block; }
 
 /* Workspace & Inputs */
@@ -213,9 +213,27 @@ mark.search-match {
         border-radius: 0;
     }
 
-    /* Adjust font sizes for smaller screens */
-    header h1 { font-size: 1.8rem; }
-    .tab-btn { padding: 10px 15px; font-size: 0.9rem; }
+    /* Smaller header so it doesn't eat the whole first screen */
+    header { padding: 8px 10px; margin-bottom: 8px; }
+    header h1 { font-size: 1.1rem; letter-spacing: 1.5px; }
+    header p { font-size: 0.8rem; }
+
+    /* Tab bar: one scrollable row instead of wrapping into 5-6 rows */
+    .tab-menu {
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    .tab-btn {
+        flex-shrink: 0;
+        padding: 8px 12px;
+        font-size: 0.78rem;
+    }
+
+    /* Session/lore/codex collapsible headers run at the browser's default
+       h2/h3 size, which wraps to 3-4 lines on a phone-width card. */
+    .session-header-block h2 { font-size: 1.15rem; }
+    .lore-header-block h3 { font-size: 1.05rem; }
 }
 
 .session-header-block {
@@ -260,7 +278,7 @@ details[open] .session-header-block::after {
     justify-content: space-between;
     cursor: pointer;
     list-style: none;
-    padding: 15px 0; /* Flat layout, no box padding */
+    padding: 10px 0; /* Flat layout, no box padding */
 }
 
 /* Removes default HTML marker */
@@ -375,6 +393,22 @@ details[open] .library-header-block::after {
     max-height: 80vh;  /* Prevents it from being taller than the screen */
     overflow-y: auto;  /* Adds a scrollbar inside the panel if text is too long */
 }
+
+/* On phones, anchor the panel to the bottom of the screen instead of a
+   fixed top-right corner, which otherwise sits on top of the header/tabs. */
+@media (max-width: 600px) {
+    #info-panel {
+        top: auto;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: auto;
+        max-height: 65vh;
+        border-radius: 12px 12px 0 0;
+        background: rgba(10, 5, 5, 0.97);
+    }
+}
+
 .map-legend {
   margin-top: 15px;
   padding: 15px;
@@ -395,6 +429,32 @@ details[open] .library-header-block::after {
   border: 1px solid #2e2e33 !important;
   border-radius: 4px;
   background-color: #1a1a1c !important;
+}
+
+/* Mobile-only alphabetical location list (see .map-list-mobile-btn below) —
+   an alternative to tapping small, closely-packed map pins on a phone. */
+.map-list-mobile { display: none; }
+.map-list-mobile h3 { color: #f87171; font-size: 1rem; margin-bottom: 10px; }
+.map-list-mobile-grid { display: flex; flex-direction: column; gap: 6px; }
+.map-list-mobile-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    background-color: #1a1a1c;
+    border: 1px solid #2e2e33;
+    border-radius: 6px;
+    color: #cbd5e1;
+    font-family: 'Georgia', serif;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+.map-list-mobile-btn:active { background-color: #2a1818; border-color: #561c1c; }
+
+@media (max-width: 600px) {
+    /* Fold the legend into the unified list below instead of showing both. */
+    .map-legend { display: none; }
+    .map-list-mobile { display: block; margin-top: 16px; }
 }
 
 /* Status Badges (spans, used in NPC cards) */

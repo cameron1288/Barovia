@@ -3,203 +3,349 @@
 </head>
 <!-- Overview Tab -->
 <div id="overview-tab" class="tab-content active">
-    <h2>Where We Stand</h2>
-    <p style="color: #a1a1aa; margin-bottom: 25px; font-style: italic;">The short version — for whenever someone asks "wait, what are we doing again?"</p>
+    <h2 style="margin-bottom: 8px;">Where We Stand</h2>
 
-    <!-- Current Session -->
-    <div class="card gothic-card" style="margin-bottom: 20px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
-            <div>
-                <span style="color:#a1a1aa; font-size:0.8rem; text-transform:uppercase; letter-spacing:1px;">Currently</span>
-                <h3 style="margin:4px 0 0; color:#f87171;">Session 45 Complete — 13th Neyavr, Year 735</h3>
+    <div class="ov-briefing-grid">
+
+        <div class="ov-briefing-col">
+            <!-- Current Status + Last Session Recap -->
+            <div class="card gothic-card ov-status-card">
+                <div class="ov-status-top">
+                    <div>
+                        <span class="ov-status-label">Currently</span>
+                        <h3 class="ov-status-heading">Session 46 Complete — 14th Neyavr, Year 735</h3>
+                    </div>
+                    <span class="ov-location-badge">📍 Castle Ravenloft Courtyard</span>
+                </div>
+                <p class="ov-recap-text"><strong style="color:#a7f3d0;">Last time:</strong> Reunited with <span class="gloss" data-term="doru">Doru</span> (now resisting his forced vampirism) and learned his eyewitness account of Castle Ravenloft's defenses. Received a secret spy warning from <span class="gloss" data-term="aragel">Aragel</span>, found a mysterious locket at an ancient oak, and rode Strahd's own carriage — gifted matching cloaks — straight to the castle gates.</p>
             </div>
-            <span style="background-color:#f87171; color:#1a0a0a; padding:6px 16px; border-radius:4px; font-weight:bold; font-size:0.85rem;">📍 Argynvostholt</span>
-        </div>
-    </div>
 
-    <!-- Quest Progress -->
-    <div class="ov-progress-wrap">
-        <div class="ov-progress-label">
-            <span>Quest Progress</span>
-            <span>11 / 29 Complete (38%)</span>
-        </div>
-        <div class="ov-progress-bar">
-            <div class="ov-progress-fill" style="width: 38%;"></div>
-        </div>
-    </div>
+            <!-- Imminent Deadlines -->
+            <h3 class="ov-section-title">⚠️ Imminent Deadlines</h3>
+            <div class="ov-deadlines">
 
-    <!-- Story Arc Roadmap -->
-    <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">🗺️ The Current Arc</h3>
-    <div class="ov-roadmap">
+                <div class="card ov-deadline-card">
+                    <div class="ov-deadline-top">
+                        <span class="ov-deadline-number">NOW</span>
+                        <strong>Strahd's Dinner — Castle Ravenloft</strong>
+                    </div>
+                    <p>Happening now — the party is in the courtyard. Safe passage promised both ways. Almost certainly a test, a trap, or both.</p>
+                </div>
 
-        <div class="ov-step ov-step-done">
-            <div class="ov-step-dot">✓</div>
-            <div class="ov-step-content">
-                <strong>Wolf Den &amp; Holy Symbol</strong>
-                <span>Session 40–41</span>
-            </div>
-        </div>
+                <div class="card ov-deadline-card">
+                    <div class="ov-deadline-top">
+                        <span class="ov-deadline-number">~1 DAY</span>
+                        <strong>Mother Night's Oath — Rescue Emil</strong>
+                    </div>
+                    <p>Due the day after the New Moon (15th Neyavr). Miss it, and the party's max HP and all stats start dropping daily.</p>
+                </div>
 
-        <div class="ov-step ov-step-done">
-            <div class="ov-step-dot">✓</div>
-            <div class="ov-step-content">
-                <strong>Argynvostholt &amp; Sir Godfrey Gwilym</strong>
-                <span>Session 41</span>
             </div>
         </div>
 
-        <div class="ov-step ov-step-done">
-            <div class="ov-step-dot">✓</div>
-            <div class="ov-step-content">
-                <strong>Zorya Freed &amp; the Vault Uncovered</strong>
-                <span>Sessions 42–43</span>
-            </div>
-        </div>
+        <div class="ov-briefing-col">
+            <h3 class="ov-section-title">🎯 Goals for Tonight — Inside the Castle</h3>
+            <div class="ov-next-steps">
 
-        <div class="ov-step ov-step-done">
-            <div class="ov-step-dot">✓</div>
-            <div class="ov-step-content">
-                <strong>Brother Marek &amp; the Icon of Dawn's Grace</strong>
-                <span>Session 44</span>
-            </div>
-        </div>
+                <div class="ov-step-row">
+                    <span class="ov-step-num">1</span>
+                    <div>
+                        <strong>Survive the dinner with Strahd</strong>
+                        <p>It's next. Don't force a real fight — without the Sunsword in hand, he's effectively unkillable.</p>
+                    </div>
+                </div>
 
-        <div class="ov-step ov-step-done">
-            <div class="ov-step-dot">✓</div>
-            <div class="ov-step-content">
-                <strong>Vladimir Confronted — Gargoyle's Prophecy</strong>
-                <span>Session 45</span>
-            </div>
-        </div>
+                <div class="ov-step-row">
+                    <span class="ov-step-num">2</span>
+                    <div>
+                        <strong>Identify the spy in Strahd's court</strong>
+                        <p>Aragel's warning: "find the victim amidst the court." <span class="gloss" data-term="esher">Esher</span> is the leading suspect — may be reachable tonight.</p>
+                    </div>
+                </div>
 
-        <div class="ov-step ov-step-current">
-            <div class="ov-step-dot">●</div>
-            <div class="ov-step-content">
-                <strong>Retrieve Argynvost's Remains</strong>
-                <span>Up Next</span>
-            </div>
-        </div>
+                <div class="ov-step-row">
+                    <span class="ov-step-num">3</span>
+                    <div>
+                        <strong>Retrieve <span class="gloss" data-term="argynvost">Lord Argynvost</span>'s remains</strong>
+                        <p>Likely the "hall of bones" off the main hall. Needed to release <span class="gloss" data-term="vladimir">Vladimir</span>'s oath and unlock the <span class="gloss" data-term="sunsword">Sunsword</span>'s location.</p>
+                    </div>
+                </div>
 
-        <div class="ov-step ov-step-upcoming">
-            <div class="ov-step-dot">○</div>
-            <div class="ov-step-content">
-                <strong>Strahd's Dinner at Castle Ravenloft</strong>
-                <span>Tomorrow — 14th Neyavr</span>
-            </div>
-        </div>
+                <div class="ov-step-row">
+                    <span class="ov-step-num">4</span>
+                    <div>
+                        <strong>Rescue <span class="gloss" data-term="emil">Emil Tornesku</span></strong>
+                        <p>He's somewhere in the castle. Oath deadline hits the day after tomorrow's new moon — may need to happen tonight.</p>
+                    </div>
+                </div>
 
-        <div class="ov-step ov-step-upcoming">
-            <div class="ov-step-dot">○</div>
-            <div class="ov-step-content">
-                <strong>Rescue Emil Tornesku</strong>
-                <span>Deadline: Day After New Moon (15th)</span>
-            </div>
-        </div>
+                <div class="ov-step-row">
+                    <span class="ov-step-num">5</span>
+                    <div>
+                        <strong>Search the dungeons for the <span class="gloss" data-term="icon">Icon of Dawn's Grace</span></strong>
+                        <p>The seance pointed to "the Amber Temple or the dungeons of Castle Ravenloft" — worth a look if they're reachable.</p>
+                    </div>
+                </div>
 
-    </div>
+                <div class="ov-step-row">
+                    <span class="ov-step-num">6</span>
+                    <div>
+                        <strong>Find and question <span class="gloss" data-term="sirus">Sirus</span></strong>
+                        <p>Marzeena's sibling, "promoted" to serve Strahd — he should be somewhere in the castle. Zigfric, Otto, and Cloven asked the party to question him in exchange for a secret treasure.</p>
+                    </div>
+                </div>
 
-    <!-- Recently Completed -->
-    <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">✅ Recently Completed</h3>
-    <div class="lore-collapsible-container" style="margin-top: 0; margin-bottom: 30px;">
-
-        <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
-            <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 45:</strong> Confronted Vladimir Horngaard directly — he refused to release his oath, but Zorya lit the tower's beacon anyway, triggering the gargoyle's prophecy that named the real path forward (Argynvost's remains, not negotiation).</p>
-        </div>
-
-        <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
-            <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 44:</strong> Recovered Brother Marek's prayer book from the spider-infested ballroom and summoned his spirit — he named the Icon of Dawn's Grace and left a cryptic clue about "the younger of the twin dragons," still unidentified.</p>
-        </div>
-
-        <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
-            <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Sessions 42–43:</strong> Freed and identified Zorya (Argynvost's pseudodragon companion), and found the vow rings, Andral's letter, and Argynvost's final testament in Argynvostholt's vault.</p>
-        </div>
-
-        <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
-            <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 41:</strong> Retrieved the Holy Symbol of Ravenkind from the Wolf Den — sworn to Zuleeka in exchange for rescuing Emil Tornesku.</p>
-        </div>
-
-    </div>
-
-    <!-- Imminent Deadlines -->
-    <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">⚠️ Imminent Deadlines</h3>
-
-    <div class="ov-countdown-grid">
-        <div class="ov-countdown-card">
-            <div class="ov-countdown-number">1</div>
-            <div class="ov-countdown-label">Day Until<br>Strahd's Dinner</div>
-            <div class="ov-urgency-bar"><div class="ov-urgency-fill" style="width:95%;"></div></div>
-        </div>
-        <div class="ov-countdown-card">
-            <div class="ov-countdown-number">~2</div>
-            <div class="ov-countdown-label">Days Until<br>Mother Night's Curse</div>
-            <div class="ov-urgency-bar"><div class="ov-urgency-fill" style="width:88%;"></div></div>
-        </div>
-    </div>
-
-    <div class="cards-grid" style="margin-bottom: 30px;">
-
-        <div class="card" style="border-left: 4px solid #ef4444;">
-            <strong style="font-size:1.1rem; color:#f87171;">Strahd's Dinner — Castle Ravenloft</strong>
-            <p style="margin-top:8px; color:#d1d5db; font-size:0.9rem;"><strong style="color:#fca5a5;">Tomorrow (14th Neyavr).</strong> Safe passage promised both ways. Almost certainly a test, a trap, or both.</p>
-        </div>
-
-        <div class="card" style="border-left: 4px solid #ef4444;">
-            <strong style="font-size:1.1rem; color:#f87171;">Mother Night's Oath — Rescue Emil</strong>
-            <p style="margin-top:8px; color:#d1d5db; font-size:0.9rem;"><strong style="color:#fca5a5;">Due the day after the New Moon (15th Neyavr)</strong> — right on the heels of the dinner. Miss it, and the party's max HP and all stats start dropping daily.</p>
-        </div>
-
-    </div>
-
-    <!-- Top Next Steps -->
-    <h3 style="color:#f87171; border-bottom: 2px solid #561c1c; padding-bottom: 8px; margin-bottom: 16px;">🎯 Next Steps</h3>
-    <div class="lore-collapsible-container" style="margin-top: 0;">
-
-        <div class="card" style="margin-bottom: 12px; display:flex; gap:14px; align-items:flex-start;">
-            <span style="color:#f87171; font-size:1.4rem; font-weight:bold; line-height:1;">1</span>
-            <div>
-                <strong style="color:#f87171;">Survive the dinner at Castle Ravenloft</strong>
-                <p style="margin-top:6px; color:#d1d5db; font-size:0.9rem;">It's tomorrow. Watch for the "hall of bones" Van Richten described — likely where Strahd keeps Lord Argynvost's remains.</p>
-            </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 12px; display:flex; gap:14px; align-items:flex-start;">
-            <span style="color:#f87171; font-size:1.4rem; font-weight:bold; line-height:1;">2</span>
-            <div>
-                <strong style="color:#f87171;">Retrieve Lord Argynvost's remains and return them to his tomb</strong>
-                <p style="margin-top:6px; color:#d1d5db; font-size:0.9rem;">This is the plan to release Vladimir Horngaard's oath — not talking him down, but fulfilling the gargoyle's prophecy directly. The bones are almost certainly the "hall of bones" trophy inside Castle Ravenloft.</p>
-            </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 12px; display:flex; gap:14px; align-items:flex-start;">
-            <span style="color:#f87171; font-size:1.4rem; font-weight:bold; line-height:1;">3</span>
-            <div>
-                <strong style="color:#f87171;">Rescue Emil Tornesku &amp; restore him as pack alpha</strong>
-                <p style="margin-top:6px; color:#d1d5db; font-size:0.9rem;">He's somewhere in Castle Ravenloft. The oath deadline is bearing down fast — this may need to happen during or right after the dinner.</p>
-            </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 12px; display:flex; gap:14px; align-items:flex-start;">
-            <span style="color:#f87171; font-size:1.4rem; font-weight:bold; line-height:1;">4</span>
-            <div>
-                <strong style="color:#f87171;">Visit the Amber Temple</strong>
-                <p style="margin-top:6px; color:#d1d5db; font-size:0.9rem;">Not to dispose of anything — just to gain knowledge, likely about Flint's shard entity, Strahd's original pact, and the Sunsword. Reachable through Argynvostholt.</p>
-            </div>
-        </div>
-
-        <div class="card" style="margin-bottom: 12px; display:flex; gap:14px; align-items:flex-start;">
-            <span style="color:#f87171; font-size:1.4rem; font-weight:bold; line-height:1;">5</span>
-            <div>
-                <strong style="color:#f87171;">Finish appeasing Argynvostholt's spirits</strong>
-                <p style="margin-top:6px; color:#d1d5db; font-size:0.9rem;">Godfrey Gwilym will only reveal the Sunsword's exact location once "Vladimir's final mission" is complete — separate from the bones/oath plan above.</p>
             </div>
         </div>
 
     </div>
 
-    <p style="color:#71717a; font-size:0.8rem; margin-top:24px; font-style:italic;">For the full picture: Quests has everything active and complete, Codex has the lore grouped by mystery, and Timeline has the day-by-day chronology.</p>
+    <!-- Keep In Mind (warnings) -->
+    <div class="ov-warnings">
+        <span class="ov-warnings-label">⚠️ Keep In Mind</span>
+        <span class="ov-warning-chip">No Sunsword — avoid a real fight</span>
+        <span class="ov-warning-chip">Beware the <span class="gloss" data-term="traitor">Traitor</span> — trust no one new</span>
+        <span class="ov-warning-chip"><span class="gloss" data-term="rahadin">Rahadin</span> — deadly, twin scimitars</span>
+        <span class="ov-warning-chip">Undead garrison &amp; teleport traps</span>
+    </div>
+
+    <!-- Full Story So Far (collapsed by default) -->
+    <details class="lore-item" style="margin-top: 0; border-bottom: none;">
+        <summary class="lore-header-block">
+            <h3 style="color:#f87171;">🗺️ Full Story So Far (Quest Progress &amp; Roadmap)</h3>
+        </summary>
+        <div class="lore-body-block">
+
+            <!-- Quest Progress -->
+            <div class="ov-progress-wrap">
+                <div class="ov-progress-label">
+                    <span>Quest Progress</span>
+                    <span>14 / 31 Complete (45%)</span>
+                </div>
+                <div class="ov-progress-bar">
+                    <div class="ov-progress-fill" style="width: 45%;"></div>
+                </div>
+            </div>
+
+            <!-- Story Arc Roadmap -->
+            <div class="ov-roadmap">
+
+                <div class="ov-step ov-step-done">
+                    <div class="ov-step-dot">✓</div>
+                    <div class="ov-step-content">
+                        <strong>Wolf Den &amp; Holy Symbol</strong>
+                        <span>Session 40–41</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-done">
+                    <div class="ov-step-dot">✓</div>
+                    <div class="ov-step-content">
+                        <strong>Argynvostholt &amp; Sir Godfrey Gwilym</strong>
+                        <span>Session 41</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-done">
+                    <div class="ov-step-dot">✓</div>
+                    <div class="ov-step-content">
+                        <strong>Zorya Freed &amp; the Vault Uncovered</strong>
+                        <span>Sessions 42–43</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-done">
+                    <div class="ov-step-dot">✓</div>
+                    <div class="ov-step-content">
+                        <strong>Brother Marek &amp; the Icon of Dawn's Grace</strong>
+                        <span>Session 44</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-done">
+                    <div class="ov-step-dot">✓</div>
+                    <div class="ov-step-content">
+                        <strong>Vladimir Confronted — Gargoyle's Prophecy</strong>
+                        <span>Session 45</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-done">
+                    <div class="ov-step-dot">✓</div>
+                    <div class="ov-step-content">
+                        <strong>The Ancient Oak &amp; Katerina's Locket</strong>
+                        <span>Session 46</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-current">
+                    <div class="ov-step-dot">●</div>
+                    <div class="ov-step-content">
+                        <strong>Strahd's Dinner at Castle Ravenloft</strong>
+                        <span>Up Next — Session 47</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-upcoming">
+                    <div class="ov-step-dot">○</div>
+                    <div class="ov-step-content">
+                        <strong>Retrieve Argynvost's Remains</strong>
+                        <span>Likely inside the castle</span>
+                    </div>
+                </div>
+
+                <div class="ov-step ov-step-upcoming">
+                    <div class="ov-step-dot">○</div>
+                    <div class="ov-step-content">
+                        <strong>Rescue Emil Tornesku</strong>
+                        <span>Deadline: Day After New Moon (15th)</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Earlier Sessions -->
+            <h4 style="color:#a7f3d0; margin-bottom: 12px;">Earlier Sessions</h4>
+            <div class="lore-collapsible-container" style="margin-top: 0;">
+
+                <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
+                    <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 45:</strong> Confronted Vladimir Horngaard directly — he refused to release his oath, but Zorya lit the tower's beacon anyway, triggering the gargoyle's prophecy that named the real path forward (Argynvost's remains, not negotiation).</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
+                    <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Session 44:</strong> Recovered Brother Marek's prayer book from the spider-infested ballroom and summoned his spirit — he named the Icon of Dawn's Grace and left a cryptic clue about "the younger of the twin dragons," still unidentified.</p>
+                </div>
+
+                <div class="card" style="margin-bottom: 10px; padding: 14px 20px;">
+                    <p style="margin:0; color:#d1d5db; font-size:0.9rem;"><strong style="color:#a7f3d0;">Sessions 42–43:</strong> Freed and identified Zorya (Argynvost's pseudodragon companion), and found the vow rings, Andral's letter, and Argynvost's final testament in Argynvostholt's vault.</p>
+                </div>
+
+            </div>
+
+        </div>
+    </details>
+
+    <p style="color:#71717a; font-size:0.78rem; margin-top:4px; font-style:italic;">For the full picture: Quests has everything active and complete, Codex has the lore grouped by mystery, and Timeline has the day-by-day chronology.</p>
 </div>
 
 <style>
+    /* Two-column briefing layout */
+    .ov-briefing-grid {
+        display: grid;
+        grid-template-columns: 1.05fr 0.95fr;
+        gap: 20px;
+        align-items: start;
+        margin-bottom: 0;
+    }
+    .ov-briefing-col { min-width: 0; }
+
+    /* Status + recap card */
+    .ov-status-card { padding: 8px 14px; margin-bottom: 8px; }
+    .ov-status-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+    .ov-status-label { color: #a1a1aa; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; }
+    .ov-status-heading { margin: 2px 0 0; color: #f87171; font-size: 1.05rem; }
+    .ov-location-badge {
+        background-color: #f87171;
+        color: #1a0a0a;
+        padding: 5px 14px;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    .ov-recap-text {
+        margin-top: 6px;
+        padding-top: 6px;
+        border-top: 1px solid #2e2e33;
+        color: #d1d5db;
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
+    /* Shared compact section title */
+    .ov-section-title {
+        color: #f87171;
+        border-bottom: 2px solid #561c1c;
+        padding-bottom: 3px;
+        margin-bottom: 4px;
+        font-size: 0.95rem;
+    }
+
+    /* Deadlines */
+    .ov-deadlines { display: flex; flex-direction: column; gap: 4px; }
+    .ov-deadline-card { padding: 5px 12px; }
+    .ov-deadline-top { display: flex; align-items: baseline; gap: 8px; margin-bottom: 3px; flex-wrap: wrap; }
+    .ov-deadline-number {
+        font-size: 0.9rem;
+        font-weight: bold;
+        color: #f87171;
+        background: #2a1414;
+        padding: 2px 8px;
+        border-radius: 4px;
+        flex-shrink: 0;
+    }
+    .ov-deadline-top strong { color: #f87171; font-size: 0.9rem; }
+    .ov-deadline-card p { margin: 0; color: #d1d5db; font-size: 0.78rem; line-height: 1.35; }
+
+    /* Next steps compact list */
+    .ov-next-steps { display: flex; flex-direction: column; }
+    .ov-step-row {
+        display: flex;
+        gap: 10px;
+        padding: 4px 0;
+        border-bottom: 1px solid #221818;
+    }
+    .ov-step-row:last-child { border-bottom: none; }
+    .ov-step-num {
+        color: #f87171;
+        font-weight: bold;
+        font-size: 1rem;
+        line-height: 1.25;
+        flex-shrink: 0;
+        width: 16px;
+    }
+    .ov-step-row strong { color: #f87171; font-size: 0.85rem; display: block; line-height: 1.25; }
+    .ov-step-row p { margin-top: 2px; color: #d1d5db; font-size: 0.77rem; line-height: 1.3; }
+
+    /* Keep In Mind warning chips */
+    .ov-warnings {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 0 4px;
+        border-top: 1px solid #2e2e33;
+        margin-top: 0;
+    }
+    .ov-warnings-label {
+        color: #fbbf24;
+        font-size: 0.72rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-right: 2px;
+        flex-shrink: 0;
+    }
+    .ov-warning-chip {
+        background-color: #1a1410;
+        border: 1px solid #57460f;
+        color: #d1d5db;
+        font-size: 0.68rem;
+        padding: 3px 8px;
+        border-radius: 10px;
+        white-space: nowrap;
+    }
+
+    @media (max-width: 900px) {
+        .ov-briefing-grid { grid-template-columns: 1fr; }
+    }
+
     /* Quest progress bar */
     .ov-progress-wrap {
         margin-bottom: 30px;
@@ -295,35 +441,7 @@
         margin-top: 2px;
     }
 
-    /* Deadline countdown cards */
-    .ov-countdown-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 16px;
-        margin-bottom: 16px;
-    }
-    .ov-countdown-card {
-        background-color: #1a1111;
-        border: 1px solid #7f1d1d;
-        border-radius: 8px;
-        padding: 18px;
-        text-align: center;
-    }
-    .ov-countdown-number {
-        font-size: 2.6rem;
-        font-weight: bold;
-        color: #f87171;
-        line-height: 1;
-        text-shadow: 0 0 12px rgba(248,113,113,0.4);
-    }
-    .ov-countdown-label {
-        color: #d1d5db;
-        font-size: 0.8rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-top: 8px;
-        line-height: 1.4;
-    }
+    /* Deadline urgency bar */
     .ov-urgency-bar {
         width: 100%;
         height: 6px;
@@ -341,4 +459,168 @@
         .ov-roadmap { padding-left: 26px; margin-left: 4px; }
         .ov-step-dot { left: -26px; }
     }
+
+    /* Glossary terms + popover */
+    .gloss {
+        cursor: pointer;
+        text-decoration: underline dotted;
+        text-underline-offset: 3px;
+        text-decoration-color: #7f1d1d;
+    }
+    .gloss:hover { text-decoration-color: #f87171; }
+
+    .ov-gloss-popover {
+        position: absolute;
+        z-index: 1000;
+        width: 260px;
+        background-color: #16161a;
+        border: 1px solid #561c1c;
+        border-radius: 8px;
+        padding: 12px 14px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+    .ov-gloss-title {
+        color: #f87171;
+        font-weight: bold;
+        font-size: 0.9rem;
+        margin-bottom: 6px;
+    }
+    .ov-gloss-blurb {
+        color: #d1d5db;
+        font-size: 0.8rem;
+        line-height: 1.4;
+        margin-bottom: 10px;
+    }
+    .ov-gloss-link {
+        background: none;
+        border: 1px solid #561c1c;
+        color: #fca5a5;
+        font-size: 0.75rem;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        font-family: inherit;
+        width: 100%;
+    }
+    .ov-gloss-link:hover { background-color: #2a1818; }
 </style>
+
+<script>
+(function() {
+    var GLOSSARY = {
+        doru: { label: "Doru Bonavich", tab: "npcs", tabLabel: "Denizens", search: "Doru Bonavich",
+            blurb: "The village priest's son. Led a failed rebellion against Strahd, was captured and converted into a vampire spawn — now free and visibly resisting the vampirism forced on him. Gave the party their only eyewitness account of the castle's defenses." },
+        aragel: { label: "Aragel", tab: "npcs", tabLabel: "Denizens", search: "Aragel",
+            blurb: "A Vallaki Vistani indebted to the party for rescuing his niece Arrabelle. Secretly slipped Vel a note warning of a spy in Strahd's court." },
+        esher: { label: "Esher", tab: "npcs", tabLabel: "Denizens", search: "Esher",
+            blurb: "Strahd's coachman and Doru's friend — vanished moments before Strahd ambushed their failed assault on the castle years ago and was never seen again. The party's leading (unconfirmed) suspect for the spy." },
+        emil: { label: "Emil Tornesku", tab: "quests", tabLabel: "Quests", search: "Emil Tornesku",
+            blurb: "Zuleeka's husband and the wolf pack's deposed alpha, held somewhere in Castle Ravenloft. The party swore an oath to rescue him — the deadline hits the day after tomorrow's new moon." },
+        sunsword: { label: "Sunsword", tab: "quests", tabLabel: "Quests", search: "Sunsword",
+            blurb: "The one weapon Strahd truly fears, by his own Tome's admission. Hidden in \"an amber prison, where the devil fears to tread\" — still not found." },
+        argynvost: { label: "Lord Argynvost", tab: "npcs", tabLabel: "Denizens", search: "Lord Argynvost",
+            blurb: "Founder of the Order of the Silver Dragon — secretly a silver dragon in disguise. Slain by Strahd, who burned his bones and took his skull as a trophy to Castle Ravenloft." },
+        vladimir: { label: "Vladimir Horngaard", tab: "npcs", tabLabel: "Denizens", search: "Vladimir Horngaard",
+            blurb: "Former Order commander, now an unkillable revenant who patrols Argynvostholt. Vowed to let Strahd suffer rather than die, and refuses to release that oath." },
+        icon: { label: "Icon of Dawn's Grace", tab: "lore", tabLabel: "Lore", search: "Icon of Dawn's Grace",
+            blurb: "A silver statuette relic named by Brother Marek's summoned spirit. A seance pointed to the Amber Temple or Castle Ravenloft's dungeons as its likely location." },
+        sirus: { label: "Sirus", tab: "sessions", tabLabel: "Chronicles", search: "Sirus",
+            blurb: "Marzeena's sibling — \"promoted\" to serve Strahd, per Session 38. Zigfric, Otto, and Cloven asked the party to question him in exchange for a secret treasure." },
+        rahadin: { label: "Rahadin", tab: "npcs", tabLabel: "Denizens", search: "Rahadin",
+            blurb: "Strahd's dusk elf Chamberlain — deadly with twin scimitars, and the one who slew Sir Godfrey Gwilym in the Order's final battle." },
+        traitor: { label: "The Traitor (prophecy)", tab: "quests", tabLabel: "Quests", search: "Beware the Traitor",
+            blurb: "Strahd's own counter-prophecy warned the party will \"trust the wrong soul\" — someone they currently trust may betray them." }
+    };
+
+    var POP_ID = 'ov-glossary-popover';
+
+    function closePopover() {
+        var el = document.getElementById(POP_ID);
+        if (el) el.remove();
+        document.removeEventListener('click', outsideClickHandler, true);
+    }
+
+    function outsideClickHandler(e) {
+        var pop = document.getElementById(POP_ID);
+        if (pop && !pop.contains(e.target) && !e.target.classList.contains('gloss')) {
+            closePopover();
+        }
+    }
+
+    function getTabButton(filename) {
+        var btns = document.querySelectorAll('.tab-menu .tab-btn');
+        for (var i = 0; i < btns.length; i++) {
+            var onclick = btns[i].getAttribute('onclick') || '';
+            if (onclick.indexOf("loadFragment('" + filename + "'") !== -1) return btns[i];
+        }
+        return null;
+    }
+
+    function jumpToEntry(filename, searchTerm) {
+        var btn = getTabButton(filename);
+        if (!btn || typeof loadFragment !== 'function') return;
+        var result = loadFragment(filename, { target: btn });
+        Promise.resolve(result).then(function() {
+            var searchBox = document.getElementById('liveSearch');
+            if (searchBox) {
+                searchBox.value = searchTerm;
+                if (typeof filterContent === 'function') filterContent();
+                searchBox.focus();
+            }
+        });
+    }
+
+    function openPopover(anchorEl, data) {
+        closePopover();
+        var pop = document.createElement('div');
+        pop.id = POP_ID;
+        pop.className = 'ov-gloss-popover';
+
+        var title = document.createElement('div');
+        title.className = 'ov-gloss-title';
+        title.textContent = data.label;
+
+        var blurb = document.createElement('div');
+        blurb.className = 'ov-gloss-blurb';
+        blurb.textContent = data.blurb;
+
+        var link = document.createElement('button');
+        link.type = 'button';
+        link.className = 'ov-gloss-link';
+        link.textContent = 'View full entry in ' + data.tabLabel + ' →';
+        link.addEventListener('click', function() {
+            jumpToEntry(data.tab, data.search);
+            closePopover();
+        });
+
+        pop.appendChild(title);
+        pop.appendChild(blurb);
+        pop.appendChild(link);
+        document.body.appendChild(pop);
+
+        var rect = anchorEl.getBoundingClientRect();
+        var popRect = pop.getBoundingClientRect();
+        var left = rect.left + window.scrollX;
+        var top = rect.bottom + window.scrollY + 6;
+        if (left + popRect.width > window.innerWidth - 10) {
+            left = window.innerWidth - popRect.width - 10;
+        }
+        pop.style.left = left + 'px';
+        pop.style.top = top + 'px';
+
+        setTimeout(function() {
+            document.addEventListener('click', outsideClickHandler, true);
+        }, 0);
+    }
+
+    var terms = document.querySelectorAll('#overview-tab .gloss');
+    for (var i = 0; i < terms.length; i++) {
+        terms[i].addEventListener('click', function(e) {
+            e.stopPropagation();
+            var key = this.getAttribute('data-term');
+            var data = GLOSSARY[key];
+            if (data) openPopover(this, data);
+        });
+    }
+})();
+</script>
