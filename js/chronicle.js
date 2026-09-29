@@ -171,22 +171,33 @@
 
     // For a Denizens/Realm card: the latest Chronicles session whose recap mentions the
     // character or place (by any of its glossary names).
+    // Built once per page load: one pass over the Chronicles recaps with the glossary regex
+    // (longest name wins, so "Blue Water Inn" never counts as "Blue"), recording the latest
+    // session each character/place is mentioned in.
+    let mentionsPromise = null;
+    function sessionMentions() {
+        if (!mentionsPromise) mentionsPromise = (async () => {
+            const [passages, { byName, regex }] = await Promise.all([getIndex(), getEntities()]);
+            const latest = new Map();
+            if (!regex) return latest;
+            for (const p of passages) {
+                if (p.tab !== 'sessions') continue;
+                const m = p.title.match(/^Session (\d+)/);
+                if (!m) continue;
+                const n = Number(m[1]);
+                regex.lastIndex = 0;
+                for (const hit of p.text.matchAll(regex)) {
+                    const ent = byName.get(hit[0]);
+                    if (ent && n > (latest.get(ent.title) || 0)) latest.set(ent.title, n);
+                }
+            }
+            return latest;
+        })();
+        return mentionsPromise;
+    }
+
     async function lastMentionedSession(card) {
-        const [passages, { entities }] = await Promise.all([getIndex(), getEntities()]);
-        const title = cleanTitle(headingOf(card)).title;
-        const ent = entities.find(e => e.title === title);
-        if (!ent || !ent.names.length) return 0;
-        // Whole-name matches only, and not as part of a longer name ("Blue" in "Blue Water Inn").
-        const esc = ent.names.map(n => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-        const re = new RegExp(`(?<![\\p{L}\\p{N}])(?:${esc})(?![\\p{L}\\p{N}]| Water Inn)`, 'u');
-        let max = 0;
-        for (const p of passages) {
-            if (p.tab !== 'sessions') continue;
-            const m = p.title.match(/^Session (\d+)/);
-            if (!m || Number(m[1]) <= max) continue;
-            if (re.test(p.text)) max = Number(m[1]);
-        }
-        return max;
+        return (await sessionMentions()).get(cleanTitle(headingOf(card)).title) || 0;
     }
 
     async function sortByRelevance(tabFile) {
@@ -511,8 +522,11 @@
     // index.html's loadFragment calls this after every tab load.
     window.chronicleAfterLoad = async (tabFile) => {
         closeGlossPop();
-        await sortByRelevance(tabFile);
+        await sortByRelevance(tabFile);   // before the first paint, so cards never visibly jump
         clampLongCards();
+        // Let the tab paint first; the underlines arrive a moment later. On a tablet this
+        // keeps big tabs (Denizens, Timeline) from freezing before anything shows.
+        await new Promise(r => requestAnimationFrame(() => setTimeout(r, 0)));
         await linkGlossaryTerms();
     };
 
@@ -633,8 +647,9 @@
         const input = document.getElementById('liveSearch');
         document.getElementById('global-search-btn').addEventListener('click', runSearch);
         input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); runSearch(); } });
-        // Warm the index in the background so the first search is instant.
-        (window.requestIdleCallback || setTimeout)(() => getIndex());
+        // Warm the index (and the relevance data built from it) in the background so the
+        // first search and the first Denizens/Realm visit are instant.
+        (window.requestIdleCallback || setTimeout)(() => getIndex().then(() => sessionMentions()));
     }
 
     // ---------- Chat UI ----------

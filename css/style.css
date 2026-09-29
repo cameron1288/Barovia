@@ -47,7 +47,9 @@ header p { color: #a1a1aa; font-style: italic; font-size: 0.85rem; }
     background-color: #16161a;
     border: 1px solid #2e2e33;
     border-radius: 8px;
-    overflow: hidden;
+    /* clip (not hidden) keeps the rounded corners without creating a scroll
+       container, so the sticky tab bar below can stick to the viewport. */
+    overflow: clip;
     box-shadow: 0 4px 12px rgba(0,0,0,0.5);
 }
 
@@ -56,6 +58,11 @@ header p { color: #a1a1aa; font-style: italic; font-size: 0.85rem; }
     flex-wrap: wrap;
     background-color: #1f1f24;
     border-bottom: 2px solid #561c1c;
+    /* Stays at the top while scrolling long tabs (Chronicles, Denizens…). */
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.45);
 }
 
 .tab-btn {
@@ -768,3 +775,46 @@ details.entry-more > summary:hover { color: #f87171; }
     border-radius: 6px; padding: 0 14px; font: inherit; cursor: pointer;
 }
 #chat-form button:disabled { opacity: 0.5; cursor: wait; }
+
+/* ===== Installed app ===== */
+#update-toast {
+    position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 1100;
+    background: #7f1d1d; color: #fecaca; border: 1px solid #b91c1c; border-radius: 20px;
+    padding: 10px 18px; font: inherit; font-size: 0.85rem; cursor: pointer;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.6); max-width: calc(100vw - 32px);
+}
+#update-toast[hidden] { display: none; }
+/* Full-screen app on notched iPhones/iPads: keep content out from under the status bar. */
+@media (display-mode: standalone) {
+    body { padding-top: max(12px, env(safe-area-inset-top)); padding-bottom: env(safe-area-inset-bottom); }
+}
+
+/* ===== Tablets & touch screens ===== */
+
+/* Portrait tablets (~601–900px): two card columns instead of one very long one. */
+@media (min-width: 601px) and (max-width: 900px) {
+    .cards-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+}
+
+@media (pointer: coarse) {
+    /* iPad/iPhone Safari zooms the whole page when a text box under 16px is tapped. */
+    .search-bar, #chat-input { font-size: 16px; }
+
+    /* Finger-sized tab buttons (~40px tall instead of ~27px). */
+    .tab-btn { min-height: 40px; padding: 8px 12px; }
+    #global-search-btn, #chat-form button { min-height: 40px; }
+
+    /* Bigger invisible tap area around each map pin. The pin itself doesn't move or
+       grow: the button box (and its translate(-50%,-50%) centering) is unchanged. */
+    /* Only pins placed on the map: legend buttons also use .map-pin but aren't
+       positioned, so a ::before on them would stretch over the whole map. */
+    .map-container .map-pin::before {
+        content: "";
+        position: absolute;
+        inset: -12px;
+        border-radius: 50%;
+    }
+
+    /* Collapsible headers: easier to hit. */
+    details.entry-more > summary { padding: 10px 0 8px; }
+}

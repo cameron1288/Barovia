@@ -56,4 +56,12 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
   `https://barovia-chronicle.cameronwoodard1288-9d0.workers.dev`. Redeploy with `npx --yes wrangler@3 deploy` from
   `worker/`. Use wrangler 3, since this PC runs Node 20. Never run `npm install` inside this Google Drive folder:
   Drive corrupts `node_modules`. See `worker/README.md` for the party code and model settings.
-- **Media:** keep audio as MP3 and portraits small (JPEG/WebP). This site is used on phones.
+- **Media:** keep audio as MP3 and portraits small (JPEG/WebP). This site is used on phones and tablets.
+- **Installable app (PWA):** `manifest.webmanifest`, `sw.js`, and `icons/` let players "Add to Home Screen".
+  `sw.js` serves pages from an on-device cache, then re-checks GitHub in the background and shows a
+  "tap to refresh" notice when something changed. So pushed updates reach app users on their next launch,
+  with no version bump needed. If you add a new tab's content file, add it to the `SHELL` list in `sw.js` so it
+  works offline from the first launch. Bump `VERSION` in `sw.js` only if the caching logic itself changes.
+- **Performance:** tabs are tuned to open quickly on a tablet-speed processor. Expensive work (the search index,
+  the glossary entity list, the relevance "last mentioned" map) is built once per page load and reused, so
+  don't add per-card or per-tab loops that rescan every page.

@@ -2,9 +2,18 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Barovia Campaign Chronicle</title>
     <link rel="stylesheet" href="css/style.css">
+    <!-- Installable app ("Add to Home Screen"): see manifest.webmanifest and sw.js -->
+    <link rel="manifest" href="manifest.webmanifest">
+    <meta name="theme-color" content="#1c0d0d">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Barovia">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
     <header>
@@ -110,5 +119,21 @@
     </div>
 
     <script src="js/chronicle.js"></script>
+
+    <!-- App update notice: sw.js tells open pages when GitHub has newer content. -->
+    <button id="update-toast" type="button" hidden>📜 The Chronicle has been updated. Tap to refresh.</button>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            });
+            navigator.serviceWorker.addEventListener('message', e => {
+                if (e.data && e.data.type === 'chronicle-updated') {
+                    document.getElementById('update-toast').hidden = false;
+                }
+            });
+            document.getElementById('update-toast').addEventListener('click', () => location.reload());
+        }
+    </script>
 </body>
 </html>
