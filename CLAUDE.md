@@ -41,7 +41,7 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
 - **Canonical spellings** (the text should use these; older variants stay only as glossary aliases):
   Isek, Baba Lysaga, Arabelle, Esmeralda D'Avenir, Van Richten, Morgantha, Aragel, Esher, Anastrasya, Kirill,
   Zuleeka, Leo Delinzia, Irwin, Elrich, Stephania, Louvache, Nikolay, Vallaki, Spiggot, Ireena, Soldav, Stanimir,
-  Biltrath Cantomere, Ismark Kolyanovich, "Winter Splinter".
+  Biltrath Cantomere, Ismark Kolyanovich, "Winter Splinter", Cyrus Belleview ("Sirus" was a typo; never use it).
 - **Overview "Goals for Next Session"** is a short checklist of party goals actionable next session only.
   Long-term quests (e.g. the Search for Mother) stay on Quests; obvious items ("get out alive") are left out;
   single-PC reminders (e.g. Vel's cryptic boon) go in the "Keep In Mind" chips.
