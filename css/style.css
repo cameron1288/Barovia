@@ -795,6 +795,11 @@ details.entry-more > summary:hover { color: #f87171; }
     header h1 { font-size: 0.95rem; letter-spacing: 1px; }
     header p { display: none; }
 
+    /* Map pins at half size so they don't blanket the small map. They stay centred on
+       their coordinates (translate(-50%,-50%)), and the touch tap area around each pin
+       (see "Tablets & touch screens") keeps them easy to hit. Legend buttons unaffected. */
+    .map-container .map-pin { font-size: 12px; }
+
     /* Chat: a round button instead of a wide pill covering the text */
     #chat-toggle { font-size: 0; width: 48px; height: 48px; padding: 0; border-radius: 50%; right: 12px; bottom: 12px; }
     #chat-toggle::before { content: "🦇"; font-size: 22px; }
