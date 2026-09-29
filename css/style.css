@@ -661,6 +661,16 @@ details.entry-more > summary:hover { color: #f87171; }
 }
 .card:not(.is-clamped) > .clamp-toggle { position: static; transform: none; display: block; margin: 10px auto 0; }
 
+/* ===== NPC portraits (collapsed until tapped; images lazy-load when opened) ===== */
+details.npc-portrait { border-top: none; margin: 0 0 6px; }
+details.npc-portrait > summary { padding-top: 2px; }
+.npc-portrait figure { margin: 4px 0 10px; }
+.npc-portrait img {
+    display: block; width: 100%; max-height: 460px; object-fit: contain;
+    background: #0e0e10; border: 1px solid #2e2e33; border-radius: 6px;
+}
+.npc-portrait figcaption { color: #a1a1aa; font-size: 0.75rem; font-style: italic; margin-top: 4px; text-align: center; }
+
 /* ===== Codex: Open Mysteries ===== */
 .mystery-list { margin: 8px 0 28px 20px; }
 .mystery-list li { margin-bottom: 8px; line-height: 1.5; }
@@ -690,6 +700,11 @@ details.entry-more > summary:hover { color: #f87171; }
 .gloss-pop-title { color: #f87171; font-weight: bold; font-size: 0.92rem; margin-bottom: 2px; }
 .gloss-pop-meta { color: #a1a1aa; font-size: 0.72rem; margin-bottom: 6px; }
 .gloss-pop-blurb { color: #d1d5db; font-size: 0.8rem; line-height: 1.45; margin-bottom: 10px; }
+.gloss-pop-img {
+    float: right; width: 72px; height: 88px; object-fit: cover; object-position: top;
+    margin: 0 0 6px 10px; border-radius: 6px; border: 1px solid #2e2e33; background: #0e0e10;
+}
+.gloss-pop-link { clear: both; }
 .gloss-pop-link {
     width: 100%; background: none; border: 1px solid #561c1c; color: #fca5a5;
     font: inherit; font-size: 0.75rem; padding: 5px 10px; border-radius: 5px; cursor: pointer;

@@ -360,6 +360,7 @@
                 const sub = strong.nextElementSibling && strong.nextElementSibling.tagName === 'DIV'
                     ? norm(strong.nextElementSibling.textContent) : '';
                 const status = card.querySelector('.status-badge, .region-badge');
+                const portrait = card.querySelector('.npc-portrait img');
                 const names = [title, ...aliases];
                 // Titled card names ('The Amber Temple', 'Lord Argynvost') also match without
                 // the prefix. Hand-written EXTRA_ALIASES are used exactly as given.
@@ -371,6 +372,7 @@
                 entities.push({
                     title, rawTitle, tab: src.file, tabLabel: src.label, blurb, sub,
                     status: status ? norm(status.textContent) : '',
+                    img: portrait ? portrait.getAttribute('src') : '',
                     names: [...new Set(names)].filter(n => n.length > 2 && !NEVER_LINK.has(n)),
                 });
             });
@@ -483,6 +485,13 @@
             m.className = 'gloss-pop-meta';
             m.textContent = meta;
             pop.append(m);
+        }
+        if (ent.img) {
+            const thumb = document.createElement('img');
+            thumb.className = 'gloss-pop-img';
+            thumb.src = ent.img;
+            thumb.alt = '';
+            pop.append(thumb);
         }
         const body = document.createElement('div');
         body.className = 'gloss-pop-blurb';
