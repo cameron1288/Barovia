@@ -16,6 +16,7 @@
         <div class="tab-menu" id="tabMenu">
             <button class="tab-btn" onclick="loadFragment('overview', event)">Overview</button>
             <button class="tab-btn" onclick="loadFragment('players', event)">Companions</button>
+            <button class="tab-btn" onclick="loadFragment('inventory', event)">Inventory</button>
             <button class="tab-btn" onclick="loadFragment('sessions', event)">Chronicles</button>
             <button class="tab-btn" onclick="loadFragment('timeline', event)">Timeline</button>
             <button class="tab-btn" onclick="loadFragment('npcs', event)">Denizens</button>
@@ -30,7 +31,11 @@
         </div>
 
         <div class="search-wrapper" style="padding: 8px 15px;">
-            <input type="text" id="liveSearch" class="search-bar" placeholder="Search current tab..." onkeyup="filterContent()">
+            <div class="search-row">
+                <input type="text" id="liveSearch" class="search-bar" placeholder="Search current tab... (Enter searches all tabs)" onkeyup="filterContent()">
+                <button type="button" id="global-search-btn" title="Search every tab">🔎 All tabs</button>
+            </div>
+            <div id="global-results" hidden></div>
         </div>
 
         <div id="content-area" class="tab-content active" style="display: block;"></div>
@@ -60,6 +65,9 @@
             document.getElementById('liveSearch').value = '';
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+
+            // Relevance ordering, "Show more" for long cards, glossary links (js/chronicle.js).
+            if (typeof window.chronicleAfterLoad === 'function') await window.chronicleAfterLoad(filename);
         }
 
         // Live-filters cards/rows in the current tab by search text.
@@ -83,5 +91,24 @@
             document.querySelector('.tab-btn').click();
         };
     </script>
+
+    <!-- Ask the Chronicle: AI Q&A answered only from this site's content.
+         Logic lives in js/chronicle.js; the free AI relay is in /worker. -->
+    <button id="chat-toggle" type="button" hidden>🦇 Ask the Chronicle</button>
+    <div id="chat-panel" hidden>
+        <div class="chat-head">
+            <strong>Ask the Chronicle</strong>
+            <button type="button" id="chat-close" aria-label="Close">✕</button>
+        </div>
+        <div id="chat-log">
+            <div class="chat-msg chat-bot">Ask me anything recorded in the Chronicle: who someone is, what happened in a session, what a quest needs. I only know what's written on this site.</div>
+        </div>
+        <form id="chat-form">
+            <input id="chat-input" type="text" maxlength="2000" placeholder="e.g. What did Sasha tell Flint?" autocomplete="off">
+            <button type="submit">Ask</button>
+        </form>
+    </div>
+
+    <script src="js/chronicle.js"></script>
 </body>
 </html>

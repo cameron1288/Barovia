@@ -607,3 +607,164 @@ details[open] .codex-header-block::after {
     letter-spacing: 0.5px;
     margin-right: 6px;
 }
+
+/* ===== Structured long cards: summary + key facts + collapsed history =====
+   Used on long Denizens / Companions / Realm / Quests cards. New session
+   events go in as a tagged <li> in .entry-log, not as another paragraph. */
+.entry-summary { color: #d1d5db; font-size: 0.9rem; line-height: 1.5; margin: 0 0 8px; }
+.entry-facts { color: #d1d5db; font-size: 0.85rem; line-height: 1.45; margin: 0 0 6px 18px; padding: 0; }
+.entry-facts li { margin-bottom: 4px; }
+.entry-facts li::marker { color: #b91c1c; }
+.entry-quote {
+    color: #fca5a5; font-size: 0.86rem; font-style: italic; line-height: 1.45;
+    margin: 6px 0; padding-left: 10px; border-left: 2px solid #7f1d1d;
+}
+details.entry-more { border-top: 1px solid #2a2226; margin-top: 8px; }
+details.entry-more > summary {
+    cursor: pointer; list-style: none; color: #fca5a5; font-size: 0.8rem;
+    text-transform: uppercase; letter-spacing: 0.5px; padding: 7px 0 5px;
+}
+details.entry-more > summary::-webkit-details-marker { display: none; }
+details.entry-more > summary::before { content: "▶"; display: inline-block; font-size: 0.65rem; margin-right: 7px; transition: transform 0.15s; }
+details.entry-more[open] > summary::before { transform: rotate(90deg); }
+details.entry-more > summary:hover { color: #f87171; }
+.entry-log { list-style: none; margin: 0 0 4px; padding: 0; }
+.entry-log li {
+    position: relative; padding: 5px 0 5px 48px; font-size: 0.83rem; line-height: 1.45;
+    color: #cbd5e1; border-bottom: 1px dashed #241c1f;
+}
+.entry-log li:last-child { border-bottom: none; }
+.entry-s {
+    position: absolute; left: 0; top: 6px; min-width: 40px; text-align: center;
+    background: #2a1414; color: #fca5a5; border-radius: 3px; padding: 0 4px;
+    font-size: 0.68rem; font-weight: bold; letter-spacing: 0.3px;
+}
+.entry-more > p { color: #cbd5e1; font-size: 0.83rem; line-height: 1.5; margin: 0 0 8px; }
+
+/* Safety net for any other card that grows long (js/chronicle.js adds .is-clamped). */
+.card.is-clamped { max-height: 360px; overflow: hidden; position: relative; }
+.card.is-clamped::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 90px;
+    background: linear-gradient(to bottom, rgba(18,18,20,0), #121214 75%); pointer-events: none;
+}
+.clamp-toggle {
+    position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 1;
+    background: #2a1414; color: #fca5a5; border: 1px solid #7f1d1d; border-radius: 12px;
+    padding: 3px 14px; font: inherit; font-size: 0.78rem; cursor: pointer;
+}
+.card:not(.is-clamped) > .clamp-toggle { position: static; transform: none; display: block; margin: 10px auto 0; }
+
+/* ===== Codex: Open Mysteries ===== */
+.mystery-list { margin: 8px 0 28px 20px; }
+.mystery-list li { margin-bottom: 8px; line-height: 1.5; }
+.mystery-list li::marker { content: "? "; color: #f87171; font-weight: bold; }
+
+/* ===== Inventory tab ===== */
+.inv-owner { display: block; font-size: 1.1rem; color: #f87171; margin-bottom: 8px; }
+.inv-src {
+    display: inline-block; margin-left: 4px; padding: 0 5px; border-radius: 3px;
+    background: #2a1414; color: #fca5a5; font-size: 0.66rem; font-weight: bold; vertical-align: 1px;
+}
+
+/* ===== Site-wide glossary links (js/chronicle.js) =====
+   Same dotted underline as the Overview's hand-written glossary terms. */
+.gloss {
+    cursor: pointer;
+    text-decoration: underline dotted;
+    text-underline-offset: 3px;
+    text-decoration-color: #7f1d1d;
+}
+.gloss:hover { text-decoration-color: #f87171; }
+.gloss-pop {
+    position: absolute; z-index: 1000; width: min(300px, calc(100vw - 16px));
+    background-color: #16161a; border: 1px solid #561c1c; border-radius: 8px;
+    padding: 12px 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+}
+.gloss-pop-title { color: #f87171; font-weight: bold; font-size: 0.92rem; margin-bottom: 2px; }
+.gloss-pop-meta { color: #a1a1aa; font-size: 0.72rem; margin-bottom: 6px; }
+.gloss-pop-blurb { color: #d1d5db; font-size: 0.8rem; line-height: 1.45; margin-bottom: 10px; }
+.gloss-pop-link {
+    width: 100%; background: none; border: 1px solid #561c1c; color: #fca5a5;
+    font: inherit; font-size: 0.75rem; padding: 5px 10px; border-radius: 5px; cursor: pointer;
+}
+.gloss-pop-link:hover { background-color: #2a1818; }
+
+/* ===== Chronicle-wide search (js/chronicle.js) ===== */
+.search-row { display: flex; gap: 6px; }
+.search-row .search-bar { flex: 1; min-width: 0; }
+.search-bar {
+    background: #0f0f12; color: #e4e4e7; border: 1px solid #3f3f46; border-radius: 4px;
+    padding: 7px 10px; font: inherit; font-size: 0.88rem;
+}
+.search-bar::placeholder { color: #71717a; }
+.search-bar:focus { outline: none; border-color: #b91c1c; box-shadow: 0 0 0 2px rgba(185, 28, 28, 0.25); }
+#global-search-btn {
+    background: #3b1414; color: #fecaca; border: 1px solid #7f1d1d;
+    border-radius: 4px; padding: 0 12px; font: inherit; font-size: 0.85rem;
+    cursor: pointer; white-space: nowrap;
+}
+#global-search-btn:hover { background: #561c1c; }
+#global-results {
+    margin-top: 8px; max-height: 60vh; overflow-y: auto;
+    background: #141416; border: 1px solid #561c1c; border-radius: 6px;
+}
+#global-results[hidden] { display: none; }
+.gr-head {
+    position: sticky; top: 0; display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 12px; background: #1a1a1d; border-bottom: 1px solid #2e2e33;
+    color: #a1a1aa; font-size: 0.8rem;
+}
+.gr-head button { background: none; border: none; color: #a1a1aa; cursor: pointer; font-size: 0.95rem; }
+.gr-item {
+    display: block; width: 100%; text-align: left; font: inherit; cursor: pointer;
+    background: none; border: none; border-bottom: 1px solid #221818; padding: 9px 12px; color: #d1d5db;
+}
+.gr-item:hover { background: #1f1416; }
+.gr-meta { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; margin-bottom: 3px; }
+.gr-tab {
+    background: #3b1414; color: #fca5a5; border-radius: 3px; padding: 1px 7px;
+    font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.5px;
+}
+.gr-meta strong { color: #f87171; font-size: 0.88rem; }
+.gr-snip { font-size: 0.8rem; line-height: 1.45; color: #a1a1aa; }
+.chronicle-flash { outline: 2px solid #f87171; outline-offset: 3px; transition: outline-color 0.5s; }
+
+/* ===== Ask the Chronicle chat (js/chronicle.js) ===== */
+#chat-toggle {
+    position: fixed; right: 16px; bottom: 16px; z-index: 900;
+    background: #7f1d1d; color: #fecaca; border: 1px solid #b91c1c;
+    border-radius: 20px; padding: 10px 16px; font: inherit; cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.5);
+}
+#chat-toggle:hover { background: #991b1b; }
+#chat-panel {
+    position: fixed; right: 16px; bottom: 16px; z-index: 901;
+    width: min(380px, calc(100vw - 32px)); height: min(520px, calc(100vh - 32px));
+    display: flex; flex-direction: column;
+    background: #16161a; border: 1px solid #561c1c; border-radius: 10px;
+    box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+}
+#chat-panel[hidden], #chat-toggle[hidden] { display: none; }
+.chat-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 14px; border-bottom: 1px solid #2e2e33; color: #f87171;
+}
+#chat-close { background: none; border: none; color: #a1a1aa; font-size: 1rem; cursor: pointer; }
+#chat-log { flex: 1; overflow-y: auto; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg {
+    padding: 8px 11px; border-radius: 8px; font-size: 0.85rem; line-height: 1.45;
+    white-space: pre-wrap; max-width: 90%;
+}
+.chat-bot { background: #1f1f24; color: #d1d5db; align-self: flex-start; }
+.chat-user { background: #3b1414; color: #fecaca; align-self: flex-end; }
+.chat-error { background: #2a1a0a; color: #fbbf24; align-self: flex-start; }
+#chat-form { display: flex; gap: 6px; padding: 10px; border-top: 1px solid #2e2e33; }
+#chat-input {
+    flex: 1; min-width: 0; background: #0f0f12; color: #e4e4e7; border: 1px solid #3f3f46;
+    border-radius: 6px; padding: 8px; font: inherit; font-size: 0.85rem;
+}
+#chat-form button {
+    background: #7f1d1d; color: #fecaca; border: 1px solid #b91c1c;
+    border-radius: 6px; padding: 0 14px; font: inherit; cursor: pointer;
+}
+#chat-form button:disabled { opacity: 0.5; cursor: wait; }

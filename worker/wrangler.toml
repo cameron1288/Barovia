@@ -1,0 +1,16 @@
+name = "barovia-chronicle"
+main = "src/index.js"
+compatibility_date = "2026-09-01"
+
+# Workers AI binding: free daily allowance on Cloudflare's free plan, no API key.
+[ai]
+binding = "AI"
+
+[vars]
+ALLOWED_ORIGIN = "https://cameron1288.github.io"
+# If answers run out too early in the day, switch to the smaller, cheaper
+# "@cf/meta/llama-3.1-8b-instruct-fast" (weaker answers, many more per day).
+MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+
+# Secret: set once with
+#   npx wrangler secret put PARTY_CODE

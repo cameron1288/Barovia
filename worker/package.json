@@ -1,0 +1,8 @@
+{
+  "name": "barovia-chronicle-worker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "deploy": "npx --yes wrangler@3 deploy"
+  }
+}
