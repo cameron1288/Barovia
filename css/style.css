@@ -776,6 +776,30 @@ details.entry-more > summary:hover { color: #f87171; }
 }
 #chat-form button:disabled { opacity: 0.5; cursor: wait; }
 
+/* ===== Phones: use the full width =====
+   Each tab's fragment is itself a .tab-content inside #content-area (also .tab-content),
+   so the side padding was applied twice; together with the page margin and card padding
+   that cost ~63px per side on a 390px screen. */
+@media (max-width: 600px) {
+    body { padding: 6px; }
+    #content-area.tab-content { padding: 6px 6px 12px; }
+    #content-area .tab-content { padding: 0; }
+    .search-wrapper { padding: 6px 6px !important; }
+
+    .card { padding: 12px 12px 12px 14px; }
+    .cards-grid { margin-top: 8px; }
+    #content-area h2 { font-size: 1.25rem; margin: 4px 0 6px; }
+
+    /* One-line header */
+    header { padding: 6px 8px; margin-bottom: 6px; }
+    header h1 { font-size: 0.95rem; letter-spacing: 1px; }
+    header p { display: none; }
+
+    /* Chat: a round button instead of a wide pill covering the text */
+    #chat-toggle { font-size: 0; width: 48px; height: 48px; padding: 0; border-radius: 50%; right: 12px; bottom: 12px; }
+    #chat-toggle::before { content: "🦇"; font-size: 22px; }
+}
+
 /* ===== Installed app ===== */
 #update-toast {
     position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 1100;
