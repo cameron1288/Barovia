@@ -8,8 +8,9 @@ binding = "AI"
 
 [vars]
 ALLOWED_ORIGIN = "https://cameron1288.github.io"
-# If answers run out too early in the day, switch to the smaller, cheaper
-# "@cf/meta/llama-3.1-8b-instruct-fast" (weaker answers, many more per day).
+# Free allowance: 10,000 neurons/day, resets 00:00 UTC. This 70B model costs ~150 neurons
+# per question (~65/day). If that runs out too early, switch to the smaller
+# "@cf/meta/llama-3.1-8b-instruct-fp8-fast" (~25 neurons, ~400/day, weaker answers).
 MODEL = "@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
 # Secret: set once with

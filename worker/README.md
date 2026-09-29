@@ -33,8 +33,10 @@ file. Don't pipe the code into `wrangler secret put` from PowerShell: it garbles
 
 ## Settings
 
-- **Model:** `MODEL` in `wrangler.toml`. The 70B Llama gives the best free answers. If the
-  daily allowance runs out too fast, switch to `@cf/meta/llama-3.1-8b-instruct-fast`, then
-  redeploy.
+- **Model:** `MODEL` in `wrangler.toml`. The free allowance is 10,000 neurons a day, and it
+  resets at 00:00 UTC (8 PM Eastern in summer, 7 PM in winter). The 70B Llama gives the best
+  free answers, at about 150 neurons per question, so roughly 65 questions a day. If that runs
+  out too fast, switch to `@cf/meta/llama-3.1-8b-instruct-fp8-fast` (about 25 neurons, roughly
+  400 a day, weaker answers), then redeploy.
 - **New tabs** are picked up automatically, because the index reads the tab buttons in
   `index.html`.
