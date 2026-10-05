@@ -543,7 +543,13 @@ const carryCap = () => B().str;
 const itemFx = fx => S.items.find(i=>i.fx===fx);
 const fxOn = fx => { const m=S.mods&&S.mods[fx]; return !!(m && m.built && m.holder==="flint"); };
 function maxHp(){ let m=B().maxHp+(S.hp.bonus||0); if(S.exh>=4) m=Math.floor(m/2); return m; }
-function speed(){ let s=B().speed; if(S.exh>=5) return 0; if(S.exh>=2) s=Math.floor(s/2); return s; }
+const ZERO_SPEED=["Grappled","Restrained","Paralyzed","Petrified","Stunned","Unconscious"];
+function speedParts(){ const c=S.cond||{}, rows=[["Base walking speed (Small gnome)",B().speed]]; let sp=B().speed, zero=null;
+ if(S.conc==="Kinetic Jaunt"){ rows.push(["Kinetic Jaunt (concentrating)",10]); sp+=10; }
+ if(S.exh>=2){ const h=Math.floor(sp/2); rows.push([`Exhaustion ${S.exh}: speed halved`,h-sp]); sp=h; }
+ const z=ZERO_SPEED.filter(k=>c[k]); if(S.exh>=5) zero=`Exhaustion ${S.exh}`; else if(z.length) zero=z.join(", ");
+ return {rows, total: zero?0:sp, zero}; }
+function speed(){ return speedParts().total; }
 function ac(){
  const dx=M("dex");
  let a = S.armor ? 14+Math.min(dx,2) : 10+dx;
@@ -677,8 +683,8 @@ function renderTop(){
   </div>
   <div class="gauge ac tap" data-act="armorModal"><div class="lab">AC</div><div class="val num">${ac()}</div><div class="sub">${S.armor?"Armour on":"No armour"}${S.shield?" · Shield":""}</div></div>
   <div class="gauge tap" data-act="init"><div class="lab">Init</div><div class="val num">${sg(M("dex"))}</div></div>
-  <div class="gauge"><div class="lab">Speed</div><div class="val num">${speed()}</div></div>
-  <div class="gauge"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
+  <div class="gauge tap" data-act="speedInfo"><div class="lab">Speed</div><div class="val num">${speed()}</div></div>
+  <div class="gauge tap" data-act="dcInfo"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
   <div class="gauge energy"><div class="lab">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
   <div class="gauge stress"><div class="lab">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
   <div class="hdrctl">
@@ -1499,6 +1505,11 @@ function diceModal(){
   <div style="margin-top:8px">${UI.dtLast||""}</div>`);
 }
 function afterHD(html){ if(UI.restOpen){ UI.hdLast=html; closeModal(); render(); } else { restModal("short"); document.getElementById("hdres").innerHTML=html; } }
+function infoPop(title, html){
+ document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="close"><div class="modal rollpop" data-act="close" role="dialog">
+  <div class="muted small" style="letter-spacing:1px;text-transform:uppercase;font-weight:700">${esc(title)}</div>${html}<div class="tapclose">Tap anywhere to close</div></div></div>`;
+}
+const calcTable = rows => `<table class="t" style="margin-top:6px">${rows.map(r=>`<tr><td>${r[0]}</td><td class="num" style="text-align:right">${typeof r[1]==="number"?sg(r[1]).replace(/^\+(?=\d)/, r[2]?"":"+"):r[1]}</td></tr>`).join("")}</table>`;
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
  const room=5-S.stress;
@@ -1687,6 +1698,23 @@ const ACT = {
  modBuild:d=>{ const m=S.mods[d.k]; if(!m.built && modsUsed()>=modCap()){ toastModal("All slots used",`<p>You can keep ${modCap()} modifications built at level ${B().level}. Unbuild one first.</p>`); return; } m.built=!m.built; logEv(`${INFK[d.k].n} ${m.built?"built":"dismantled"}`); if(m.built&&m.holder==="flint") ensureInfItem(d.k); save(); render(); },
  modHolder:d=>{ const m=S.mods[d.k]; if(m.holder===d.v) return; m.holder=d.v; if(d.v==="ally"){ const i=S.items.findIndex(x=>x.fx===d.k); if(i>=0){ logEv(`${S.items[i].n} handed to an ally`); S.items.splice(i,1); } } else ensureInfItem(d.k); save(); render(); },
  concOk:d=>{ closeModal(); if(d.k){ UI.concOk=d.k; UI.confirmed=d.k; useOption(d.k); } else { UI.concOkI=d.i; ACT.deploy({i:d.i}); } },
+ speedInfo:()=>{ const sp=speedParts(), c=S.cond||{};
+  const rows=sp.rows.map((r,i)=>[esc(r[0]), i===0?String(r[1])+" ft":(r[1]>=0?"+":"")+r[1]+" ft"]);
+  if(sp.zero) rows.push([`<span style="color:#ffb3a8">${esc(sp.zero)}: speed 0</span>`,"0 ft"]);
+  const notes=[];
+  if(c.Prone) notes.push("Prone: crawling costs double, and standing up takes half your speed.");
+  if(S.conc==="Expeditious Retreat") notes.push("Expeditious Retreat: you can Dash as a bonus action.");
+  if(fxOn("boots")) notes.push("Boots of the Winding Path: bonus action teleport up to 15 ft to a space you occupied this turn.");
+  notes.push("Breastplate is medium armour with no Strength requirement, so it doesn't slow you.");
+  notes.push("Dash doubles your movement for the turn.");
+  infoPop("Speed", `<div class="what">${sp.total} ft</div>${calcTable([...rows,[`<b>Speed</b>`,`<b>${sp.total} ft</b>`]])}<ul class="muted">${notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`); },
+ dcInfo:()=>{ const pb=PB(), i=M("int"), c=M("cha");
+  infoPop("Spell save DC · spell attack", `<div class="what">DC ${DC()} · ${sg(ATK())}</div>
+   <div class="small" style="margin-top:6px"><b>Blueprints (gadgets)</b>: Spirit Engine rules add both INT and CHA.</div>
+   ${calcTable([["Base",8],["Proficiency bonus (level "+B().level+")",pb],["INT modifier",i],["CHA modifier",c],["<b>Save DC</b>",`<b>${DC()}</b>`]])}
+   ${calcTable([["Proficiency bonus",pb],["INT modifier",i],["CHA modifier",c],["<b>Spell attack</b>",`<b>${sg(ATK())}</b>`]])}
+   <div class="small" style="margin-top:8px"><b>Ectoplasmic Discharges</b> use INT only: DC ${8+pb+i} (8 + ${pb} + ${i}), attack ${sg(pb+i)} (${pb} + ${i}).</div>
+   <ul class="muted"><li>Overclock: +3 to one spell attack, or +3 to one save DC and its damage (1 Stress).</li><li>Fire Bolt and Scorching Ray (from your arm) and Guiding Bolt (Fractured Genius) also attack at ${sg(ATK())}.</li><li>Radiant Weapon's blinding flare uses your spell DC; Pipes of Haunting is a fixed DC 15.</li></ul>`); },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
