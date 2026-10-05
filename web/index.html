@@ -35,7 +35,7 @@ input[type=number]{width:72px;font-family:var(--f-mono)}
 /* ---------- gauge cluster ---------- */
 .top{z-index:20;background:var(--soot);border-bottom:1px solid var(--line);padding-block:10px 8px}
 .row1{display:flex;gap:7px;align-items:stretch;flex-wrap:wrap}
-.ident{display:flex;flex-direction:column;justify-content:center;min-width:0;flex:1 1 130px}
+.ident{display:flex;flex-direction:column;justify-content:center;min-width:0;flex:1 1 110px}
 .ident h1{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1;margin:0;letter-spacing:.5px;text-transform:uppercase}
 .ident h1 span{color:var(--amber)}
 .ident small{color:var(--ash2);font-size:13px}
@@ -48,6 +48,8 @@ input[type=number]{width:72px;font-family:var(--f-mono)}
 .hp .hpline{display:flex;align-items:baseline;gap:6px;justify-content:center}
 .hp .val{font-size:32px}
 .hp .max{color:var(--ash2);font-family:var(--f-mono);font-size:14px}
+.hp .max,.hp .tmp{white-space:nowrap}
+.hpx{font-size:11px;color:var(--heal);font-family:var(--f-mono);text-align:center;white-space:nowrap;margin-top:-2px}
 .hp .tmp{color:var(--ecto);font-family:var(--f-mono);font-size:14px;font-weight:600}
 .bar{height:6px;background:var(--iron3);border-radius:3px;overflow:hidden;margin-top:4px}
 .bar i{display:block;height:100%;background:var(--heal);transition:width .25s}
@@ -58,12 +60,12 @@ input[type=number]{width:72px;font-family:var(--f-mono)}
 .pip{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--ecto2);background:transparent}
 .pip.on{background:var(--ecto);border-color:var(--ecto);box-shadow:0 0 6px var(--ecto)}
 .pip.st{border-color:#7a3a33}.pip.st.on{background:var(--blood);border-color:var(--blood);box-shadow:0 0 6px var(--blood)}
-.energy{min-width:136px}.energy .val{color:var(--ecto)}
+.energy{min-width:128px}.energy .val{color:var(--ecto)}
 .stress .val{color:var(--blood)}
 .ctl{display:flex;gap:4px;margin-top:4px}
 .mini{border:1px solid var(--line);background:var(--iron2);border-radius:5px;padding:1px 9px;font-weight:700;font-size:15px;line-height:1.3}
 .mini:active{background:var(--iron3)}
-.combatsw{flex:0 0 auto;min-width:92px;border:1.5px solid var(--line);background:var(--iron);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 10px}
+.combatsw{flex:0 0 auto;min-width:86px;border:1.5px solid var(--line);background:var(--iron);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 10px}
 .combatsw .sw{width:52px;height:28px;border-radius:14px;background:var(--iron3);position:relative;transition:background .2s}
 .combatsw .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ash2);transition:left .2s,background .2s}
 .combatsw.on{border-color:var(--blood);background:rgba(232,96,79,.1)}
@@ -232,6 +234,10 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .useddot{display:inline-flex;gap:3px;vertical-align:middle}.useddot i{width:11px;height:11px;border-radius:50%;background:var(--amber);display:inline-block}.useddot i.u{background:transparent;border:1.5px solid var(--ash3)}
 .mult{font-family:var(--f-mono);font-weight:600;font-size:13px;padding:1px 7px;border-radius:10px;background:var(--amber);color:#1b1206}
 .setbtn .val{font-size:20px;line-height:1.2}
+.hdrctl{display:flex;gap:6px;margin-left:auto;align-items:stretch;flex:0 0 auto}
+.setbtn2{width:46px;border:1px solid var(--line);background:var(--iron);border-radius:var(--r);font-size:22px;color:var(--ash2);padding:0}
+.setbtn2:active{background:var(--iron2)}
+body.tight .ident h1{font-size:22px}body.tight .ident small{font-size:12px}body.tight .gauge{padding:4px 6px;min-width:56px}body.tight .gauge .val{font-size:24px}body.tight .hp .val{font-size:28px}body.tight .hp{flex-basis:180px}body.tight .energy{min-width:118px}body.tight .pip{width:11px;height:11px}body.tight .combatsw{min-width:78px;padding:6px 8px}body.tight .setbtn2{width:42px}
 .modal.wide{max-width:720px}
 .rollpop{cursor:pointer;max-width:520px}
 .rollpop .what{font-family:var(--f-display);font-size:44px;font-weight:800;line-height:1;color:var(--amber);margin:4px 0}
@@ -660,7 +666,7 @@ function renderTop(){
   <div class="ident" data-act="tab" data-k="sheet" role="button" tabindex="0" title="Open the Character tab" style="cursor:pointer"><h1>Flint <span>Cogsworth</span></h1><small>Lv ${B().level} Artificer · Spirit Engine</small></div>
   <div class="gauge hp" data-act="hpModal">
     <div class="lab">Hit points${S.hp.cur===0?' · <span style="color:var(--blood)">DOWN</span>':""}</div>
-    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.bonus?`<span class="tmp" style="color:var(--heal)">+${S.hp.bonus} max</span>`:""}${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>
+    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>${S.hp.bonus?`<div class="hpx">incl. +${S.hp.bonus} max until long rest</div>`:""}
     <div class="bar"><i class="${cls}" style="width:${hpPct}%"></i></div>
   </div>
   <div class="gauge ac tap" data-act="armorModal"><div class="lab">AC</div><div class="val num">${ac()}</div><div class="sub">${S.armor?"Armour on":"No armour"}${S.shield?" · Shield":""}</div></div>
@@ -669,8 +675,10 @@ function renderTop(){
   <div class="gauge"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
   <div class="gauge energy"><div class="lab">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
   <div class="gauge stress"><div class="lab">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
+  <div class="hdrctl">
   <button class="combatsw ${combat?"on":""}" data-act="combatToggle" aria-pressed="${combat}"><span class="lab">${combat?"In combat":"Combat"}</span><span class="sw"></span></button>
-  <button class="gauge tap setbtn" data-act="settings" aria-label="Settings"><div class="lab">Settings</div><div class="val">⚙</div></button>
+  <button class="setbtn2" data-act="settings" aria-label="Settings" title="Settings">⚙</button>
+  </div>
  </div>
  <div class="abil">
   ${ABIL.map(([k,K])=>`<div class="ab" data-act="check" data-k="${k}">
@@ -1222,6 +1230,7 @@ const showFl = () => S.settings.showFlavour!==false;
 function applySettings(){
  const z={normal:"",large:"1.15",xl:"1.3"}[S.settings.textSize]||"";
  if(document.body.style.zoom!==z) document.body.style.zoom=z;
+ document.body.classList.toggle("tight", window.innerWidth/(+z||1) < 1240);
  try{ if(window.AndroidBridge && AndroidBridge.setKeepAwake) AndroidBridge.setKeepAwake(!!S.settings.keepAwake); }catch(e){}
  const b=document.getElementById("rmode"); if(b) b.textContent=PERSON()?"Rolling: in person":"Rolling: in app";
  const h=document.getElementById("rollhint"); if(h) h.textContent=PERSON()?"In-person rolling: tap anything and the app tells you what to roll.":"Tap any attack, skill, ability or gadget to roll.";
@@ -1696,6 +1705,7 @@ document.addEventListener("input",e=>{
 });
 
 /* ======================= BOOT ======================= */
+window.addEventListener("resize",()=>{ try{ applySettings(); }catch(e){} });
 const SEED={"allyMods": [{"ally": "", "item": ""}, {"ally": "", "item": ""}], "armor": false, "axeLight": false, "base": {"acMisc": 0, "cha": 11, "con": 16, "dex": 14, "int": 18, "level": 6, "martialProf": false, "maxHp": 40, "nextXp": 23000, "san": 9, "speed": 25, "str": 10, "wis": 12, "xp": 19550}, "ch": {"axe": 4, "mind": 4, "pipes": 3, "ring": 1, "rshield": 4}, "coins": {"cp": 36, "ep": 2, "gp": 36, "pp": 0, "sp": 6}, "combat": {"act": false, "bon": false, "oc": false, "ocUsed": false, "on": false, "rea": false, "round": 3, "sts": false}, "conc": "", "cond": {}, "ds": {"f": 0, "s": 0}, "energy": 0, "exh": 0, "hdUsed": 0, "hp": {"cur": 40, "temp": 5}, "insp": false, "inventions": [{"id": "imuvbighc1", "n": "The Sonic Disruptor", "note": "Frequency animal deterrent. −1d4 to saving throws within 30 ft.", "tier": 2}, {"id": "imuvbighc2", "n": "Hydraulic Recoil-Damper", "note": "Advantage on saving throws against grapple, prone and shove.", "tier": 2}], "items": [{"att": false, "id": "imuvbighc3", "mod": false, "n": "Breastplate", "note": "Medium armour, AC 14 + Dex (max 2). No stealth disadvantage. Don 5 min, doff 1 min.", "q": 1, "w": 20, "worn": true}, {"att": true, "fx": "rshield", "id": "imuvbighc4", "mod": true, "n": "Repulsion Shield", "note": "Spring-loaded piston on the inner face, cocked by each melee hit. +1 AC on top of the shield's +2. 4 charges, regains 1d4 at dawn. Reaction after a melee hit: spend 1 charge to push the attacker up to 15 ft.", "q": 1, "w": 6, "worn": true}, {"att": false, "id": "imuvbighc5", "mod": false, "n": "Æther-Pack", "note": "Containment tank, gauges, copper tubing, control wand, foot pedal. Counts as an artificer's tool. Rebuild on a long rest with tinker's tools and 25 gp of materials.", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc10", "mod": false, "n": "Belt Pouch (with coins)", "note": "", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc11", "mod": false, "n": "Tinker's tools", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc12", "mod": false, "n": "Pearl (for Identify)", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc13", "mod": false, "n": "Spyglass", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc14", "mod": false, "n": "Strahd's Tome", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc15", "mod": false, "n": "Magnifying glass", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc16", "mod": false, "n": "Petrified Wood Butterfly", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc17", "mod": false, "n": "Amber Shard (Isek)", "note": "Source of the Fire Bolt and Scorching Ray from your arm.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc18", "mod": false, "n": "Dagger", "note": "Finesse, light, thrown (20/60). 1d4 piercing.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc19", "mod": false, "n": "Light hammer", "note": "Light, thrown (20/60). 1d4 bludgeoning.", "q": 1, "w": 2, "worn": false}], "lim": {"fuel": 1, "gbolt": 1, "spark": 1}, "loadout": [], "log": [{"t": 1791208927593, "txt": "Combat started"}, {"t": 1791208926790, "txt": "Combat ended after 1 round"}, {"t": 1791208925858, "txt": "Combat started"}, {"t": 1791208924986, "txt": "Stress 0 → 1"}, {"t": 1791208924398, "txt": "Stress 1 → 0"}, {"t": 1791208923951, "txt": "Stress 0 → 1"}, {"t": 1791208922784, "txt": "Energy 1 → 0"}, {"t": 1791208922222, "txt": "Energy 0 → 1"}, {"t": 1791208918692, "txt": "Doffed breastplate"}, {"t": 1791208917288, "txt": "Donned breastplate"}, {"t": 1791208915486, "txt": "Doffed breastplate"}, {"t": 1791208889164, "txt": "Healed 2. HP 40 → 40"}, {"t": 1791208881986, "txt": "Temp HP set to 5"}, {"t": 1791208879916, "txt": "Temp HP set to 0"}, {"t": 1791208878424, "txt": "Temp HP set to 0"}], "notes": {"appearance": "About 3 ft tall, wiry rather than bulky. Since the transformation, a cold mineralized husk of blackened iron and coarse ash, veined with amber. Looks more at home in a workshop than a battlefield.", "backstory": "Raised by a patient foster mother who encouraged his obsession with clockwork, Flint left the gnomish burrows at sixteen in pursuit of discovery. For fifteen years he repaired city mechanisms, calibrated astronomical devices and designed security systems, and his Investigator instincts grew sharp: he notices the misplaced cog others overlook. His habit of getting lost in a puzzle has led to close calls with disgruntled clients and cave-ins.", "bonds": "As my memories of my foster mother's warmth fade into the mists, I cling to the intellect and inventive drive she left me; my mind is the final canvas of her legacy, and I must protect it.", "flaws": "I become so engrossed in a new puzzle or device that I ignore immediate danger or my surroundings. I have lost the ability to create art, whimsy, or joy.", "ideals": "Discovery: The world is full of wonders waiting to be found and understood. My purpose is to uncover new secrets and push the boundaries of what's known. I hold my mind as sacred.", "session": "", "traits": "I tend to mutter to myself in Gnomish, explaining my current thoughts or theories aloud."}, "researched": {"absorb": false, "acid": false, "aid": false, "airbubble": false, "alarm": false, "alock": false, "alter": false, "aweapon": false, "blur": false, "bonfire": false, "booming": false, "catapult": false, "cflame": false, "cure": false, "detect": false, "disguise": false, "dlights": false, "dvision": false, "enhance": false, "enlarge": false, "expret": false, "ffall": false, "ffire": false, "firebolt": false, "flife": false, "frostbite": false, "gfb": false, "grease": false, "guidance": false, "heatm": false, "identify": false, "invis": false, "jump": false, "kjaunt": false, "levitate": false, "light": false, "llure": false, "longstr": false, "lrest": false, "magehand": false, "mending": false, "message": false, "mmouth": false, "mstone": false, "mweapon": false, "ppoison": false, "presti": false, "pspray": false, "purify": false, "pyro": false, "resist": false, "rfrost": false, "rtrick": false, "sanct": false, "sburst": false, "sclimb": false, "seeinv": false, "sgrasp": false, "sky": false, "snare": false, "spare": false, "tcb": false, "tclap": false, "twhip": false, "vwarp": false, "web": true}, "rolls": [], "scrap": 46, "shield": true, "stress": 1, "v": 2};
 try{ if(!localStorage.getItem(LKEY)){ S=merge(DEF(),migrate(SEED)); localStorage.setItem(LKEY,JSON.stringify(S)); } }catch(e){}
 loadLocal(); render();
