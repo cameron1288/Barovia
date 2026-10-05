@@ -642,7 +642,7 @@ function renderTop(){
  const combat=S.combat.on;
  document.getElementById("top").innerHTML=`
  <div class="row1">
-  <div class="ident"><h1>Flint <span>Cogsworth</span></h1><small>Lv ${B().level} Artificer · Spirit Engine</small></div>
+  <div class="ident" data-act="tab" data-k="sheet" role="button" tabindex="0" title="Open the Character tab" style="cursor:pointer"><h1>Flint <span>Cogsworth</span></h1><small>Lv ${B().level} Artificer · Spirit Engine</small></div>
   <div class="gauge hp" data-act="hpModal">
     <div class="lab">Hit points${S.hp.cur===0?' · <span style="color:var(--blood)">DOWN</span>':""}</div>
     <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.bonus?`<span class="tmp" style="color:var(--heal)">+${S.hp.bonus} max</span>`:""}${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>
