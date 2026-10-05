@@ -555,6 +555,7 @@ function statusBadges(){ const out=[]; const c=S.cond||{};
  if(S.conc) out.push(`<span class="sb conc" title="Concentrating on ${esc(S.conc)}">◎ ${esc(S.conc)}</span>`);
  Object.keys(COND_CODE).filter(k=>c[k]).forEach(k=>out.push(`<span class="sb ${k==="Invisible"?"good":"bad"}" title="${k}">${COND_CODE[k]}</span>`));
  if(S.exh) out.push(`<span class="sb exh" title="Exhaustion ${S.exh}">EXH ${S.exh}</span>`);
+ if(S.insp) out.push(`<span class="sb good" title="Inspiration">★ INSP</span>`);
  return out; }
 const ZERO_SPEED=["Grappled","Restrained","Paralyzed","Petrified","Stunned","Unconscious"];
 function speedParts(){ const c=S.cond||{}, rows=[["Base walking speed (Small gnome)",B().speed]]; let sp=B().speed, zero=null;
@@ -1526,10 +1527,12 @@ const calcTable = rows => `<table class="t" style="margin-top:6px">${rows.map(r=
 function statusModal(){
  const c=S.cond||{}, act=Object.keys(COND_CODE).filter(k=>c[k]);
  modal(`<h2>Status</h2>
-  ${!S.conc && !act.length && !S.exh?'<p class="muted">No conditions, concentration or exhaustion right now.</p>':""}
+  ${!S.conc && !act.length && !S.exh && !S.insp?'<p class="muted">No conditions, concentration, exhaustion or Inspiration right now.</p>':""}
+  ${S.insp?`<div class="li"><span class="grow"><span class="sb good">★ INSP</span> <b>Inspiration</b><div class="small muted">Spend it for advantage on one attack roll, ability check or saving throw.</div></span><button class="btn sm" data-act="statusInsp">Use it</button></div>`:""}
   ${S.conc?`<div class="li"><span class="grow"><span class="sb conc">◎</span> <b>Concentrating on ${esc(S.conc)}</b><div class="small muted">Taking damage: Con save ${sg(saveBonus("con"))}, DC 10 or half the damage, whichever is higher.${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can make you succeed.":""}</div></span><button class="btn sm" data-act="statusConcEnd">End</button></div>`:""}
   ${act.map(k=>`<div class="li"><span class="grow"><span class="sb ${k==="Invisible"?"good":"bad"}">${COND_CODE[k]}</span> <b>${k}</b><div class="small muted">${CONDITIONS[k]}</div></span><button class="btn sm" data-act="statusCond" data-k="${k}">Remove</button></div>`).join("")}
   ${S.exh?`<div class="li"><span class="grow"><span class="sb exh">EXH ${S.exh}</span> <b>Exhaustion ${S.exh}</b><div class="small muted">${EXH.slice(1,S.exh+1).join(" · ")}</div></span><button class="btn sm" data-act="statusExh">−1</button></div>`:""}
+  ${S.insp?"":`<div class="btns" style="margin-top:8px"><button class="btn ok" data-act="statusInsp">★ Gain Inspiration</button></div>`}
   <h3>Add a condition</h3>
   <div class="chips">${Object.keys(COND_CODE).filter(k=>!c[k]).map(k=>`<button class="tog" data-act="statusAdd" data-k="${k}"><span class="box"></span>${k}</button>`).join("")}</div>
   <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Exhaustion</span><button class="mini" data-act="statusExh">−</button><b class="num">${S.exh}</b><button class="mini" data-act="statusExhUp">+</button>${S.exh?`<span class="small muted">${EXH[S.exh]}</span>`:""}</div>
@@ -1744,6 +1747,7 @@ const ACT = {
  statusPop:()=>statusModal(),
  statusConcEnd:()=>{ logEv(`Ended concentration on ${S.conc}`); S.conc=""; save(); render(); statusModal(); },
  statusCond:d=>{ S.cond[d.k]=false; logEv(`${d.k} off`); save(); render(); statusModal(); },
+ statusInsp:()=>{ S.insp=!S.insp; logEv(S.insp?"Gained Inspiration":"Used Inspiration"); save(); render(); statusModal(); },
  statusAdd:d=>{ S.cond[d.k]=true; logEv(`${d.k} on`); save(); render(); statusModal(); },
  statusExhUp:()=>{ S.exh=Math.min(6,S.exh+1); logEv(`Exhaustion ${S.exh}`); save(); render(); statusModal(); },
  statusExh:()=>{ S.exh=Math.max(0,S.exh-1); logEv(`Exhaustion ${S.exh}`); save(); render(); statusModal(); },
