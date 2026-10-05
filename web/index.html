@@ -218,11 +218,18 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .dsave .use{border-radius:50%}
 .edit input[type=number]{width:60px}
 .sep{height:1px;background:var(--line);margin:10px 0}
+.tell{font-size:16px;margin-top:6px;line-height:1.45}
+.tell b{color:var(--amber);font-family:var(--f-mono)}
+.askrow{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px}
+.askrow input{width:96px;font-size:20px;text-align:center}
+.mult{font-family:var(--f-mono);font-weight:600;font-size:13px;padding:1px 7px;border-radius:10px;background:var(--amber);color:#1b1206}
+.setbtn .val{font-size:20px;line-height:1.2}
+.modal.wide{max-width:720px}
 </style>
 
 <div class="top"><div class="wrap" style="padding-block:0" id="top"></div></div>
 <div class="wrap" id="main"></div>
-<div class="rollbar" id="rollbar"><div class="res" id="lastroll"><span class="dim">Tap any attack, skill, ability or gadget to roll. Physical dice? Just read the numbers.</span></div><button class="btn sm" data-act="dice">Dice</button><button class="btn sm" data-act="history">Log</button></div>
+<div class="rollbar" id="rollbar"><div class="res" id="lastroll"><span class="dim" id="rollhint">Tap any attack, skill, ability or gadget to roll.</span></div><button class="btn sm" id="rmode" data-act="rollMode">Rolling: in app</button><button class="btn sm" data-act="dice">Dice</button><button class="btn sm" data-act="history">Log</button></div>
 <div id="modal"></div>
 
 <script>
@@ -363,10 +370,11 @@ let uid=1; const nid=()=> "i"+Date.now().toString(36)+(uid++);
 function DEF(){
  const it=(n,q,w,o={})=>({id:nid(),n,q,w,worn:false,mod:false,att:false,note:"",...o});
  return {
-  v:2, _t:0,
+  v:3, _t:0,
+  settings:{rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
   allyMods:[{item:"",ally:""},{item:"",ally:""}],
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
-  hp:{cur:40,temp:5}, ds:{s:0,f:0}, hdUsed:0,
+  hp:{cur:45,temp:0,bonus:5}, ds:{s:0,f:0}, hdUsed:0,
   stress:0, exh:0, energy:0, insp:false,
   armor:true, shield:true,
   lim:{gbolt:1,spark:1,fuel:1},
@@ -415,7 +423,9 @@ let S = DEF(), docRef = null, saveTimer = null, storeMsg = "Saved on this tablet
 let UI = {tab:"sheet", edit:false, bpFilter:"", bpLvl:"all", openBp:{}};
 const LKEY = "flint-cogsworth-v1";
 function merge(d,s){ if(!s||typeof s!=="object") return d; for(const k in d){ if(s[k]===undefined) continue; if(d[k]&&typeof d[k]==="object"&&!Array.isArray(d[k])&&typeof s[k]==="object"&&!Array.isArray(s[k])) d[k]=merge(d[k],s[k]); else d[k]=s[k]; } return d; }
-function migrate(o){ if(!o||typeof o!=="object") return o; if(!o.v||o.v<2){ if(Array.isArray(o.items)) o.items=o.items.filter(i=>!["mind","boots","ring","axe","pipes"].includes(i.fx)); if(!o.allyMods) o.allyMods=[{item:"",ally:""},{item:"",ally:""}]; o.v=2; } return o; }
+function migrate(o){ if(!o||typeof o!=="object") return o; if(!o.v||o.v<2){ if(Array.isArray(o.items)) o.items=o.items.filter(i=>!["mind","boots","ring","axe","pipes"].includes(i.fx)); if(!o.allyMods) o.allyMods=[{item:"",ally:""},{item:"",ally:""}]; o.v=2; }
+ if(o.v<3){ o.hp=o.hp||{}; if(o.hp.bonus===undefined){ if(o.hp.temp===5){ o.hp.bonus=5; o.hp.temp=0; o.hp.cur=(o.hp.cur||0)+5; } else o.hp.bonus=0; } o.v=3; }
+ return o; }
 function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DEF(),migrate(JSON.parse(r))); } }catch(e){} try{ UI.tab=localStorage.getItem(LKEY+"-tab")||UI.tab }catch(e){} }
 function save(){
  pendingRemote=null; lastLocal=Date.now(); S._t=lastLocal;
@@ -448,7 +458,7 @@ const attCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:3;
 const carryCap = () => B().str;
 const itemFx = fx => S.items.find(i=>i.fx===fx);
 const fxOn = fx => { const i=itemFx(fx); return !!(i && i.mod); };
-function maxHp(){ let m=B().maxHp; if(S.exh>=4) m=Math.floor(m/2); return m; }
+function maxHp(){ let m=B().maxHp+(S.hp.bonus||0); if(S.exh>=4) m=Math.floor(m/2); return m; }
 function speed(){ let s=B().speed; if(S.exh>=5) return 0; if(S.exh>=2) s=Math.floor(s/2); return s; }
 function ac(){
  const dx=M("dex");
@@ -474,11 +484,13 @@ function roll(expr){
 const diceOnly = expr => String(expr).replace(/@int/g,"0").match(/\d*d\d+/g)?.join("+")||"0";
 const showParts = r => r.parts.map(p=>p.d?`${p.d}[${p.rs.join(",")}]`:sg(p.mod)).join(" ");
 function pushRoll(title, html, plain){
+ try{ if(S.settings.haptics && navigator.vibrate) navigator.vibrate(15); }catch(e){}
  S.rolls.unshift({t:Date.now(),title,html,plain}); S.rolls=S.rolls.slice(0,40);
  const el=document.getElementById("lastroll"); el.innerHTML=`<span class="muted">${esc(title)}:</span> ${plain}`;
  const rb=document.getElementById("rollbar"); rb.classList.remove("flash"); void rb.offsetWidth; rb.classList.add("flash");
 }
 function d20(label,bonus,opts={}){
+ if(PERSON()){ const how=opts.adv?" with advantage (roll 2, keep the higher)":opts.dis?" with disadvantage (roll 2, keep the lower)":""; pushRoll(label,"",`Roll <b>d20 ${sg(bonus)}</b>${how}`); save(); return null; }
  const a=R(20), b=R(20);
  const tag = opts.adv?"ADV":opts.dis?"DIS":"";
  const pick = opts.adv?Math.max(a,b):opts.dis?Math.min(a,b):a;
@@ -503,7 +515,7 @@ function damage(n,type,resist){
  const before=S.hp.cur; S.hp.cur=Math.max(0,S.hp.cur-rem);
  logEv(`Took ${amt}${type?" "+type:""} damage${resist?" (halved from "+n+")":""}${absorbed?", "+absorbed+" from temp HP":""}. HP ${before} → ${S.hp.cur}`);
  let notes=[];
- if(S.conc && amt>0) notes.push(`Concentration on ${S.conc}: Con save DC ${Math.max(10,Math.floor(amt/2))} (you're +${saveBonus("con")}).${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can auto-succeed.":""}`);
+ if(S.conc && amt>0 && S.settings.concReminder) notes.push(`Concentration on ${S.conc}: Con save DC ${Math.max(10,Math.floor(amt/2))} (you're +${saveBonus("con")}).${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can auto-succeed.":""}`);
  if(S.hp.cur===0 && before>0) notes.push("You're at 0 HP. Death saves are on the HP panel.");
  return {amt,notes};
 }
@@ -520,7 +532,7 @@ function renderTop(){
   <div class="ident"><h1>Flint <span>Cogsworth</span></h1><small>Lv ${B().level} Artificer · Spirit Engine</small></div>
   <div class="gauge hp" data-act="hpModal">
     <div class="lab">Hit points${S.hp.cur===0?' · <span style="color:var(--blood)">DOWN</span>':""}</div>
-    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>
+    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.bonus?`<span class="tmp" style="color:var(--heal)">+${S.hp.bonus} max</span>`:""}${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>
     <div class="bar"><i class="${cls}" style="width:${hpPct}%"></i></div>
   </div>
   <div class="gauge ac tap" data-act="armorModal"><div class="lab">AC</div><div class="val num">${ac()}</div><div class="sub">${S.armor?"Armour on":"No armour"}${S.shield?" · Shield":""}</div></div>
@@ -529,6 +541,7 @@ function renderTop(){
   <div class="gauge"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
   <div class="gauge energy"><div class="lab">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
   <div class="gauge stress"><div class="lab">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
+  <button class="gauge tap setbtn" data-act="settings" aria-label="Settings"><div class="lab">Settings</div><div class="val">⚙</div></button>
   <button class="combatsw ${combat?"on":""}" data-act="combatToggle" aria-pressed="${combat}"><span class="lab">${combat?"In combat":"Combat"}</span><span class="sw"></span></button>
  </div>
  <div class="abil">
@@ -568,6 +581,8 @@ function renderSheet(){
      <dt>Exhaustion</dt><dd><button class="mini" data-act="exh" data-d="-1">−</button> <b class="num">${S.exh}</b> <button class="mini" data-act="exh" data-d="1">+</button> <span class="muted small">${EXH[S.exh]}${S.exh>1?" (and all above)":""}</span></dd>
      <dt>Concentrating</dt><dd>${S.conc?`<span class="chip amber">${esc(S.conc)}</span> <button class="btn sm" data-act="concEnd">End</button>`:'<span class="dim small">Nothing. Deploying a concentration gadget sets this.</span>'}</dd>
      <dt>XP</dt><dd class="num">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()} <span class="dim small">(${Math.max(0,B().nextXp-B().xp).toLocaleString()} to level ${B().level+1})</span></dd>
+     <dt>Max HP</dt><dd class="num">${maxHp()} <span class="dim small">(${B().maxHp} base${S.hp.bonus?` + ${S.hp.bonus} until long rest`:""}${S.exh>=4?", halved by exhaustion":""})</span></dd>
+     <dt>Modifications</dt><dd>${modsUsed()} / ${modCap()} <span class="small muted">${[...S.items.filter(i=>i.mod).map(i=>esc(i.n)),...(S.allyMods||[]).map(m=>esc(m.item||"unnamed")+(m.ally?" ("+esc(m.ally)+")":""))].join(" · ")}</span> <button class="btn sm" data-act="tab" data-k="gear">Manage</button></dd>
      <dt>Hit dice</dt><dd class="num">${B().level-S.hdUsed} of ${B().level} d8 (+${M("con")} each)</dd>
     </div>
     ${e?`<div class="sep"></div><div class="edit">
@@ -576,7 +591,7 @@ function renderSheet(){
        <label class="small">Sanity <input type="number" id="ed-san" data-bind="base.san" value="${B().san}"></label></div>
       <div class="btns" style="margin-top:8px">
        <label class="small">Level <input type="number" id="ed-lv" data-bind="base.level" value="${B().level}"></label>
-       <label class="small">Max HP <input type="number" id="ed-hp" data-bind="base.maxHp" value="${B().maxHp}"></label>
+       <label class="small">Max HP (base) <input type="number" id="ed-hp" data-bind="base.maxHp" value="${B().maxHp}"></label>
        <label class="small">Speed <input type="number" id="ed-sp" data-bind="base.speed" value="${B().speed}"></label>
        <label class="small">AC misc <input type="number" id="ed-ac" data-bind="base.acMisc" value="${B().acMisc}"></label>
        <label class="small">XP <input type="number" id="ed-xp" data-bind="base.xp" value="${B().xp}" style="width:90px"></label>
@@ -633,7 +648,7 @@ function opt(o){
  const dis = o.dis ? "dis" : "";
  return `<button class="opt ${o.cls||""} ${dis}" data-act="use" data-k="${o.id}" ${o.dis?`title="${esc(o.dis)}"`:""}>
   <div class="on1"><span class="nm">${esc(o.n)}</span>${o.cost?`<span class="cost">${o.cost}</span>`:""}</div>
-  ${o.fl?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
+  ${o.fl&&showFl()?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
 }
 function combatOptions(){
  const A=[],Bo=[],Re=[];
@@ -652,13 +667,11 @@ function combatOptions(){
  A.push({id:"fuel",n:"Seriach's Fuel",cost:"1/LR",meta:"Only at 0 energy · gain 1–5 Stress, gain that much energy",kind:"fuel",dis:!S.lim.fuel?"Used. Back after a long rest.":S.energy>0?"Pack must be at 0 energy":S.stress>=5?"Already at 5 Stress":0});
  A.push({id:"insight",n:"Occult Insight",meta:"Action or bonus · DC 8 + CR · fail = +1 Stress",kind:"insight"});
  // gadgets from loadout
- const gad=S.loadout.map((g,i)=>({g,i,b:BPK[g.key]})).filter(x=>x.b);
- const seen={};
- gad.forEach(({g,i,b})=>{
-  if(b.l===0){ if(seen[b.k]) return; seen[b.k]=1; }
+ loadGroups().forEach(G=>{ const b=G.b;
   const tgt = b.t==="b"?Bo: b.t==="r"?Re: b.t==="a"?A:null; if(!tgt) return;
   const bits=[b.r]; if(b.atk) bits.push(`${sg(atk)} to hit`); if(b.s) bits.push(`DC ${dc} ${b.s}`); if(b.dmg) bits.push(`${b.dmg.replace("@int",M("int"))} ${b.dt}`); if(b.heal) bits.push(`heal ${b.heal.replace("@int",M("int"))}`); if(b.conc) bits.push("conc");
-  tgt.push({id:"g:"+i,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":"single-use",meta:bits.join(" · "),cls:"gad",kind:"gadget",gi:i,dis:g.dep?"Depleted. Reset on a short or long rest.":0});
+  const gi=G.ready.length?G.ready[0]:G.all[0];
+  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · "),cls:"gad",kind:"gadget",gi,dis:b.l>0&&!G.ready.length?"All depleted. Reset on a short or long rest.":0});
  });
  // bonus: discharges
  const DS=[["pbolt","Proton Bolt",1,`60 ft · ${sg(iA)} to hit · 2d8 force`],["pstream","Proton Stream",3,`30-ft line · DC ${iDC} Dex · 2d8 force, half on save`],["cburst","Containment Burst",4,`60 ft, 10-ft radius · DC ${iDC} Str · 2d8 force, push 10 ft; half, no push on save`],["overload","Full Proton Overload",5,`60 ft · DC ${iDC} Str · 6d8 force + restrained to end of your next turn; half on save`]];
@@ -736,8 +749,9 @@ function bpCard(b,inLoad){
  if(b.dmg) stats.push(`<span>Damage <b>${b.dmg.replace("@int",M("int"))} ${b.dt}</b></span>`);
  if(b.rit) stats.push(`<span><b>Ritual</b></span>`);
  const fl=flavOf(b);
- return `${fl?`<div class="flav">${esc(fl)}</div>`:""}<div class="stat">${stats.join("")}</div><div class="fx"><b class="small" style="color:var(--ash2);letter-spacing:1px">IN PLAY</b> ${esc(b.fx)}</div>`;
+ return `${fl&&showFl()?`<div class="flav">${esc(fl)}</div>`:""}<div class="stat">${stats.join("")}</div><div class="fx"><b class="small" style="color:var(--ash2);letter-spacing:1px">IN PLAY</b> ${esc(b.fx)}</div>`;
 }
+function loadGroups(){ const out=[], at={}; S.loadout.forEach((g,i)=>{ const b=BPK[g.key]; if(!b) return; if(at[g.key]===undefined){ at[g.key]=out.length; out.push({b,n:0,ready:[],all:[]}); } const G=out[at[g.key]]; G.n++; G.all.push(i); if(!g.dep||b.l===0) G.ready.push(i); }); return out; }
 function renderGadgets(){
  const cap=gadgetCap(), n=S.loadout.length;
  const q=UI.bpFilter.toLowerCase();
@@ -748,12 +762,13 @@ function renderGadgets(){
    <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<button class="btn sm" data-act="resetGadgets">Reset ${depN} depleted</button>`:""}</h2>
    <p class="small dim">Carry limit: Artificer level + INT mod. Levelled gadgets deplete when deployed; cantrips don't. Short or long rest resets depleted gadgets; long rest lets you swap the load-out.</p>
    <div class="col" style="margin-top:8px">
-   ${n?S.loadout.map((g,i)=>{const b=BPK[g.key]; if(!b) return ""; return `<div class="gadget ${g.dep?"dep":""}">
-     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)}</b>
-      ${g.dep?'<span class="chip red">Depleted</span>':""}
-      <button class="btn sm pri" data-act="deploy" data-i="${i}" ${g.dep?"disabled":""}>Deploy</button>
-      ${g.dep?`<button class="btn sm" data-act="ungdep" data-i="${i}">Reset</button>`:""}
-      <button class="btn sm" data-act="unload" data-i="${i}" title="Dismantle">✕</button></div>
+   ${n?loadGroups().map(G=>{const b=G.b, many=G.n>1, ready=G.ready.length, dep=G.n-ready; return `<div class="gadget ${b.l&&!ready?"dep":""}">
+     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)} ${many?`<span class="mult">×${G.n}</span>`:""}</b>
+      ${b.l?(dep?`<span class="chip ${ready?"":"red"}">${ready}/${G.n} ready</span>`:(many?`<span class="chip ok">${ready} ready</span>`:"")):""}
+      <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>Deploy</button>
+      ${dep?`<button class="btn sm" data-act="resetK" data-k="${b.k}">Reset</button>`:""}
+      <button class="btn sm" data-act="build" data-k="${b.k}" title="Build another">+1</button>
+      <button class="btn sm" data-act="unloadK" data-k="${b.k}" title="Dismantle one">−1</button></div>
      <div class="small muted">${b.n}${b.conc?" · concentration":""}</div>
      ${bpCard(b,true)}</div>`}).join(""):`<div class="warnbox">Empty. Add the gadgets you built at your last long rest from the catalogue.</div>`}
    </div>
@@ -837,16 +852,21 @@ const mods=modsUsed(), atts=S.items.filter(i=>i.att).length;
    <input id="ni-note" type="text" placeholder="Notes (optional)" style="width:100%;margin-top:6px">
   </div>
   <div class="grid" style="margin-top:0">
+   <div class="panel" id="mods-panel">
+    <h2>Mechanical Modifications <span class="cnt ${mods>modCap()?"over":mods===modCap()?"full":""}">${mods} / ${modCap()}</span></h2>
+    <p class="small dim">Clockwork rigs you maintain at level ${B().level}. Each one, on your gear or an ally's, uses a slot. Re-rig them on a long rest.</p>
+    ${mods>modCap()?`<div class="redbox">Too many modifications for level ${B().level}. Remove one at your next long rest.</div>`:""}
+    <h3>On your gear</h3>
+    ${S.items.filter(i=>i.mod).map(i=>`<div class="li"><span class="grow"><b>${esc(i.n)}</b></span><span class="chip amber">Modified</span></div>`).join("")||'<p class="small muted">None. Tick "Mechanical Modification" on an item below.</p>'}
+    <h3>On allies' gear</h3>
+    ${(S.allyMods||[]).map((m,i)=>`<div class="btns" style="margin-top:6px"><input type="text" id="am-item-${i}" data-bind="allyMods.${i}.item" value="${esc(m.item)}" placeholder="Item and modification (e.g. Radiant Weapon on a longsword)" style="flex:2;min-width:150px"><input type="text" id="am-ally-${i}" data-bind="allyMods.${i}.ally" value="${esc(m.ally)}" placeholder="Character" style="flex:1;min-width:100px"><button class="btn sm" data-act="amDel" data-i="${i}" title="Reclaim this slot">✕</button></div>`).join("")||'<p class="small muted">None.</p>'}
+    <div class="btns" style="margin-top:8px"><button class="btn sm" data-act="amAdd">Add ally modification</button></div>
+   </div>
    <div class="panel">
     <h2>Worn &amp; equipped</h2>
-    <div class="chips" style="margin-bottom:6px"><span class="chip ${mods>modCap()?"red":"amber"}">Mechanical Modifications ${mods}/${modCap()}</span><span class="chip ${atts>attCap()?"red":"ecto"}">Attuned ${atts}/${attCap()}</span></div>
-    ${mods>modCap()?`<div class="redbox">Too many modifications for level ${B().level}. Remove one at your next long rest.</div>`:""}
+    <div class="chips" style="margin-bottom:6px"><span class="chip ${atts>attCap()?"red":"ecto"}">Attuned ${atts}/${attCap()}</span></div>
     ${atts>attCap()?`<div class="redbox">Too many attuned items.</div>`:""}
     ${worn.map(([it,i])=>itemRow(it,i)).join("")}
-    <h3>Modifications on allies' gear</h3>
-    <p class="small dim">Clockwork you've bolted onto other characters' equipment. Each one uses a modification slot.</p>
-    ${(S.allyMods||[]).map((m,i)=>`<div class="btns" style="margin-top:6px"><input type="text" id="am-item-${i}" data-bind="allyMods.${i}.item" value="${esc(m.item)}" placeholder="Item and modification" style="flex:2;min-width:150px"><input type="text" id="am-ally-${i}" data-bind="allyMods.${i}.ally" value="${esc(m.ally)}" placeholder="Character" style="flex:1;min-width:100px"><button class="btn sm" data-act="amDel" data-i="${i}" title="Reclaim this slot">✕</button></div>`).join("")}
-    <div class="btns" style="margin-top:6px"><button class="btn sm" data-act="amAdd">Add ally modification</button></div>
    </div>
    <div class="panel">
     <h2>Coins &amp; materials</h2>
@@ -868,8 +888,8 @@ function renderFeatures(){
   ${R_("Soul-Sight · Soul-Targeted Strikes",`<p>You see the thread between body and soul. Once per turn, when a spell attack beats the target's AC by 5 or more, add <b>${L>=15?"3d6":L>=9?"2d6":"1d6"}</b> force.</p>`)}
   ${R_("Guiding Spark",`<p>Reaction when a creature you can see within 60 ft saves against your Blueprint or Discharge: it subtracts 1d4. Once per short or long rest.</p>`)}
   ${R_("Seriach's Fuel",`<p>Once per long rest, as an action while the pack is at 0 Energy: gain 1 to 5 Stress (never above 5) and the same amount of Energy.</p>`)}
-  ${R_("Level 9 · Recalibration & Tactical Vents",`<p>Pick one configuration after each rest. Whenever you spend 3+ Energy in a turn, its Vent triggers.</p><ul><li><b>Kinetic Deflector:</b> reaction, 2 Energy, reduce damage by 1d10 + INT; at 0, half cover. Vent: +2 AC to your next turn.</li><li><b>Arcane Capacitor:</b> +1 Energy to give an ally +2 AC, a one-level upcast, or resistance to the next damage. Vent: up to 3 creatures in 30 ft get 1d8 + INT temp HP and a free 10-ft move.</li><li><b>Offensive Exhaust:</b> once per turn when you deal damage, a creature within 5 ft of the target takes INT force. Vent: Dex save or 2d6 force to chosen creatures within 5 ft.</li><li><b>Hybrid Regulator:</b> +30 ft discharge range, temp HP equal to Energy spent for a creature within 10 ft, +1 to hit for you and those within 5 ft. Vent: +10 ft move and a free 10-ft move.</li></ul>`, L>=9?"":"locked")}
-  ${R_("Level 15 · Master of the Æther",`<ul><li><b>Perfect Containment:</b> Soul Vacuum 60 ft; roll capture twice and choose, INT mod times per long rest.</li><li><b>Ectoplasmic Mastery:</b> Proton Bolt costs 0; once per turn reduce a discharge cost by 1 (minimum 1).</li><li><b>Final Containment:</b> once per long rest at 0 HP, drop to 1 instead, gain 5 Energy, creatures within 15 ft Str save or 4d8 force and pushed 15 ft. Then +2 Stress and no Soul Vacuum until a long rest.</li></ul>`, L>=15?"":"locked")}
+  ${L>=9||S.settings.showLocked?R_("Level 9 · Recalibration & Tactical Vents",`<p>Pick one configuration after each rest. Whenever you spend 3+ Energy in a turn, its Vent triggers.</p><ul><li><b>Kinetic Deflector:</b> reaction, 2 Energy, reduce damage by 1d10 + INT; at 0, half cover. Vent: +2 AC to your next turn.</li><li><b>Arcane Capacitor:</b> +1 Energy to give an ally +2 AC, a one-level upcast, or resistance to the next damage. Vent: up to 3 creatures in 30 ft get 1d8 + INT temp HP and a free 10-ft move.</li><li><b>Offensive Exhaust:</b> once per turn when you deal damage, a creature within 5 ft of the target takes INT force. Vent: Dex save or 2d6 force to chosen creatures within 5 ft.</li><li><b>Hybrid Regulator:</b> +30 ft discharge range, temp HP equal to Energy spent for a creature within 10 ft, +1 to hit for you and those within 5 ft. Vent: +10 ft move and a free 10-ft move.</li></ul>`, L>=9?"":"locked"):""}
+  ${L>=15||S.settings.showLocked?R_("Level 15 · Master of the Æther",`<ul><li><b>Perfect Containment:</b> Soul Vacuum 60 ft; roll capture twice and choose, INT mod times per long rest.</li><li><b>Ectoplasmic Mastery:</b> Proton Bolt costs 0; once per turn reduce a discharge cost by 1 (minimum 1).</li><li><b>Final Containment:</b> once per long rest at 0 HP, drop to 1 instead, gain 5 Energy, creatures within 15 ft Str save or 4d8 force and pushed 15 ft. Then +2 Stress and no Soul Vacuum until a long rest.</li></ul>`, L>=15?"":"locked"):""}
  </div>
  <div class="grid" style="margin-top:0">
  <div class="panel"><h2>Artificer, reworked</h2>
@@ -913,7 +933,17 @@ function renderNotes(){
 }
 
 /* ======================= RENDER ROOT ======================= */
+const PERSON = () => S.settings.rollMode==="person";
+const showFl = () => S.settings.showFlavour!==false;
+function applySettings(){
+ const z={normal:"",large:"1.15",xl:"1.3"}[S.settings.textSize]||"";
+ if(document.body.style.zoom!==z) document.body.style.zoom=z;
+ try{ if(window.AndroidBridge && AndroidBridge.setKeepAwake) AndroidBridge.setKeepAwake(!!S.settings.keepAwake); }catch(e){}
+ const b=document.getElementById("rmode"); if(b) b.textContent=PERSON()?"Rolling: in person":"Rolling: in app";
+ const h=document.getElementById("rollhint"); if(h) h.textContent=PERSON()?"In-person rolling: tap anything and the app tells you what to roll.":"Tap any attack, skill, ability or gadget to roll.";
+}
 function render(){
+ applySettings();
  renderTop();
  const m=document.getElementById("main");
  const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,features:renderFeatures,notes:renderNotes}[UI.tab]||renderSheet;
@@ -928,11 +958,12 @@ function hpModal(){
  const dtypes=["","fire","necrotic","slashing","piercing","bludgeoning","cold","acid","lightning","thunder","poison","psychic","radiant","force"];
  modal(`<h2>Hit points</h2>
   <div class="muted small">Current <b class="num">${S.hp.cur}</b> / ${maxHp()} · Temp <b class="num">${S.hp.temp}</b></div>
+  ${S.hp.bonus?`<div class="ectobox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Max HP raised by <b>${S.hp.bonus}</b> (${B().maxHp} base). It ends at your next long rest. <button class="btn sm" data-act="bonusClear">Remove now</button></div>`:""}
   <div class="entry num" id="kpv">${KP.v||"0"}</div>
   <div class="keypad">${[7,8,9,"⌫",4,5,6,"C",1,2,3,"",0,"00","",""].map(k=>k===""?"<span></span>":`<button data-act="kp" data-k="${k}">${k}</button>`).join("")}</div>
   <div class="btns" style="margin-bottom:8px"><select id="kp-type" data-act-change="kpType">${dtypes.map(t=>`<option value="${t}" ${KP.type===t?"selected":""}>${t||"Damage type (optional)"}</option>`).join("")}</select>
    <span class="small muted">${KP.type==="fire"?"Fire: resistance halves it automatically.":""}</span></div>
-  <div class="btns"><button class="btn red" data-act="kpApply" data-k="dmg">Take damage</button><button class="btn ok" data-act="kpApply" data-k="heal">Heal</button><button class="btn ecto" data-act="kpApply" data-k="temp">Set temp HP</button><button class="btn" data-act="close">Close</button></div>
+  <div class="btns"><button class="btn red" data-act="kpApply" data-k="dmg">Take damage</button><button class="btn ok" data-act="kpApply" data-k="heal">Heal</button><button class="btn ecto" data-act="kpApply" data-k="temp">Set temp HP</button><button class="btn ok" data-act="kpApply" data-k="bonus">Add to max HP</button><button class="btn" data-act="close">Close</button></div>
   ${S.hp.cur===0?`<div class="sep"></div><h3>Death saves</h3><div class="btns"><span class="dsave">Successes ${[0,1,2].map(i=>`<span class="use ${i<S.ds.s?"":"spent"}" data-act="ds" data-k="s" data-i="${i}"></span>`).join("")}</span><span class="dsave">Failures ${[0,1,2].map(i=>`<span class="use ${i<S.ds.f?"":"spent"}" data-act="ds" data-k="f" data-i="${i}" style="${i<S.ds.f?"background:var(--blood);border-color:var(--blood)":""}"></span>`).join("")}</span><button class="btn sm" data-act="dsRoll">Roll death save</button></div>`:""}
   <div id="kpmsg"></div>`);
 }
@@ -948,7 +979,7 @@ function armorModal(){
   <div class="btns"><button class="btn" data-act="close">Done</button></div>`);
 }
 function soulModal(r){
- modal(`<h2>Soul Vacuum</h2><div class="flav" style="font-size:14px">${esc(FLAV_EXTRA.vacuum)}</div><p class="small muted">Reaction · hostile CR ¼+ creature died within 30 ft. Pack holds ${S.energy}/${eMax()}.</p>
+ modal(`<h2>Soul Vacuum</h2>${showFl()?`<div class="flav" style="font-size:14px">${esc(FLAV_EXTRA.vacuum)}</div>`:""}<p class="small muted">Reaction · hostile CR ¼+ creature died within 30 ft. Pack holds ${S.energy}/${eMax()}.</p>
   <div class="btns">${SV_TABLE.map((row,i)=>`<button class="btn ecto" data-act="vacRoll" data-i="${i}">CR ${row[0]}<br><span class="num small">${row[1]}</span></button>`).join("")}</div>
   <div id="vacres">${r||""}</div>
   <div class="btns" style="margin-top:10px"><button class="btn" data-act="breach">Roll d100 wild table</button><button class="btn" data-act="close">Close</button></div>`);
@@ -962,11 +993,12 @@ function restModal(kind){
   <div id="hdres"></div>
   <div class="btns" style="margin-top:10px"><button class="btn pri" data-act="doRest" data-k="short">Finish short rest</button><button class="btn" data-act="close">Cancel</button></div>`);
  else modal(`<h2>Long rest</h2>
-  <ul class="small"><li>HP to ${maxHp()}, regain ${Math.max(1,Math.floor(B().level/2))} hit dice, exhaustion −1</li><li>Guiding Bolt, Guiding Spark, Seriach's Fuel recover; gadgets reset (swap your load-out on the Gadgets tab)</li><li>Æther-Pack loses ${lost} of ${S.energy} energy (half, rounded up)</li></ul>
+  <ul class="small">${S.hp.bonus?`<li>Your extra ${S.hp.bonus} max HP ends (max back to ${B().maxHp})</li>`:""}<li>HP to ${maxHp()-(S.hp.bonus||0)}, regain ${Math.max(1,Math.floor(B().level/2))} hit dice, exhaustion −1</li><li>Guiding Bolt, Guiding Spark, Seriach's Fuel recover; gadgets reset (swap your load-out on the Gadgets tab)</li><li>Æther-Pack loses ${lost} of ${S.energy} energy (half, rounded up)</li></ul>
   <div class="col">
-   <button class="tog on" id="lr-stress" data-act="lrTog"><span class="box"></span>Clear Stress (${S.stress} → 0)</button>
+   <button class="tog ${S.settings.lrStress==="keep"?"":"on"}" id="lr-stress" data-act="lrTog"><span class="box"></span>Clear Stress (${S.stress} → 0)</button>
    <button class="tog ${S.energy?"":"locked"}" id="lr-keep" data-act="lrTog"><span class="box"></span>Take 1 Stress to keep all ${S.energy} energy</button>
-   <button class="tog on" id="lr-dawn" data-act="lrTog"><span class="box"></span>Dawn passes: roll item charge recovery</button>
+   <button class="tog on" id="lr-dawn" data-act="lrTog"><span class="box"></span>Dawn passes: item charges recover</button>
+   ${PERSON()?Object.entries(FX).filter(([k,f])=>f.max&&itemFx(k)&&f.regain!=="all").map(([k,f])=>`<label class="askrow"><span>${f.n}: roll <b>${f.regain}</b></span><input type="number" inputmode="numeric" id="dawn-${k}" placeholder="roll"></label>`).join(""):""}
    <button class="tog ${S.hp.temp?"on":""}" id="lr-temp" data-act="lrTog"><span class="box"></span>Clear temp HP (${S.hp.temp})</button>
   </div>
   <div class="btns" style="margin-top:10px"><button class="btn pri" data-act="doRest" data-k="long">Finish long rest</button><button class="btn" data-act="close">Cancel</button></div>`);
@@ -976,7 +1008,12 @@ function restModal(kind){
 function spendEco(slot){ if(S.combat.on){ S.combat[slot]=true; } }
 const SLOT = t => t==="b"?"bon":t==="r"?"rea":"act";
 function ocApply(){ if(!S.combat.oc) return 0; S.combat.oc=false; S.combat.ocUsed=true; setStress(S.stress+1,"Overclock"); return 3; }
-function resolveAttack(label,atkB,dmgExpr,dt,ocB){
+function tellCard(label,ocB,lines){ return `<div class="rollcard"><div class="muted small">${esc(label)} · roll at the table${ocB?' <span class="chip red">Overclocked</span>':""}</div>${lines.map(l=>`<div class="tell">${l}</div>`).join("")}</div>`; }
+function resolveAttack(label,atkB,dmgExpr,dt,ocB,spell){
+ if(PERSON()){ const ex=String(dmgExpr).replace(/@int/g,M("int")), cd=diceOnly(dmgExpr);
+  const lines=[`Roll <b>d20 ${sg(atkB+ocB)}</b> to hit${ocB?" (includes Overclock +3)":""}.`,`On a hit, roll <b>${ex}</b> ${dt} damage.`,`Natural 20: also roll <b>${cd}</b> extra.`];
+  if(spell!==false) lines.push(`Beat its AC by 5 or more: add <b>${B().level>=15?"3d6":B().level>=9?"2d6":"1d6"}</b> force (Soul-Targeted, once per turn).`);
+  pushRoll(label,"",`Roll <b>d20 ${sg(atkB+ocB)}</b>, then <b>${ex}</b> ${dt}`); return tellCard(label,ocB,lines); }
  const a=R(20),b=R(20), bonus=atkB+ocB;
  const d=roll(dmgExpr), crit=roll(diceOnly(dmgExpr));
  const html=`<div class="rollcard"><div class="muted small">${esc(label)}${ocB?' <span class="chip red">Overclocked +3</span>':""}</div>
@@ -986,6 +1023,11 @@ function resolveAttack(label,atkB,dmgExpr,dt,ocB){
  return html;
 }
 function resolveSave(label,dc,save,dmgExpr,dt,ocB,extra){
+ if(PERSON()){ const ex=dmgExpr?String(dmgExpr).replace(/@int/g,M("int")):"";
+  const lines=[`The target makes a <b>DC ${dc+ocB} ${save}</b> saving throw${ocB?" (includes Overclock +3)":""}.`];
+  if(ex) lines.push(`Roll <b>${ex}${ocB?" + 3":""}</b> ${dt}: full damage on a fail, half on a success.`);
+  if(extra) lines.push(`<span class="small muted">${extra}</span>`);
+  pushRoll(label,"",`Target: DC <b>${dc+ocB}</b> ${save}${ex?`, you roll <b>${ex}${ocB?"+3":""}</b>`:""}`); return tellCard(label,ocB,lines); }
  const d=dmgExpr?roll(dmgExpr):null; const tot=d?d.total+ocB:0;
  const html=`<div class="rollcard"><div class="muted small">${esc(label)}${ocB?' <span class="chip red">Overclocked +3</span>':""}</div>
   <div class="btns" style="align-items:baseline"><span class="big">DC ${dc+ocB}</span><span class="small dim">${save} save</span></div>
@@ -997,11 +1039,14 @@ function resolveSave(label,dc,save,dmgExpr,dt,ocB,extra){
 function useOption(id){
  const o=OPTS[id]; if(!o) return;
  if(o.dis){ toastModal(o.n, `<p class="muted">${esc(o.dis===true?"Not available right now.":o.dis)}</p>`); return; }
+ const costly = ["discharge","rshield","spark","fuel","axeblind","mind","pipes"].includes(o.kind) || o.id==="gbolt" || (o.kind==="gadget" && BPK[S.loadout[o.gi].key].l>0);
+ if(S.settings.confirmSpend && costly && UI.confirmed!==id){ modal(`<h2>Use ${esc(o.n)}?</h2><p class="muted">${o.cost?esc(o.cost)+" · ":""}${o.meta}</p><div class="btns" style="margin-top:10px"><button class="btn pri" data-act="useConfirm" data-k="${id}">Use it</button><button class="btn" data-act="close">Cancel</button></div>`); return; }
+ UI.confirmed=null;
  let html="", slot=o.slot||"act";
  const ocB = (o.kind==="gadget"||o.kind==="discharge") ? ocApply() : 0;
  switch(o.kind){
-  case "atk": html=resolveAttack(o.n,o.atk,o.dmg,o.dt,0); if(id==="gbolt"){S.lim.gbolt=0;logEv("Used Guiding Bolt");} break;
-  case "scorch": { let rays=[1,2,3].map(n=>{const a=R(20),d=roll("2d6");return `Ray ${n}: <b>${a+ATK()}</b> to hit (d20 ${a}${a===20?" CRIT":""}), <b>${d.total}</b> fire [${d.parts[0].rs}]`}).join("<br>"); const con=R(20)+saveBonus("con");
+  case "atk": html=resolveAttack(o.n,o.atk,o.dmg,o.dt,0,!["dagger","hammer","axe"].includes(id)); if(id==="gbolt"){S.lim.gbolt=0;logEv("Used Guiding Bolt");} break;
+  case "scorch": if(PERSON()){ html=tellCard("Scorching Ray",0,[`Make <b>3 ray attacks</b>: roll <b>d20 ${sg(ATK())}</b> for each (one target or several).`,`Each ray that hits: <b>2d6</b> fire.`,`Then brace against the energy: <b>Con save, d20 ${sg(saveBonus("con"))}</b> (the DM sets the DC).`]); pushRoll("Scorching Ray","",`3 × d20 ${sg(ATK())}, 2d6 fire each, then Con save d20 ${sg(saveBonus("con"))}`); break; } else { let rays=[1,2,3].map(n=>{const a=R(20),d=roll("2d6");return `Ray ${n}: <b>${a+ATK()}</b> to hit (d20 ${a}${a===20?" CRIT":""}), <b>${d.total}</b> fire [${d.parts[0].rs}]`}).join("<br>"); const con=R(20)+saveBonus("con");
     html=`<div class="rollcard"><div class="muted small">Scorching Ray (arm)</div><div class="small">${rays}</div><div class="small" style="margin-top:6px">Con save to withstand it: <b>${con}</b> (DC set by the DM)</div></div>`; pushRoll("Scorching Ray",html,`3 rays, Con save ${con}`); break; }
   case "discharge": {
     setEnergy(S.energy-o.e,o.n);
@@ -1019,14 +1064,14 @@ function useOption(id){
   case "insight": insightModal(); spendEco(slot); save(); render(); return;
   case "vacuum": spendEco("rea"); save(); render(); soulModal(); return;
   case "rshield": S.ch.rshield--; logEv("Repulsion Shield push"); html=`<div class="rollcard"><div class="big">Pushed</div><div class="small muted">Attacker shoved up to 15 ft away. ${S.ch.rshield} charges left.</div></div>`; pushRoll(o.n,html,"attacker pushed 15 ft"); break;
-  case "spark": { S.lim.spark=0; const d=R(4); logEv("Guiding Spark"); html=`<div class="rollcard"><div class="muted small">Guiding Spark</div><div class="big ecto">−${d}</div><div class="small muted">to the creature's saving throw</div></div>`; pushRoll(o.n,html,`<b>−${d}</b> to their save`); break; }
+  case "spark": if(PERSON()){ S.lim.spark=0; logEv("Guiding Spark"); html=tellCard("Guiding Spark",0,["Roll <b>1d4</b>. The creature subtracts it from its saving throw."]); pushRoll(o.n,"","Roll <b>1d4</b>, they subtract it"); break; } { S.lim.spark=0; const d=R(4); logEv("Guiding Spark"); html=`<div class="rollcard"><div class="muted small">Guiding Spark</div><div class="big ecto">−${d}</div><div class="small muted">to the creature's saving throw</div></div>`; pushRoll(o.n,html,`<b>−${d}</b> to their save`); break; }
   case "axeblind": S.ch.axe--; logEv("Battleaxe flare"); html=resolveSave(o.n,DC(),"Con",null,"",0,"Fail: blinded until the end of its next turn."); break;
   case "mind": S.ch.mind--; logEv("Mind Sharpener: concentration held"); html=`<div class="rollcard"><div class="big">Held</div><div class="small muted">Concentration save succeeds. ${S.ch.mind} charges left.</div></div>`; pushRoll(o.n,html,"concentration held"); break;
   case "axelight": S.axeLight=!S.axeLight; html=""; pushRoll(o.n,"",S.axeLight?"light on":"light off"); break;
   case "simple": html=""; pushRoll(o.n,"",o.meta); break;
  }
  spendEco(slot); save(); render();
- if(html) toastModal(o.n, (o.fl&&o.kind!=="gadget"?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(o.fl)}</div>`:"")+html);
+ if(html) toastModal(o.n, (o.fl&&showFl()&&o.kind!=="gadget"?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(o.fl)}</div>`:"")+html);
 }
 function deployGadget(i, ocB){
  const g=S.loadout[i], b=BPK[g.key]; if(!g||!b) return "";
@@ -1034,13 +1079,86 @@ function deployGadget(i, ocB){
  if(b.conc){ if(S.conc && S.conc!==b.n) logEv(`Dropped concentration on ${S.conc}`); S.conc=b.n; }
  logEv(`Deployed ${b.c} (${b.n})${ocB?" overclocked":""}`);
  let html="";
- if(b.atk) html=resolveAttack(`${b.n}`,ATK(),b.dmg,b.dt,ocB);
+ if(b.atk) html=resolveAttack(`${b.n}`,ATK(),b.dmg,b.dt,ocB,!["booming","gfb"].includes(b.k));
  else if(b.s) html=resolveSave(`${b.n}`,DC(),b.s,b.dmg||null,b.dt||"",ocB,"");
- else if(b.heal){ const h=roll(b.heal); html=`<div class="rollcard"><div class="muted small">${b.n}</div><div class="big" style="color:var(--heal)">${h.total}</div><div class="small dim">healed · ${showParts(h)}</div></div>`; pushRoll(b.n,html,`heals <b>${h.total}</b>`); }
+ else if(b.heal && PERSON()){ const ex=b.heal.replace("@int",M("int")), fl=flavOf(b);
+  askRolls(b.c,(fl&&showFl()?`<div class="flav" style="font-size:14px">${esc(fl)}</div>`:"")+`<div class="tell">Roll <b>${ex}</b> for the hit points restored.</div><p class="small muted">${esc(b.fx)}</p>`,[{k:"h",label:`Total of ${ex}`},{k:"me",type:"flag",label:"The target is me (Flint)"}],
+   v=>{ if(v.me){ heal(v.h); return `<div class="ectobox">You regain ${v.h} HP. HP ${S.hp.cur}/${maxHp()}.</div>`; } logEv(`${b.n}: ally regained ${v.h} HP`); return `<div class="ectobox">Your ally regains ${v.h} HP.</div>`; });
+  return null; }
+ else if(b.tmp && PERSON()){ const fl=flavOf(b);
+  askRolls(b.c,(fl&&showFl()?`<div class="flav" style="font-size:14px">${esc(fl)}</div>`:"")+`<div class="tell">Roll <b>${b.tmp}</b> for temporary hit points.</div>`,[{k:"h",label:`Total of ${b.tmp}`}],
+   v=>{ const had=S.hp.temp; if(v.h>S.hp.temp) S.hp.temp=v.h; logEv(`False Life: ${v.h} temp HP`); return `<div class="ectobox">${v.h>had?`You now have ${v.h} temporary HP.`:`You keep your ${had} temp HP (temp HP doesn't stack).`}</div>`; });
+  return null; }
+ else if(b.heal){ const h=roll(b.heal); html=`<div class="rollcard"><div class="muted small">${b.n}</div><div class="big" style="color:var(--heal)">${h.total}</div><div class="small dim">healed · ${showParts(h)}</div></div><div class="btns" style="margin-top:6px"><button class="btn ok sm" data-act="healMe" data-n="${h.total}">It was me: heal ${h.total}</button></div>`; pushRoll(b.n,html,`heals <b>${h.total}</b>`); }
  else if(b.tmp){ const h=roll(b.tmp); if(h.total>S.hp.temp){S.hp.temp=h.total;} logEv(`False Life: ${h.total} temp HP`); html=`<div class="rollcard"><div class="big ecto">${h.total}</div><div class="small dim">temp HP (applied if higher than current)</div></div>`; pushRoll(b.n,html,`<b>${h.total}</b> temp HP`); }
  else { html=`<div class="rollcard"><div class="muted small">Deployed</div><div class="big" style="font-size:22px">${esc(b.c)}</div></div>`; pushRoll(b.n,html,"deployed"); }
  const fl=flavOf(b);
- return (fl?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(fl)}</div>`:"") + html + `<p class="small" style="margin-top:6px"><b>What happens:</b> ${esc(b.fx)}</p>`;
+ return (fl&&showFl()?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(fl)}</div>`:"") + html + `<p class="small" style="margin-top:6px"><b>What happens:</b> ${esc(b.fx)}</p>`;
+}
+function dsResult(r){ let t; if(r===20){ S.hp.cur=1; S.ds={s:0,f:0}; t="Natural 20: back up with 1 HP!"; } else if(r===1){ S.ds.f=Math.min(3,S.ds.f+2); t="Natural 1: two failures."; } else if(r>=10){ S.ds.s=Math.min(3,S.ds.s+1); t="Success."; } else { S.ds.f=Math.min(3,S.ds.f+1); t="Failure."; }
+ if(S.ds.s>=3) t+=" Stable."; if(S.ds.f>=3) t+=" Three failures."; pushRoll("Death save",``,`<b>${r}</b> ${t}`); logEv(`Death save ${r}: ${t}`); save(); render(); }
+function askRolls(title, intro, fields, apply){
+ UI.ask={title,fields,apply};
+ modal(`<h2>${esc(title)}</h2>${intro||""}
+  <div class="col" style="margin-top:10px">${fields.map(f=>f.type==="flag"?`<button class="tog" id="ask-${f.k}" data-act="lrTog"><span class="box"></span>${f.label}</button>`:`<label class="askrow"><span>${f.label}</span><input type="number" inputmode="numeric" id="ask-${f.k}" ${f.opt?'placeholder="if any"':""}></label>`).join("")}</div>
+  <div id="askerr"></div>
+  <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="askGo">Apply</button><button class="btn" data-act="close">Cancel</button></div>`);
+ setTimeout(()=>{ const f=fields.find(x=>x.type!=="flag"); const el=f&&document.getElementById("ask-"+f.k); if(el) el.focus(); },60);
+}
+function vacApply(row,total,rs,breach){
+ const room=eMax()-S.energy; const cap=Math.min(room,total), excess=total-cap;
+ setEnergy(S.energy+cap,"Soul Vacuum CR "+row[0]);
+ let h=`<div class="rollcard"><div class="muted small">Captured from CR ${row[0]} · ${row[1]}${rs?` [${rs.join(", ")}]`:` = ${total}`}</div><div class="big ecto">+${cap}</div><div class="small dim">energy · pack now ${S.energy}/${eMax()}</div></div>`;
+ if(excess>0) h+=`<div class="redbox"><b>Backlash: ${excess} necrotic.</b> It burns through you or an adjacent creature. <button class="btn sm red" data-act="backlash" data-n="${excess}">I take it</button></div>`;
+ if(breach){ if(PERSON()){ h+=`<div class="redbox"><b>Containment Breach!</b> A die showed 4. Roll <b>d100</b> on the wild table.</div>`; logEv("Containment Breach"); } else { const w=R(100); h+=`<div class="redbox"><b>Containment Breach!</b> A die showed 4. Wild table d100: <b class="num">${w}</b></div>`; logEv(`Containment Breach, d100 ${w}`); } }
+ pushRoll("Soul Vacuum",h,`+${cap} energy${excess?`, ${excess} backlash`:""}${breach?", BREACH":""}`); save(); render(); soulModal(h);
+}
+function finishInv(cost,r,fIn){
+  const name=(UI.wbName||"").trim()||"Unnamed device", tier=+(UI.wbTier||0), dc=TIERS[tier][1];
+  let res, cls;
+  if(r<=5){ const f=fIn!=null?fIn:(PERSON()?0:R(6)), dmg=Math.floor(f/2); if(f) damage(f,"fire",true); setStress(S.stress+1,"meltdown"); S.scrap=Math.max(0,S.scrap-cost); res=`<b>Catastrophic meltdown.</b> It turns to molten slag in your hands. ${cost} gp of materials destroyed. ${f?`You take ${dmg} fire (${f}, halved by resistance)`:`Roll 1d6 fire (halved by resistance) and take it on the HP panel`} and 1 Stress.`; cls="redbox"; }
+  else if(r<dc){ res=`<b>Failure.</b> The blueprint doesn't work. Materials are fine, but your fixation on the broken device makes you ignore your physical limits (ask the DM).`; cls="warnbox"; }
+  else {
+   S.scrap=Math.max(0,S.scrap-cost);
+   let snapped="";
+   if(S.inventions.length>=invCap()){ const o=S.inventions.shift(); snapped=` Your oldest invention, <b>${esc(o.n)}</b>, violently snaps.`; logEv(`${o.n} snapped (over invention limit)`); }
+   S.inventions.push({id:nid(),n:name,tier,note:(UI.wbNote||"")+(r>=95?" [Critical: minor bonus]":"")});
+   res= r>=95?`<b>Critical success!</b> ${esc(name)} works flawlessly and gains a minor bonus (range, durability, or silent). ${cost} gp used.${snapped}`:`<b>Success.</b> ${esc(name)} works as planned. ${cost} gp used.${snapped}`; cls="ectobox";
+   UI.wbName="";UI.wbNote="";
+  }
+  logEv(`Tinkered ${name} (T${tier}): d100 ${r}`);
+  UI.wbResult=`<div class="${cls}">d100 <b class="num">${r}</b> vs ${dc}+ · ${res}</div>`;
+  pushRoll("Invention",``,`d100 <b>${r}</b> vs ${dc}+`);
+  save(); render(); closeModal();
+}
+function settingsModal(){
+ const st=S.settings;
+ const tog=(k,l,d)=>`<div class="li"><div class="grow"><b>${l}</b>${d?`<div class="small dim">${d}</div>`:""}</div><button class="tog ${st[k]?"on":""}" data-act="setTog" data-k="${k}"><span class="box"></span>${st[k]?"On":"Off"}</button></div>`;
+ const seg=(k,l,d,opts)=>`<div class="li" style="flex-wrap:wrap"><div class="grow" style="min-width:200px"><b>${l}</b>${d?`<div class="small dim">${d}</div>`:""}</div><div class="chips">${opts.map(([v,t])=>`<button class="tog ${st[k]===v?"on":""}" data-act="setVal" data-k="${k}" data-v="${v}"><span class="box"></span>${t}</button>`).join("")}</div></div>`;
+ modal(`<h2>Settings</h2>
+  <h3>Dice</h3><div class="list">
+   ${seg("rollMode","Rolling","In person: the app tells you exactly what to roll and asks for results it needs (Soul Vacuum, healing, hit dice, tinkering, death saves). In app: it rolls for you.",[["person","In person"],["app","In app"]])}
+   ${tog("haptics","Vibrate on rolls","A short buzz when a roll or instruction comes up.")}
+  </div>
+  <h3>Combat</h3><div class="list">
+   ${tog("autoCombatTab","Jump to the Combat tab","Opens it when you flip the combat switch on.")}
+   ${tog("confirmSpend","Ask before spending","Confirm before using energy, item charges, single-use gadgets or once-per-rest features.")}
+   ${tog("concReminder","Concentration reminders","When you take damage while concentrating, show the Con save DC.")}
+  </div>
+  <h3>Rests</h3><div class="list">
+   ${seg("lrStress","Stress on a long rest","What the long-rest screen starts with. You can still change it each time.",[["clear","Clear it"],["keep","Keep it"]])}
+  </div>
+  <h3>Display</h3><div class="list">
+   ${seg("textSize","Text size","",[["normal","Normal"],["large","Large"],["xl","Extra large"]])}
+   ${tog("showFlavour","Device descriptions","How each gadget works mechanically, on cards and when you use them.")}
+   ${tog("showLocked","Future features","Show level 9 and 15 Spirit Engine features, greyed out.")}
+   ${window.AndroidBridge?tog("keepAwake","Keep screen on","Stops the tablet sleeping while the app is open."):""}
+  </div>
+  <h3>Backup</h3>
+  <div class="btns"><button class="btn" data-act="exportFile">Save backup file</button><label class="btn" for="bk-file2" style="cursor:pointer">Load backup file</label><input type="file" id="bk-file2" accept=".json,application/json" hidden></div>
+  <p class="status" style="margin-top:8px">${storeMsg}</p>
+  <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="close">Done</button></div>`);
+ document.querySelector("#modal .modal")?.classList.add("wide");
 }
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
@@ -1052,7 +1170,7 @@ function fuelModal(){
 function insightModal(){
  modal(`<h2>Occult Insight</h2><p class="small muted">Learn something about a creature or what it did. DC = 8 + CR (or spell level). Fail: +1 Stress.</p>
  <div class="btns"><label class="small">CR / spell level <input type="number" id="oi-cr" value="1" min="0" step="1"></label></div>
- <div class="btns" style="margin-top:8px"><button class="btn" data-act="oiRoll" data-k="Investigation">Roll Investigation</button><button class="btn" data-act="oiRoll" data-k="Arcana">Roll Arcana</button><button class="btn" data-act="oiRoll" data-k="Insight">Roll Insight</button></div>
+ ${PERSON()?`<div class="tell">Roll <b>d20 ${sg(skillBonus(["Investigation","int"]))}</b> Investigation, <b>d20 ${sg(skillBonus(["Arcana","int"]))}</b> Arcana or <b>d20 ${sg(skillBonus(["Insight","wis"]))}</b> Insight (whichever the DM asks for), then enter your total.</div><label class="askrow" style="margin-top:8px"><span>Your total</span><input type="number" inputmode="numeric" id="oi-tot"></label><div class="btns" style="margin-top:8px"><button class="btn pri" data-act="oiRoll" data-k="Investigation">Check result</button></div>`:`<div class="btns" style="margin-top:8px"><button class="btn" data-act="oiRoll" data-k="Investigation">Roll Investigation</button><button class="btn" data-act="oiRoll" data-k="Arcana">Roll Arcana</button><button class="btn" data-act="oiRoll" data-k="Insight">Roll Insight</button></div>`}
  <div id="oires"></div>
  <div class="btns" style="margin-top:10px"><button class="btn red" data-act="oiFail">Failed: +1 Stress</button><button class="btn" data-act="close">Close</button></div>`);
 }
@@ -1060,11 +1178,11 @@ function insightModal(){
 /* ======================= EVENTS ======================= */
 const ACT = {
  tab:d=>{UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); window.scrollTo(0,0);},
- combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); logEv("Combat started"); UI.tab="combat"; } save(); render(); },
+ combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
  nextTurn:()=>{ const c=S.combat; c.round++; Object.assign(c,{act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); save(); render(); },
  eco:d=>{ S.combat[d.k]=!S.combat[d.k]; save(); render(); },
  overclock:()=>{ const c=S.combat; if(c.oc){c.oc=false;} else if(!c.ocUsed && S.stress<5){c.oc=true;} save(); render(); },
- sts:()=>{ S.combat.sts=true; const r=roll(B().level>=15?"3d6":B().level>=9?"2d6":"1d6"); pushRoll("Soul-Targeted Strike",`<div class="rollcard"><div class="big ecto">+${r.total}</div><div class="small dim">force · ${showParts(r)}</div></div>`,`<b>+${r.total}</b> force`); save(); render(); },
+ sts:()=>{ S.combat.sts=true; if(PERSON()){ pushRoll("Soul-Targeted Strike","",`Roll <b>${B().level>=15?"3d6":B().level>=9?"2d6":"1d6"}</b> force and add it to the damage`); save(); render(); return; } const r=roll(B().level>=15?"3d6":B().level>=9?"2d6":"1d6"); pushRoll("Soul-Targeted Strike",`<div class="rollcard"><div class="big ecto">+${r.total}</div><div class="small dim">force · ${showParts(r)}</div></div>`,`<b>+${r.total}</b> force`); save(); render(); },
  use:d=>useOption(d.k),
  stdAct:d=>{ spendEco("act"); pushRoll(d.k,"",{Dash:`+${speed()} ft movement`,Disengage:"no opportunity attacks this turn",Dodge:"attacks vs you have disadvantage, advantage on Dex saves",Help:"ally gets advantage",Hide:`Stealth ${sg(skillBonus(["Stealth","dex"]))}`,Ready:"set a trigger, use your reaction",Search:`Perception ${sg(skillBonus(["Perception","wis"]))} / Investigation ${sg(skillBonus(["Investigation","int"]))}`,"Use an object":"interact with an object"}[d.k]); save(); render(); },
  hpModal:()=>{ KP={v:"",type:KP.type||"",res:false}; hpModal(); },
@@ -1077,10 +1195,11 @@ const ACT = {
   if(d.k==="dmg"){ const r=damage(n,KP.type,KP.type==="fire"); msg=r.notes.map(x=>`<div class="warnbox">${x}</div>`).join(""); }
   if(d.k==="heal") heal(n);
   if(d.k==="temp"){ S.hp.temp=n; logEv(`Temp HP set to ${n}`); }
+  if(d.k==="bonus"){ S.hp.bonus=(S.hp.bonus||0)+n; S.hp.cur=Math.min(maxHp(),S.hp.cur+n); logEv(`Max HP +${n} until long rest (now ${maxHp()})`); }
   KP.v=""; save(); render(); hpModal(); if(msg) document.getElementById("kpmsg").innerHTML=msg; },
+ bonusClear:()=>{ logEv(`Extra ${S.hp.bonus} max HP removed`); S.hp.bonus=0; S.hp.cur=Math.min(S.hp.cur,maxHp()); save(); render(); hpModal(); },
  ds:d=>{ const k=d.k,i=+d.i; S.ds[k]= S.ds[k]===i+1? i : i+1; save(); hpModal(); },
- dsRoll:()=>{ const r=R(20); let t; if(r===20){ S.hp.cur=1; S.ds={s:0,f:0}; t="Natural 20: back up with 1 HP!"; } else if(r===1){ S.ds.f=Math.min(3,S.ds.f+2); t="Natural 1: two failures."; } else if(r>=10){ S.ds.s=Math.min(3,S.ds.s+1); t="Success."; } else { S.ds.f=Math.min(3,S.ds.f+1); t="Failure."; }
-  if(S.ds.s>=3) t+=" Stable."; if(S.ds.f>=3) t+=" Three failures."; pushRoll("Death save",``,`<b>${r}</b> ${t}`); logEv(`Death save ${r}: ${t}`); save(); render(); hpModal(); },
+ dsRoll:()=>{ if(PERSON()){ askRolls("Death save",`<div class="tell">Roll a <b>d20</b> with no modifiers. 10 or higher succeeds; a natural 20 brings you back with 1 HP; a natural 1 counts as two failures.</div>`,[{k:"r",label:"Your d20 roll"}],v=>{ dsResult(Math.max(1,Math.min(20,v.r))); hpModal(); return false; }); return; } dsResult(R(20)); hpModal(); },
  kpType:(d,el)=>{ KP.type=el.value; hpModal(); },
  energy:d=>{ setEnergy(S.energy+(+d.d)); save(); render(); },
  stress:d=>{ setStress(S.stress+(+d.d)); save(); render(); },
@@ -1099,33 +1218,33 @@ const ACT = {
  xpModal:()=>modal(`<h2>Add XP</h2><div class="btns"><input type="number" id="xp-add" value="0" style="width:120px"><button class="btn pri" data-act="xpGo">Add</button><button class="btn" data-act="close">Cancel</button></div><p class="small muted" style="margin-top:6px">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()}</p>`),
  xpGo:()=>{ const n=+document.getElementById("xp-add").value||0; B().xp+=n; logEv(`+${n} XP (${B().xp})`); save(); render(); closeModal(); if(B().xp>=B().nextXp) toastModal("Level up!",`<p>You've reached ${B().nextXp.toLocaleString()} XP. Turn on <b>Edit base stats</b> on the Character tab to raise your level, max HP and next-level XP.</p>`); },
  insightModal:()=>insightModal(),
- oiRoll:d=>{ const cr=+document.getElementById("oi-cr").value||0; const s=SKILLS.find(x=>x[0]===d.k); const a=R(20), t=a+skillBonus(s), dc=8+cr; document.getElementById("oires").innerHTML=`<div class="rollcard"><div class="big ${t>=dc?"":"red"}">${t}</div><div class="small dim">${d.k} d20 [${a}] ${sg(skillBonus(s))} vs DC ${dc} · ${t>=dc?"Success":"Fail: +1 Stress"}</div></div>`; pushRoll("Occult Insight",``,`<b>${t}</b> vs DC ${dc}`); },
+ oiRoll:d=>{ const cr=+document.getElementById("oi-cr").value||0; const s=SKILLS.find(x=>x[0]===d.k); const tin=document.getElementById("oi-tot"); if(tin && tin.value===""){ tin.focus(); return; } const a=tin?(+tin.value-skillBonus(s)):R(20), t=tin?+tin.value:a+skillBonus(s), dc=8+cr; document.getElementById("oires").innerHTML=`<div class="rollcard"><div class="big ${t>=dc?"":"red"}">${t}</div><div class="small dim">${d.k} d20 [${a}] ${sg(skillBonus(s))} vs DC ${dc} · ${t>=dc?"Success":"Fail: +1 Stress"}</div></div>`; pushRoll("Occult Insight",``,`<b>${t}</b> vs DC ${dc}`); },
  oiFail:()=>{ setStress(S.stress+1,"Occult Insight failed"); save(); render(); closeModal(); },
  fuelGo:d=>{ const n=+d.n; setStress(S.stress+n,"Seriach's Fuel"); setEnergy(S.energy+n,"Seriach's Fuel"); S.lim.fuel=0; spendEco("act"); save(); render(); toastModal("Seriach's Fuel",`<div class="ectobox">Your body becomes the containment chamber. +${n} Stress, energy now ${S.energy}.</div>`); },
  soulModal:()=>soulModal(),
- vacRoll:d=>{ const row=SV_TABLE[+d.i]; const r=roll(row[1]); const rs=r.parts[0].rs; const room=eMax()-S.energy; const cap=Math.min(room,r.total), excess=r.total-cap; const breach=rs.includes(4);
-  setEnergy(S.energy+cap,"Soul Vacuum CR "+row[0]);
-  let h=`<div class="rollcard"><div class="muted small">Captured from CR ${row[0]} · ${row[1]} [${rs.join(", ")}]</div><div class="big ecto">+${cap}</div><div class="small dim">energy · pack now ${S.energy}/${eMax()}</div></div>`;
-  if(excess>0) h+=`<div class="redbox"><b>Backlash: ${excess} necrotic.</b> It burns through you or an adjacent creature. <button class="btn sm red" data-act="backlash" data-n="${excess}">I take it</button></div>`;
-  if(breach){ const w=R(100); h+=`<div class="redbox"><b>Containment Breach!</b> A die showed 4. Wild table d100: <b class="num">${w}</b></div>`; logEv(`Containment Breach, d100 ${w}`); }
-  pushRoll("Soul Vacuum",h,`+${cap} energy${excess?`, ${excess} backlash`:""}${breach?", BREACH":""}`); save(); render(); soulModal(h); },
+ vacRoll:d=>{ const row=SV_TABLE[+d.i];
+  if(PERSON()){ askRolls("Soul Vacuum · CR "+row[0],`<div class="tell">Roll <b>${row[1]}</b> and add them up.</div><p class="small muted">Pack holds ${S.energy}/${eMax()}. Anything over capacity becomes necrotic backlash.</p>`,[{k:"t",label:`Total of ${row[1]}`},{k:"four",type:"flag",label:"At least one die showed a 4"}],v=>{ vacApply(row,Math.max(0,v.t),null,v.four); return false; }); return; }
+  const r=roll(row[1]); vacApply(row,r.total,r.parts[0].rs,r.parts[0].rs.includes(4)); },
  backlash:d=>{ const r=damage(+d.n,"necrotic",false); save(); render(); toastModal("Backlash",`<p>You took ${r.amt} necrotic. HP ${S.hp.cur}/${maxHp()}.</p>${r.notes.map(x=>`<div class="warnbox">${x}</div>`).join("")}`); },
- breach:()=>{ const w=R(100); logEv(`Wild table d100: ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); save(); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Wild table d100: <b class="num">${w}</b></div>`; },
+ breach:()=>{ if(PERSON()){ pushRoll("Wild table","","Roll <b>d100</b> on the wild table"); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Roll <b>d100</b> on the wild table and tell the DM.</div>`; return; } const w=R(100); logEv(`Wild table d100: ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); save(); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Wild table d100: <b class="num">${w}</b></div>`; },
  restModal:d=>restModal(d.k),
  lrTog:(d,el)=>el.classList.toggle("on"),
- hd:()=>{ if(B().level-S.hdUsed<=0) return; S.hdUsed++; const r=roll("1d8+"+M("con")); const g=Math.max(1,r.total); heal(g); save(); render(); restModal("short"); document.getElementById("hdres").innerHTML=`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">${showParts(r)}</div></div>`; },
+ hd:()=>{ if(B().level-S.hdUsed<=0) return;
+  if(PERSON()){ askRolls("Spend a hit die",`<div class="tell">Roll <b>1d8 ${sg(M("con"))}</b> (minimum 1).</div>`,[{k:"h",label:`Total of 1d8${sg(M("con"))}`}],v=>{ S.hdUsed++; const g=Math.max(1,v.h); heal(g); save(); render(); restModal("short"); document.getElementById("hdres").innerHTML=`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">HP ${S.hp.cur}/${maxHp()}</div></div>`; return false; }); return; }
+  S.hdUsed++; const r=roll("1d8+"+M("con")); const g=Math.max(1,r.total); heal(g); save(); render(); restModal("short"); document.getElementById("hdres").innerHTML=`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">${showParts(r)}</div></div>`; },
  doRest:d=>{
   const dep=S.loadout.filter(g=>g.dep).length; S.loadout.forEach(g=>g.dep=false); S.lim.spark=1;
   let sum=[`${dep} gadgets reset`,"Guiding Spark back"];
   if(d.k==="long"){
    const clr=document.getElementById("lr-stress").classList.contains("on"), keep=document.getElementById("lr-keep").classList.contains("on"), dawn=document.getElementById("lr-dawn").classList.contains("on"), tmp=document.getElementById("lr-temp").classList.contains("on");
+   if(S.hp.bonus){ sum.push(`extra ${S.hp.bonus} max HP ended`); logEv(`Extra ${S.hp.bonus} max HP ended (long rest)`); S.hp.bonus=0; }
    S.hp.cur=maxHp(); if(tmp) S.hp.temp=0; S.ds={s:0,f:0};
    S.hdUsed=Math.max(0,S.hdUsed-Math.max(1,Math.floor(B().level/2)));
    if(S.exh>0) S.exh--;
    S.lim.gbolt=1; S.lim.fuel=1;
    if(clr) setStress(0,"long rest");
    if(S.energy){ if(keep && S.stress<5){ setStress(S.stress+1,"kept pack energy"); sum.push(`kept ${S.energy} energy for 1 Stress`); } else { const l=Math.ceil(S.energy/2); setEnergy(S.energy-l,"long rest bleed-off"); sum.push(`pack lost ${l} energy`); } }
-   if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!itemFx(k)) continue; const g=f.regain==="all"?f.max:roll(f.regain).total; const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
+   if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!itemFx(k)) continue; const din=document.getElementById("dawn-"+k); const g=f.regain==="all"?f.max:(din&&din.value!==""?Math.max(0,+din.value):(PERSON()?0:roll(f.regain).total)); const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
    S.conc="";
    sum.unshift("HP full");
   }
@@ -1140,28 +1259,18 @@ const ACT = {
  unload:d=>{ const g=S.loadout.splice(+d.i,1)[0]; logEv(`Dismantled ${BPK[g.key]?.c}`); save(); render(); },
  ungdep:d=>{ S.loadout[+d.i].dep=false; save(); render(); },
  resetGadgets:()=>{ S.loadout.forEach(g=>g.dep=false); logEv("Reset depleted gadgets"); save(); render(); },
- deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); toastModal(b.c,h); },
+ deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); if(h) toastModal(b.c,h); },
+ deployK:d=>{ const i=S.loadout.findIndex(g=>g.key===d.k && (!g.dep||BPK[g.key].l===0)); if(i<0) return; ACT.deploy({i:String(i)}); },
+ unloadK:d=>{ let i=-1; S.loadout.forEach((g,j)=>{ if(g.key===d.k && (i<0 || (g.dep && !S.loadout[i].dep))) i=j; }); if(i<0) return; S.loadout.splice(i,1); logEv(`Dismantled one ${BPK[d.k].c}`); save(); render(); },
+ resetK:d=>{ S.loadout.forEach(g=>{ if(g.key===d.k) g.dep=false; }); save(); render(); },
+ healMe:d=>{ heal(+d.n); save(); render(); closeModal(); },
  // tinkering
  idea:d=>{ UI.wbName=d.n; UI.wbTier=+d.t; UI.wbNote=d.d; UI.wbResult=""; render(); },
  scrapAdj:d=>{ S.scrap=Math.max(0,S.scrap+(+d.d)); save(); render(); },
  buildInv:()=>{
-  const name=(UI.wbName||"").trim()||"Unnamed device", tier=+(UI.wbTier||0), dc=TIERS[tier][1], cost=R(10), r=R(100);
-  let res, cls;
-  if(r<=5){ const f=R(6), dmg=Math.floor(f/2); damage(f,"fire",true); setStress(S.stress+1,"meltdown"); S.scrap=Math.max(0,S.scrap-cost); res=`<b>Catastrophic meltdown.</b> It turns to molten slag in your hands. ${cost} gp of materials destroyed. You take ${dmg} fire (${f}, halved by resistance) and 1 Stress.`; cls="redbox"; }
-  else if(r<dc){ res=`<b>Failure.</b> The blueprint doesn't work. Materials are fine, but your fixation on the broken device makes you ignore your physical limits (ask the DM).`; cls="warnbox"; }
-  else {
-   S.scrap=Math.max(0,S.scrap-cost);
-   let snapped="";
-   if(S.inventions.length>=invCap()){ const o=S.inventions.shift(); snapped=` Your oldest invention, <b>${esc(o.n)}</b>, violently snaps.`; logEv(`${o.n} snapped (over invention limit)`); }
-   S.inventions.push({id:nid(),n:name,tier,note:(UI.wbNote||"")+(r>=95?" [Critical: minor bonus]":"")});
-   res= r>=95?`<b>Critical success!</b> ${esc(name)} works flawlessly and gains a minor bonus (range, durability, or silent). ${cost} gp used.${snapped}`:`<b>Success.</b> ${esc(name)} works as planned. ${cost} gp used.${snapped}`; cls=r>=95?"ectobox":"ectobox";
-   UI.wbName="";UI.wbNote="";
-  }
-  logEv(`Tinkered ${name} (T${tier}): d100 ${r}`);
-  UI.wbResult=`<div class="${cls}">d100 <b class="num">${r}</b> vs ${dc}+ · ${res}</div>`;
-  pushRoll("Invention",``,`d100 <b>${r}</b> vs ${dc}+`);
-  save(); render();
- },
+  const tier=+(UI.wbTier||0), dc=TIERS[tier][1];
+  if(PERSON()){ askRolls("Build an invention",`<div class="tell">Roll <b>1d10</b> for the gp of components, and <b>d100</b> for the blueprint. You need <b>${dc}+</b> (Tier ${tier}).</div><div class="tell small muted">If the d100 is 1–5 it melts down: also roll <b>1d6</b> fire.</div>`,[{k:"c",label:"1d10 (gp cost)"},{k:"r",label:"d100"},{k:"f",label:"1d6 fire (meltdown only)",opt:true}],v=>{ finishInv(Math.max(1,Math.min(10,v.c)),Math.max(1,Math.min(100,v.r)),v.f); return false; }); return; }
+  finishInv(R(10),R(100),null); },
  scrapInv:d=>{ const o=S.inventions.splice(+d.i,1)[0]; logEv(`Scrapped ${o.n}`); save(); render(); },
  // gear
  iq:d=>{ const it=S.items[+d.i]; it.q=Math.max(0,(+it.q||0)+(+d.d)); if(it.q===0) UI.confirmDel=it.id; save(); render(); },
@@ -1191,6 +1300,15 @@ const ACT = {
  exportFile:()=>{ const fname="flint-backup-"+new Date().toISOString().slice(0,10)+".json";
   if(window.AndroidBridge){ const r=AndroidBridge.saveFile(fname, JSON.stringify(S,null,1)); logEv("Saved backup file"); save(); toastModal(r==="ok"?"Backup saved":"Couldn't save backup", r==="ok"?"<p>Saved to your tablet's <b>Downloads</b> folder as "+fname+".</p>":"<p>"+esc(r)+"</p>"); return; }
   const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="flint-backup-"+new Date().toISOString().slice(0,10)+".json"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); logEv("Saved backup file"); save(); },
+ askGo:()=>{ const A=UI.ask; if(!A) return; const v={};
+  for(const f of A.fields){ const el=document.getElementById("ask-"+f.k); if(f.type==="flag"){ v[f.k]=el.classList.contains("on"); continue; }
+   const n=el.value===""?null:Math.round(+el.value); if(n===null && !f.opt){ document.getElementById("askerr").innerHTML=`<div class="warnbox">Enter: ${f.label.replace(/<[^>]+>/g,"")}</div>`; el.focus(); return; } v[f.k]=n; }
+  UI.ask=null; const html=A.apply(v); save(); render(); if(html===false) return; if(html) toastModal(A.title,html); else closeModal(); },
+ settings:()=>settingsModal(),
+ setTog:d=>{ S.settings[d.k]=!S.settings[d.k]; save(); render(); settingsModal(); },
+ setVal:d=>{ S.settings[d.k]=d.v; save(); render(); settingsModal(); },
+ rollMode:()=>{ S.settings.rollMode=PERSON()?"app":"person"; save(); render(); },
+ useConfirm:d=>{ UI.confirmed=d.k; closeModal(); useOption(d.k); },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
@@ -1200,7 +1318,7 @@ document.addEventListener("change",e=>{
  if(t.dataset.bind){ const path=t.dataset.bind.split("."); let o=S; for(let i=0;i<path.length-1;i++) o=o[path[i]]; const v=t.type==="number"?(+t.value||0):t.value; o[path.at(-1)]=v; if(path[0]==="base"&&path[1]==="maxHp") S.hp.cur=Math.min(S.hp.cur,maxHp()); save(); render(); }
  if(t.dataset.actChange){ if(t.dataset.actChange==="wbTier"){ UI.wbTier=+t.value; } else ACT[t.dataset.actChange]?.(t.dataset,t,e); }
 });
-document.addEventListener("change",e=>{ if(e.target.id!=="bk-file"||!e.target.files[0]) return; const r=new FileReader(); r.onload=()=>{ try{ S=merge(DEF(),migrate(JSON.parse(r.result))); logEv("Loaded backup file"); save(); render(); toastModal("Backup loaded","<p>Flint is restored from the file.</p>"); }catch(err){ toastModal("Couldn't read that file","<p>Pick a backup saved from this app (flint-backup-….json).</p>"); } }; r.readAsText(e.target.files[0]); });
+document.addEventListener("change",e=>{ if(!/^bk-file/.test(e.target.id)||!e.target.files[0]) return; const r=new FileReader(); r.onload=()=>{ try{ S=merge(DEF(),migrate(JSON.parse(r.result))); logEv("Loaded backup file"); save(); render(); toastModal("Backup loaded","<p>Flint is restored from the file.</p>"); }catch(err){ toastModal("Couldn't read that file","<p>Pick a backup saved from this app (flint-backup-….json).</p>"); } }; r.readAsText(e.target.files[0]); });
 document.addEventListener("focusout",()=>{ setTimeout(()=>{ if(pendingRemote && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||"")){ S=pendingRemote; pendingRemote=null; render(); } },50); });
 document.addEventListener("input",e=>{
  const t=e.target;

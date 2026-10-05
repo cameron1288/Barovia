@@ -93,6 +93,14 @@ public class MainActivity extends Activity {
 
     private class Bridge {
         @JavascriptInterface
+        public void setKeepAwake(final boolean on) {
+            runOnUiThread(() -> {
+                if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+            });
+        }
+
+        @JavascriptInterface
         public String saveFile(String name, String text) {
             try {
                 ContentValues v = new ContentValues();
