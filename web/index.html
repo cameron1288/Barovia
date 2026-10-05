@@ -233,6 +233,15 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .mult{font-family:var(--f-mono);font-weight:600;font-size:13px;padding:1px 7px;border-radius:10px;background:var(--amber);color:#1b1206}
 .setbtn .val{font-size:20px;line-height:1.2}
 .modal.wide{max-width:720px}
+.rollpop{cursor:pointer;max-width:520px}
+.rollpop .what{font-family:var(--f-display);font-size:44px;font-weight:800;line-height:1;color:var(--amber);margin:4px 0}
+.rollpop .mode{font-weight:700;font-size:17px;padding:6px 10px;border-radius:6px;margin:6px 0}
+.mode.adv{background:rgba(99,196,158,.16);color:var(--heal)}.mode.dis{background:rgba(232,96,79,.16);color:#ffb3a8}.mode.flat{background:var(--iron2);color:var(--ash2)}
+.mode.fail{background:rgba(232,96,79,.25);color:#fff}
+.rollpop ul{margin:4px 0 0;padding-left:18px;font-size:14px}
+.rollpop .tapclose{font-size:12px;color:var(--ash3);text-align:center;margin-top:12px;letter-spacing:.5px}
+.dt-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}
+.dt-row .lab{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ash2);font-weight:700;min-width:84px}
 .charlayout{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}
 .charlayout > .grid{margin-top:0}
 @media (max-width:760px){.charlayout{grid-template-columns:minmax(0,1fr)}}
@@ -538,6 +547,60 @@ function pushRoll(title, html, plain){
  const el=document.getElementById("lastroll"); el.innerHTML=`<span class="muted">${esc(title)}:</span> ${plain}`;
  const rb=document.getElementById("rollbar"); rb.classList.remove("flash"); void rb.offsetWidth; rb.classList.add("flash");
 }
+function rollFactors(kind, abil, skill){
+ const adv=[], dis=[], notes=[], auto=[]; const c=S.cond||{};
+ if(kind==="check"||kind==="init"){
+  if(S.exh>=1) dis.push("Exhaustion "+S.exh+" (disadvantage on ability checks)");
+  if(c.Poisoned) dis.push("Poisoned");
+  if(c.Frightened) dis.push("Frightened, while the source is in sight");
+  if(c.Blinded) notes.push("Blinded: a check that relies on sight automatically fails.");
+  if(c.Deafened) notes.push("Deafened: a check that relies on hearing automatically fails.");
+ }
+ if(kind==="save"){
+  if(S.exh>=3) dis.push("Exhaustion "+S.exh+" (disadvantage on saving throws)");
+  if(abil==="wis") dis.push("Amber-Veined: disadvantage on Wisdom saves");
+  if(abil==="san") adv.push("Grave Resilience: advantage on Sanity and Composure saves");
+  if(abil==="dex" && c.Restrained) dis.push("Restrained (Dex saves)");
+  const fail=["Paralyzed","Stunned","Unconscious","Petrified"].filter(k=>c[k]);
+  if((abil==="str"||abil==="dex") && fail.length) auto.push(`${fail.join(", ")}: you automatically fail Str and Dex saves`);
+  if((abil==="str"||abil==="dex") && (S.inventions||[]).some(v=>/recoil-damper/i.test(v.n))) notes.push("Hydraulic Recoil-Damper: advantage if this save is against being grappled, knocked prone or shoved.");
+  if(abil==="con" && S.conc) notes.push(`Concentrating on ${S.conc}: a failed save to keep it ends it${fxOn("mind")&&S.ch.mind>0?" unless you spend a Mind Sharpener charge":""}.`);
+ }
+ if(kind==="attack"){
+  if(S.exh>=3) dis.push("Exhaustion "+S.exh+" (disadvantage on attack rolls)");
+  if(c.Poisoned) dis.push("Poisoned"); if(c.Frightened) dis.push("Frightened, while the source is in sight");
+  if(c.Prone) dis.push("Prone"); if(c.Restrained) dis.push("Restrained"); if(c.Blinded) dis.push("Blinded");
+  if(c.Invisible) adv.push("Invisible (attackers can't see you)");
+ }
+ if(kind==="check" && (skill==="History"||skill==="Investigation")) notes.push(`Relic Scholar: if it's about magic items, cursed relics, undead anatomy, Castle Ravenloft or the Amber Temple, add your proficiency again (+${PB()}).`);
+ if(S.insp) notes.push("You have Inspiration: you can spend it for advantage.");
+ const mode = auto.length?"fail" : adv.length&&dis.length?"cancel" : adv.length?"adv" : dis.length?"dis" : "";
+ return {adv,dis,notes,auto,mode};
+}
+function rollPrompt(label, kind, abil, skill, parts){
+ const f=rollFactors(kind,abil,skill), bonus=parts.reduce((t,p)=>t+p[1],0);
+ const modeTxt={adv:"Roll with ADVANTAGE: roll 2d20, keep the higher",dis:"Roll with DISADVANTAGE: roll 2d20, keep the lower",cancel:"Advantage and disadvantage cancel out: roll one d20",fail:"Automatic failure: no roll needed","":"Straight roll: one d20"}[f.mode];
+ const cls={adv:"adv",dis:"dis",cancel:"flat",fail:"fail","":"flat"}[f.mode];
+ let result="";
+ if(!PERSON() && f.mode!=="fail"){ const a=R(20), b=R(20); const pick=f.mode==="adv"?Math.max(a,b):f.mode==="dis"?Math.min(a,b):a; const two=f.mode==="adv"||f.mode==="dis";
+  result=`<div class="rollcard" style="margin-top:8px"><div class="big">${pick+bonus}</div><div class="small dim">d20 [${a}${two?", "+b:""}]${two?" keep "+pick:""} ${sg(bonus)}${pick===20?" · NAT 20":pick===1?" · NAT 1":""}</div></div>`;
+  pushRoll(label,"",`<b>${pick+bonus}</b> <span class="dim">(d20 ${pick}${sg(bonus)}${two?" "+f.mode.toUpperCase():""})</span>`); }
+ else pushRoll(label,"",f.mode==="fail"?"automatic failure":`Roll <b>d20 ${sg(bonus)}</b>${f.mode==="adv"?" with advantage":f.mode==="dis"?" with disadvantage":""}`);
+ const reasons=[...f.auto.map(x=>`<li style="color:#ffb3a8">${esc(x)}</li>`),...f.adv.map(x=>`<li style="color:var(--heal)">Advantage: ${esc(x)}</li>`),...f.dis.map(x=>`<li style="color:#ffb3a8">Disadvantage: ${esc(x)}</li>`)];
+ document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="close"><div class="modal rollpop" data-act="close" role="dialog">
+  <div class="muted small" style="letter-spacing:1px;text-transform:uppercase;font-weight:700">${esc(label)}</div>
+  ${f.mode==="fail"?"":`<div class="what">d20 ${sg(bonus)}</div>`}
+  <div class="mode ${cls}">${modeTxt}</div>
+  ${reasons.length?`<ul>${reasons.join("")}</ul>`:""}
+  <div class="small" style="margin-top:8px"><b>Modifiers:</b> ${parts.map(p=>`${esc(p[0])} ${sg(p[1])}`).join(" · ")||"none"}</div>
+  ${f.notes.length?`<ul class="muted">${f.notes.map(n=>`<li>${esc(n)}</li>`).join("")}</ul>`:""}
+  ${result}
+  <div class="tapclose">Tap anywhere to close</div></div></div>`;
+ save();
+}
+const checkParts = k => [[k==="san"?"Sanity":k.toUpperCase(), M(k)]];
+const saveParts = k => { const p=[[k==="san"?"Sanity":k.toUpperCase(), M(k)]]; if(SAVEPROF[k]) p.push(["Proficiency",PB()]); return p; };
+const skillParts = sk => { const p=[[sk[1].toUpperCase(), M(sk[1])]], lv=SKPROF[sk[0]]||0; if(lv===1) p.push(["Proficiency",PB()]); if(lv===2) p.push(["Expertise (2 × proficiency)",2*PB()]); return p; };
 function d20(label,bonus,opts={}){
  if(PERSON()){ const how=opts.adv?" with advantage (roll 2, keep the higher)":opts.dis?" with disadvantage (roll 2, keep the lower)":""; pushRoll(label,"",`Roll <b>d20 ${sg(bonus)}</b>${how}`); save(); return null; }
  const a=R(20), b=R(20);
@@ -1118,16 +1181,19 @@ function spendEco(slot){ if(S.combat.on){ S.combat[slot]=true; } }
 const SLOT = t => t==="b"?"bon":t==="r"?"rea":"act";
 function ocApply(){ if(!S.combat.oc) return 0; S.combat.oc=false; S.combat.ocUsed=true; setStress(S.stress+1,"Overclock"); return 3; }
 function tellCard(label,ocB,lines){ return `<div class="rollcard"><div class="muted small">${esc(label)} · roll at the table${ocB?' <span class="chip red">Overclocked</span>':""}</div>${lines.map(l=>`<div class="tell">${l}</div>`).join("")}</div>`; }
+function attackModeLine(){ const f=rollFactors("attack"); if(!f.mode) return ""; const why=[...f.adv.map(x=>"advantage: "+x),...f.dis.map(x=>"disadvantage: "+x)].join("; ");
+ return f.mode==="adv"?`<span style="color:var(--heal)">Roll with <b>advantage</b> (${esc(why)}).</span>`:f.mode==="dis"?`<span style="color:#ffb3a8">Roll with <b>disadvantage</b> (${esc(why)}).</span>`:`<span class="muted">Advantage and disadvantage cancel (${esc(why)}).</span>`; }
 function resolveAttack(label,atkB,dmgExpr,dt,ocB,spell){
+ const am=attackModeLine();
  if(PERSON()){ const ex=String(dmgExpr).replace(/@int/g,M("int")), cd=diceOnly(dmgExpr);
-  const lines=[`Roll <b>d20 ${sg(atkB+ocB)}</b> to hit${ocB?" (includes Overclock +3)":""}.`,`On a hit, roll <b>${ex}</b> ${dt} damage.`,`Natural 20: also roll <b>${cd}</b> extra.`];
+  const lines=[`Roll <b>d20 ${sg(atkB+ocB)}</b> to hit${ocB?" (includes Overclock +3)":""}.`,...(am?[am]:[]),`On a hit, roll <b>${ex}</b> ${dt} damage.`,`Natural 20: also roll <b>${cd}</b> extra.`];
   if(spell!==false) lines.push(`Beat its AC by 5 or more: add <b>${B().level>=15?"3d6":B().level>=9?"2d6":"1d6"}</b> force (Soul-Targeted, once per turn).`);
   pushRoll(label,"",`Roll <b>d20 ${sg(atkB+ocB)}</b>, then <b>${ex}</b> ${dt}`); return tellCard(label,ocB,lines); }
- const a=R(20),b=R(20), bonus=atkB+ocB;
+ const fm=rollFactors("attack").mode; let a=R(20),b=R(20); if(fm==="adv"){ const t=Math.max(a,b); b=Math.min(a,b); a=t; } else if(fm==="dis"){ const t=Math.min(a,b); b=Math.max(a,b); a=t; } const bonus=atkB+ocB;
  const d=roll(dmgExpr), crit=roll(diceOnly(dmgExpr));
  const html=`<div class="rollcard"><div class="muted small">${esc(label)}${ocB?' <span class="chip red">Overclocked +3</span>':""}</div>
-  <div class="btns" style="align-items:baseline"><span class="big">${a+bonus}</span><span class="small dim">to hit · d20 [${a}] ${sg(bonus)} · alt ${b+bonus}${a===20?' <span class="chip ok">CRIT</span>':a===1?' <span class="chip red">NAT 1</span>':""}</span></div>
-  <div class="btns" style="align-items:baseline;margin-top:4px"><span class="big red">${d.total}</span><span class="small dim">${dt} · ${showParts(d)} · on a crit add ${crit.total} (${showParts(crit)})</span></div></div>`;
+  <div class="btns" style="align-items:baseline"><span class="big">${a+bonus}</span><span class="small dim">to hit · d20 [${a}${fm==="adv"||fm==="dis"?", "+b+" "+fm.toUpperCase():""}] ${sg(bonus)}${fm==="adv"||fm==="dis"?"":" · alt "+(b+bonus)}${a===20?' <span class="chip ok">CRIT</span>':a===1?' <span class="chip red">NAT 1</span>':""}</span></div>
+  <div class="btns" style="align-items:baseline;margin-top:4px"><span class="big red">${d.total}</span><span class="small dim">${dt} · ${showParts(d)} · on a crit add ${crit.total} (${showParts(crit)})</span></div>${am?`<div class="small" style="margin-top:4px">${am}</div>`:""}</div>`;
  pushRoll(label,html,`<b>${a+bonus}</b> to hit, <b>${d.total}</b> ${dt}${a===20?" CRIT +"+crit.total:""}`);
  return html;
 }
@@ -1281,6 +1347,17 @@ function settingsModal(){
 function concModal(b,cc,attrs){
  modal(`<h2>End concentration?</h2><div class="warnbox">You're concentrating on <b>${esc(cc)}</b>. Deploying <b>${esc(b.c)}</b> (${esc(b.n)}) also needs concentration, so <b>${esc(cc)}</b> ends.</div><div class="btns" style="margin-top:10px"><button class="btn pri" ${attrs}>Deploy and end ${esc(cc)}</button><button class="btn" data-act="close">Keep ${esc(cc)}</button></div>`);
 }
+function diceModal(){
+ const D=UI.dt=UI.dt||{f:20,n:1,mod:0,mode:"norm"};
+ const lbl=D.f===20&&D.mode!=="norm"?`2d20 keep ${D.mode==="adv"?"higher":"lower"}${D.mod?" "+sg(D.mod):""}`:`${D.n}d${D.f}${D.mod?" "+sg(D.mod):""}`;
+ modal(`<h2>Dice</h2>
+  <div class="dt-row"><span class="lab">Die</span>${[4,6,8,10,12,20,100].map(f=>`<button class="tog ${D.f===f?"on":""}" data-act="dtSet" data-k="f" data-v="${f}"><span class="box"></span>d${f}</button>`).join("")}</div>
+  <div class="dt-row"><span class="lab">How many</span><button class="mini" data-act="dtSet" data-k="n" data-v="-1" ${D.mode!=="norm"?"disabled":""}>−</button><b class="num" style="min-width:24px;text-align:center">${D.n}</b><button class="mini" data-act="dtSet" data-k="n" data-v="1" ${D.mode!=="norm"?"disabled":""}>+</button></div>
+  <div class="dt-row"><span class="lab">Modifier</span><button class="mini" data-act="dtSet" data-k="mod" data-v="-1">−</button><b class="num" style="min-width:32px;text-align:center">${sg(D.mod)}</b><button class="mini" data-act="dtSet" data-k="mod" data-v="1">+</button></div>
+  <div class="dt-row"><span class="lab">d20 roll</span>${[["norm","Normal"],["adv","Advantage"],["dis","Disadvantage"]].map(([v,t])=>`<button class="tog ${D.mode===v?"on":""}" data-act="dtSet" data-k="mode" data-v="${v}"><span class="box"></span>${t}</button>`).join("")}</div>
+  <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="dtRoll">Roll ${lbl}</button><button class="btn" data-act="close">Close</button></div>
+  <div style="margin-top:8px">${UI.dtLast||""}</div>`);
+}
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
  const room=5-S.stress;
@@ -1337,10 +1414,10 @@ const ACT = {
  lim:d=>{ S.lim[d.k]=S.lim[d.k]?0:1; save(); render(); },
  chg:d=>{ const i=+d.i; S.ch[d.k]= S.ch[d.k]>i ? i : i+1; save(); render(); },
  editToggle:()=>{ UI.edit=!UI.edit; render(); },
- check:(d,el,e)=>{ if(e.target.closest("[data-act=save]")) return; const k=d.k; const lbl=k==="san"?"Sanity check":ABIL.find(a=>a[0]===k)[2]+" check"; d20(lbl,M(k)); },
- save:d=>{ const k=d.k; if(k==="san") d20("Sanity save",M("san"),{adv:true}); else d20((ABIL.find(a=>a[0]===k)[2])+" save",saveBonus(k),{dis:k==="wis"}); },
- skill:d=>{ const s=SKILLS.find(x=>x[0]===d.k); d20(s[0],skillBonus(s)); },
- init:()=>{ const r=d20("Initiative",M("dex")); },
+ check:(d,el,e)=>{ if(e.target.closest("[data-act=save]")) return; const k=d.k; const lbl=k==="san"?"Sanity check":ABIL.find(a=>a[0]===k)[2]+" check"; rollPrompt(lbl,"check",k,null,checkParts(k)); },
+ save:d=>{ const k=d.k; rollPrompt(k==="san"?"Sanity save":(ABIL.find(a=>a[0]===k)[2])+" save","save",k,null,saveParts(k)); },
+ skill:d=>{ const s=SKILLS.find(x=>x[0]===d.k); rollPrompt(s[0]+" check","check",s[1],s[0],skillParts(s)); },
+ init:()=>{ rollPrompt("Initiative","init","dex",null,[["DEX",M("dex")]]); },
  sanFail:()=>{ logEv("Failed a Sanity check"); save(); toastModal("Whispers of the Mad",`<p>You failed a Sanity check. Ask the DM one yes/no question about your current situation.</p>`); },
  xpModal:()=>modal(`<h2>Add XP</h2><div class="btns"><input type="number" id="xp-add" value="0" style="width:120px"><button class="btn pri" data-act="xpGo">Add</button><button class="btn" data-act="close">Cancel</button></div><p class="small muted" style="margin-top:6px">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()}</p>`),
  xpGo:()=>{ const n=+document.getElementById("xp-add").value||0; B().xp+=n; logEv(`+${n} XP (${B().xp})`); save(); render(); closeModal(); if(B().xp>=B().nextXp) toastModal("Level up!",`<p>You've reached ${B().nextXp.toLocaleString()} XP. Turn on <b>Edit base stats</b> on the Character tab to raise your level, max HP and next-level XP.</p>`); },
@@ -1410,8 +1487,12 @@ const ACT = {
   if(!worn && carried()+q>carryCap()){ toastModal("Over the carry limit",`<p>That would put you at ${carried()+q} / ${carryCap()} carried items. It's added anyway; drop or equip something.</p>`); }
   S.items.push({id:nid(),n,q,w:+document.getElementById("ni-w").value||0,worn,mod:false,att:false,note:document.getElementById("ni-note").value.trim()}); logEv(`Added ${n}`); save(); render(); },
  // misc
- dice:()=>modal(`<h2>Dice</h2><div class="btns">${[4,6,8,10,12,20,100].map(f=>`<button class="btn" data-act="rollDie" data-f="${f}">d${f}</button>`).join("")}</div>
-  <div class="btns" style="margin-top:8px"><input id="dexpr" type="text" placeholder="e.g. 2d8+3" style="flex:1"><button class="btn pri" data-act="rollExpr">Roll</button></div><div id="dres"></div><div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Close</button></div>`),
+ dice:()=>diceModal(),
+ dtSet:d=>{ const D=UI.dt; if(d.k==="f"){ D.f=+d.v; if(D.f!==20) D.mode="norm"; } if(d.k==="n") D.n=Math.max(1,Math.min(20,D.n+(+d.v))); if(d.k==="mod") D.mod=Math.max(-20,Math.min(30,D.mod+(+d.v))); if(d.k==="mode"){ D.mode=d.v; if(d.v!=="norm"){ D.f=20; D.n=1; } } diceModal(); },
+ dtRoll:()=>{ const D=UI.dt; let rs=[], kept, total, desc;
+  if(D.f===20 && D.mode!=="norm"){ const a=R(20), b=R(20); kept=D.mode==="adv"?Math.max(a,b):Math.min(a,b); rs=[a,b]; total=kept+D.mod; desc=`d20 ${D.mode==="adv"?"advantage":"disadvantage"} [${a}, ${b}] keep ${kept}${D.mod?" "+sg(D.mod):""}`; }
+  else { for(let i=0;i<D.n;i++) rs.push(R(D.f)); total=rs.reduce((x,y)=>x+y,0)+D.mod; desc=`${D.n}d${D.f} [${rs.join(", ")}]${D.mod?" "+sg(D.mod):""}`; }
+  UI.dtLast=`<div class="rollcard"><div class="big">${total}</div><div class="small dim">${desc}</div></div>`; pushRoll("Dice","",`<b>${total}</b> <span class="dim">${desc}</span>`); save(); diceModal(); },
  rollDie:d=>{ const r=R(+d.f); pushRoll("d"+d.f,"",`<b>${r}</b>`); document.getElementById("dres").innerHTML=`<div class="rollcard"><div class="big">${r}</div><div class="small dim">d${d.f}</div></div>`; save(); },
  rollExpr:()=>{ const e=document.getElementById("dexpr").value; if(!/d\d/.test(e)) return; const r=roll(e); pushRoll(e,"",`<b>${r.total}</b> ${showParts(r)}`); document.getElementById("dres").innerHTML=`<div class="rollcard"><div class="big">${r.total}</div><div class="small dim">${showParts(r)}</div></div>`; save(); },
  history:()=>modal(`<h2>Roll log</h2>${S.rolls.map(r=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(r.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span><span class="grow"><b>${esc(r.title)}</b>: ${r.plain}</span></div>`).join("")||'<p class="muted">No rolls yet.</p>'}<div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Close</button></div>`),
