@@ -1148,6 +1148,7 @@ function renderRest(){
  return `<div class="panel" style="margin-top:12px">
    <h2>Long rest · ${L.hours} hours <span class="cnt ${left<0?"over":left===0?"full":""}">${L.used} h used · ${left} h left</span><span class="sp"></span><button class="btn sm" data-act="lrCancel">Cancel rest</button></h2>
    <div class="hoursbar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
+   ${L.autoHeal?`<div class="ectobox" style="margin-top:8px">You used <b>${L.autoHeal.n}</b> of yesterday's hit dice to heal to max (<b>+${L.autoHeal.missing}</b> HP, ${maxHp()-(S.hp.bonus||0)} HP) before your rest. They were going to recover anyway.</div>`:""}
    ${left<0?`<div class="redbox">You've planned ${-left} more hour${-left>1?"s":""} than the rest lasts. Undo some research or check with the DM.</div>`:""}
   </div>
   <div class="grid g2">
@@ -1166,7 +1167,7 @@ function renderRest(){
    ${step("dawn","7","Dawn: item charges",`${regains.length?regains.map(([k,f])=>`<div class="askrow"><span>${f.n}: ${S.ch[k]}/${f.max} charges, regains <b>${f.regain}</b></span>${PERSON()&&f.regain!=="all"?`<input type="number" inputmode="numeric" id="dawn-${k}" placeholder="roll">`:`<span class="small muted">${f.regain==="all"?"all":"rolled for you"}</span>`}</div>`).join(""):'<p class="small muted">None of your modified items have charges.</p>'}
     <div class="btns">${opt("dawn","lr-dawn","Dawn passes during this rest")}</div>`)}
    ${step("hp","8","Hit points & hit dice",(()=>{ const prior=B().level-S.hdUsed, cur=B().level-(L.hdCur||0), die=`1d8 ${sg(M("con"))}`, btn=PERSON()?"Enter a hit die roll":"Roll a hit die";
-     return `<p class="small">HP <b>${S.hp.cur}/${maxHp()}</b>. A long rest doesn't heal you by itself: spend hit dice to heal (${die} each). All your hit dice come back when the rest ends.</p>
+     return `${L.autoHeal?`<div class="ectobox">Healed to max with ${L.autoHeal.n} of yesterday's hit dice (${L.autoHeal.per} HP each: 5 + CON).</div>`:""}<p class="small">HP <b>${S.hp.cur}/${maxHp()}</b>. A long rest doesn't heal you by itself: spend hit dice to heal (${die} each). All your hit dice come back when the rest ends.</p>
      <div class="askrow" style="margin-top:4px"><span><b>Yesterday's hit dice</b> (use these first): <b>${prior}</b> left</span><button class="btn ok sm" data-act="lrHD" data-pool="prior" ${prior?"":"disabled"}>${btn}</button></div>
      ${prior?"":(L.useCur?`<div class="askrow" style="margin-top:6px"><span><b>Today's hit dice:</b> <b>${cur}/${B().level}</b> left for tomorrow</span><button class="btn ok sm" data-act="lrHD" data-pool="cur" ${cur?"":"disabled"}>${btn}</button></div>`
        :`<div class="warnbox">Yesterday's hit dice are used up. Use today's to heal? Any you spend now won't be available after the rest. <button class="btn sm" data-act="lrUseCur">Use today's hit dice</button></div>`)}
@@ -1564,8 +1565,10 @@ const ACT = {
  restOpen:()=>{ UI.restOpen=true; UI.hdLast=""; render(); },
  restClose:()=>{ UI.restOpen=false; render(); },
  lrLen:d=>{ S.lr.hours=Math.max(1,Math.min(24,+d.v)); save(); render(); },
- lrBegin:()=>{ UI.hdLast=""; const h=S.lr.hours, kind=S.lr.kind||"long"; S.lr={kind,active:true,hours:h,used:0,done:{},research:[],tinker:0,hdCur:0,useCur:false,started:Date.now(),opts:{stress:S.settings.lrStress!=="keep",keep:false,dawn:true,temp:S.hp.temp>0}}; logEv(`${kind==="short"?"Short":"Long"} rest started (${h} h)`); save(); render(); },
- lrCancel:()=>{ UI.restOpen=false; S.lr.research.forEach(k=>{ S.researched[k]=false; }); logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
+ lrBegin:()=>{ UI.hdLast=""; const h=S.lr.hours, kind=S.lr.kind||"long"; S.lr={kind,active:true,hours:h,used:0,done:{},research:[],tinker:0,hdCur:0,useCur:false,started:Date.now(),opts:{stress:S.settings.lrStress!=="keep",keep:false,dawn:true,temp:S.hp.temp>0}}; logEv(`${kind==="short"?"Short":"Long"} rest started (${h} h)`);
+  if(kind==="long"){ const per=5+M("con"), prior=B().level-S.hdUsed, target=maxHp()-(S.hp.bonus||0), missing=target-S.hp.cur;
+   if(missing>0 && prior>0 && prior*per>=missing){ const n=Math.ceil(missing/per); S.hdUsed+=n; S.hp.cur=Math.max(S.hp.cur,target); S.lr.autoHeal={missing,n,per}; logEv(`Long rest: used ${n} of yesterday's hit dice to heal to max (${target} HP)`); } } save(); render(); },
+ lrCancel:()=>{ UI.restOpen=false; if(S.lr.autoHeal){ S.hp.cur-=S.lr.autoHeal.missing; S.hdUsed=Math.max(0,S.hdUsed-S.lr.autoHeal.n); S.lr.autoHeal=null; } S.lr.research.forEach(k=>{ S.researched[k]=false; }); logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
  lrDone:d=>{ S.lr.done[d.k]=!S.lr.done[d.k]; save(); render(); },
  lrOpt:d=>{ S.lr.opts[d.k]=!S.lr.opts[d.k]; save(); render(); },
  lrResearch:d=>{ const b=BPK[d.k], h=Math.max(1,b.l), i=S.lr.research.indexOf(d.k);
@@ -1598,7 +1601,7 @@ const ACT = {
    if(S.energy){ if(keep && S.stress<5){ setStress(S.stress+1,"kept pack energy"); sum.push(`kept ${S.energy} energy for 1 Stress`); } else { const l=Math.ceil(S.energy/2); setEnergy(S.energy-l,"long rest bleed-off"); sum.push(`pack lost ${l} energy`); } }
    if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!fxOn(k)) continue; const din=document.getElementById("dawn-"+k); const g=f.regain==="all"?f.max:(din&&din.value!==""?Math.max(0,+din.value):(PERSON()?0:roll(f.regain).total)); const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
    S.conc="";
-   sum.unshift(`HP ${S.hp.cur}/${maxHp()} (from hit dice; no automatic healing)`, `hit dice ${B().level-S.hdUsed}/${B().level}`);
+   sum.unshift(S.lr&&S.lr.autoHeal?`healed to max with ${S.lr.autoHeal.n} of yesterday's hit dice before the rest`:`HP ${S.hp.cur}/${maxHp()} (from hit dice; no automatic healing)`, `hit dice ${B().level-S.hdUsed}/${B().level}`);
   }
   UI.restOpen=false;
   if(S.lr && S.lr.active && (S.lr.kind||"long")===d.k){ sum.push(`${S.lr.used} of ${S.lr.hours} hours used${S.lr.research.length?`, researched ${S.lr.research.map(k=>BPK[k].n).join(", ")}`:""}${S.lr.tinker?`, ${S.lr.tinker} tinkering attempt${S.lr.tinker>1?"s":""}`:""}`); S.lr.active=false; }
