@@ -256,6 +256,17 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .opt.planned{outline:2px solid var(--amber);outline-offset:-2px}
 .chip.sel{border-color:var(--amber);background:var(--amberglow);color:var(--amber);font-weight:700}
 .chip.usedc{border-color:#2f6b55;color:var(--heal);font-weight:700}
+.lrstep{display:flex;flex-direction:column;gap:6px}
+.lrstep h2 .stepn{font-family:var(--f-mono);font-size:13px;color:var(--ash3)}
+.lrstep.done{opacity:.6}
+.hoursbar{height:10px;background:var(--iron3);border-radius:5px;overflow:hidden;margin-top:6px}
+.hoursbar i{display:block;height:100%;background:var(--amber)}
+.hoursbar i.over{background:var(--blood)}
+.restsplash{position:fixed;inset:0;z-index:40;background:var(--soot);overflow-y:auto;overscroll-behavior:contain;padding-block:calc(12px + env(safe-area-inset-top,0px)) 40px}
+.restsplash .rshead{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.restsplash .rshead h1{font-family:var(--f-display);font-size:32px;font-weight:800;text-transform:uppercase;margin:0;letter-spacing:.5px}
+.restsplash .rshead h1 span{color:var(--ecto)}
+.restpill{position:fixed;right:16px;bottom:calc(64px + env(safe-area-inset-bottom,0px));z-index:35;border:1.5px solid var(--ecto);background:var(--ecto2);color:#fff;border-radius:22px;padding:10px 16px;font-weight:700;box-shadow:0 4px 16px rgba(0,0,0,.4)}
 .subhead{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber);font-weight:700;margin-top:6px}
 .turnstate{font-family:var(--f-display);font-weight:800;font-size:18px;letter-spacing:.6px;text-transform:uppercase;padding:2px 10px;border-radius:6px}
 .turnstate.mine{background:var(--heal);color:#0d1f17}
@@ -265,6 +276,7 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 <div class="top"><div class="wrap" style="padding-block:0" id="top"></div></div>
 <div class="wrap" id="main"></div>
 <div class="rollbar" id="rollbar"><div class="res" id="lastroll"><span class="dim" id="rollhint">Tap any attack, skill, ability or gadget to roll.</span></div><button class="btn sm" id="rmode" data-act="rollMode">Rolling: in app</button><button class="btn sm" data-act="dice">Dice</button><button class="btn sm" data-act="history">Log</button></div>
+<div id="restover"></div>
 <div id="modal"></div>
 
 <script>
@@ -428,6 +440,7 @@ function DEF(){
  const it=(n,q,w,o={})=>({id:nid(),n,q,w,worn:false,mod:false,att:false,note:"",...o});
  return {
   v:4, _t:0,
+  lr:{kind:"long",active:false,hours:8,used:0,done:{},research:[],tinker:0,opts:{stress:true,keep:false,dawn:true,temp:false}},
   settings:{loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
   mods:{axe:{built:false,holder:"flint",ally:""},rshield:{built:true,holder:"flint",ally:""},pipes:{built:false,holder:"flint",ally:""},mind:{built:false,holder:"flint",ally:""},boots:{built:false,holder:"flint",ally:""},ring:{built:false,holder:"flint",ally:""}},
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
@@ -1074,6 +1087,99 @@ function renderMods(){
   <div class="grid g2">${INF.map(card).join("")}</div>`;
 }
 
+/* ======================= RENDER: LONG REST ======================= */
+function researchPicker(){
+ const L=S.lr, todo=BP.filter(b=>!S.researched[b.k]);
+ const opts=[0,1,2].map(l=>{ const g=todo.filter(b=>b.l===l); return g.length?`<optgroup label="${l?"Level "+l:"Cantrips"} · ${Math.max(1,l)} h each">${g.map(b=>`<option value="${b.k}">${esc(b.n)} (${Math.max(1,b.l)} h)</option>`).join("")}</optgroup>`:""; }).join("");
+ return `${L.research.length?`<div class="chips">${L.research.map(k=>`<button class="tog on" data-act="lrResearch" data-k="${k}" title="Tap to undo"><span class="box"></span>${esc(BPK[k].n)} · ${Math.max(1,BPK[k].l)} h ✕</button>`).join("")}</div>`:""}
+  ${todo.length?`<div class="btns" style="margin-top:6px"><select id="lr-rsel" style="flex:1;min-width:180px">${opts}</select><button class="btn pri" data-act="lrResearchSel">Research</button></div>`:'<span class="small muted">Every blueprint is researched.</span>'}`;
+}
+function renderShortRest(){
+ const L=S.lr;
+ if(!L.active){
+  return `<div class="panel" style="margin-top:12px">
+   <h2>Short rest</h2>
+   <p class="muted">At least an hour of light activity. Choose how long this one lasts, then work through the checklist.</p>
+   <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Length</span>${[1,2,3].map(h=>`<button class="tog ${L.hours===h?"on":""}" data-act="lrLen" data-v="${h}"><span class="box"></span>${h} h</button>`).join("")}</div>
+   <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="lrBegin">Begin ${L.hours}-hour short rest</button></div>
+  </div>`;
+ }
+ const left=L.hours-L.used, pct=Math.min(100,L.used/L.hours*100), hdLeft=B().level-S.hdUsed;
+ const usedG=loadGroups().filter(G=>G.b.l && G.ready.length<G.n);
+ const step=(k,n,title,body)=>`<div class="panel lrstep ${L.done[k]?"done":""}"><h2><span class="stepn">${n}</span> ${title}<span class="sp"></span><button class="tog ${L.done[k]?"on":""}" data-act="lrDone" data-k="${k}"><span class="box"></span>${L.done[k]?"Done":"To do"}</button></h2>${body}</div>`;
+ const unres=BP.filter(b=>!S.researched[b.k] || L.research.includes(b.k));
+ return `<div class="panel" style="margin-top:12px">
+   <h2>Short rest · ${L.hours} hour${L.hours>1?"s":""} <span class="cnt ${left<0?"over":left===0?"full":""}">${L.used} h used · ${left} h left</span><span class="sp"></span><button class="btn sm" data-act="lrCancel">Cancel rest</button></h2>
+   <div class="hoursbar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
+  </div>
+  <div class="grid g2">
+   ${step("hd","1","Spend hit dice",`<p class="small">HP <b>${S.hp.cur}/${maxHp()}</b>. Hit dice left: <b>${hdLeft}/${B().level}</b> (each heals 1d8 ${sg(M("con"))}).</p>
+    <div class="btns"><button class="btn ok" data-act="hd" ${hdLeft?"":"disabled"}>${PERSON()?"Enter a hit die roll":"Roll a hit die"}</button></div>${UI.hdLast||""}`)}
+   ${step("gadgets","2","Reset used gadgets",`<p class="small">${usedG.length?`These come back when you finish: ${usedG.map(G=>`<b>${esc(G.b.n)}</b> (${G.n-G.ready.length} used)`).join(", ")}.`:"None of your gadgets are used."}</p>`)}
+   ${step("spark","3","Guiding Spark",`<p class="small">${S.lim.spark?"Already available.":"Comes back when you finish."}</p>`)}
+   ${step("tinker","4","Tinkering (if there's time)",`<p class="small">Each attempt takes <b>1 hour</b> and <b>1d10 gp</b>. Scrap: <b>${S.scrap} gp</b> · active inventions <b>${S.inventions.length}/${invCap()}</b>. ${L.tinker?`${L.tinker} attempt${L.tinker>1?"s":""} this rest.`:""}</p><div class="btns"><button class="btn" data-act="tab" data-k="tinker">Open the workbench</button></div>`)}
+   ${step("research","5","Research (if there's time)",`<p class="small dim">Hours equal to the blueprint's level (1 for a cantrip).</p>${researchPicker()}`)}
+   ${step("notes","6","Not on a short rest",`<p class="small muted">Load-out swaps, Mechanical Modification changes, Stress, Guiding Bolt, Seriach's Fuel and item charges all wait for a long rest.</p>`)}
+  </div>
+  <div class="panel" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+   <span class="grow small muted" style="flex:1">Finishing resets used gadgets and Guiding Spark.</span>
+   <button class="btn pri" data-act="doRest" data-k="short">Finish short rest</button>
+  </div>`;
+}
+function renderRest(){
+ if(S.lr.kind==="short") return renderShortRest();
+ const L=S.lr;
+ if(!L.active){
+  return `<div class="panel" style="margin-top:12px">
+   <h2>Long rest</h2>
+   <p class="muted">You don't sleep, but a long rest is still a stretch of light activity. Choose how long this one lasts, then work through the checklist. Research and tinkering use up the hours.</p>
+   <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Length</span>${[4,6,8,10,12].map(h=>`<button class="tog ${L.hours===h?"on":""}" data-act="lrLen" data-v="${h}"><span class="box"></span>${h} h</button>`).join("")}<label class="small">Other <input type="number" id="lr-hours" data-bind="lr.hours" value="${L.hours}" min="1" max="24" style="width:64px"></label></div>
+   <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="lrBegin">Begin ${L.hours}-hour long rest</button></div>
+   <p class="small dim" style="margin-top:8px">A long rest normally takes 8 hours. Anything shorter or interrupted may not count, so check with the DM.</p>
+  </div>`;
+ }
+ const left=L.hours-L.used, pct=Math.min(100,L.used/L.hours*100);
+ const step=(k,n,title,body)=>`<div class="panel lrstep ${L.done[k]?"done":""}"><h2><span class="stepn">${n}</span> ${title}<span class="sp"></span><button class="tog ${L.done[k]?"on":""}" data-act="lrDone" data-k="${k}"><span class="box"></span>${L.done[k]?"Done":"To do"}</button></h2>${body}</div>`;
+ const opt=(k,id,label)=>`<button class="tog ${L.opts[k]?"on":""}" id="${id}" data-act="lrOpt" data-k="${k}"><span class="box"></span>${label}</button>`;
+ const unres=BP.filter(b=>!S.researched[b.k] || L.research.includes(b.k));
+ const groups=loadGroups(), nGad=S.loadout.length;
+ const built=INF.filter(f=>S.mods[f.k]&&S.mods[f.k].built);
+ const regains=Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k));
+ return `<div class="panel" style="margin-top:12px">
+   <h2>Long rest · ${L.hours} hours <span class="cnt ${left<0?"over":left===0?"full":""}">${L.used} h used · ${left} h left</span><span class="sp"></span><button class="btn sm" data-act="lrCancel">Cancel rest</button></h2>
+   <div class="hoursbar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
+   ${left<0?`<div class="redbox">You've planned ${-left} more hour${-left>1?"s":""} than the rest lasts. Undo some research or check with the DM.</div>`:""}
+  </div>
+  <div class="grid g2">
+   ${step("research","1","Research blueprints",`<p class="small dim">Each new blueprint takes downtime hours equal to its level (1 hour for a cantrip). Pick one and tap Research; tap a picked one to undo it.</p>
+    ${researchPicker()}`)}
+   ${step("tinker","2","Tinkering",`<p class="small">Each attempt takes <b>1 hour</b> and <b>1d10 gp</b> of scrap. You have <b>${S.scrap} gp</b> of scrap and <b>${S.inventions.length}/${invCap()}</b> active inventions${S.inventions.length>=invCap()?"; a new one will snap your oldest":""}.</p>
+    <p class="small muted">${L.tinker?`${L.tinker} attempt${L.tinker>1?"s":""} this rest.`:"No attempts yet this rest."} Attempts on the workbench count toward the hours automatically.</p>
+    <div class="btns"><button class="btn" data-act="tab" data-k="tinker">Open the workbench</button></div>`)}
+   ${step("loadout","3","Change your load-out",`<p class="small">A long rest lets you dismantle and rebuild your whole gadget load-out. You're carrying <b>${nGad}/${gadgetCap()}</b>${groups.length?`: ${groups.map(G=>esc(G.b.n)+(G.n>1?" ×"+G.n:"")).join(", ")}`:""}.</p><p class="small muted">Used gadgets are reset when you finish the rest.</p>
+    <div class="btns"><button class="btn" data-act="tab" data-k="gadgets">Open Gadgets</button></div>`)}
+   ${step("mods","4","Mechanical Modifications",`<p class="small">Re-rig your modifications if you want to change them. Built: <b>${built.length}/${modCap()}</b>${built.length?` · ${built.map(f=>esc(f.n)+(S.mods[f.k].holder==="flint"?" (you)":" ("+(esc(S.mods[f.k].ally)||"ally")+")")).join(", ")}`:""}.</p>
+    <div class="btns"><button class="btn" data-act="tab" data-k="mods">Open Modifications</button></div>`)}
+   ${step("energy","5","Æther-Pack energy",`<p class="small">The pack holds <b>${S.energy}</b> energy. At the end of the rest it loses half, rounded up (<b>${Math.ceil(S.energy/2)}</b>), unless you take 1 Stress to keep it all.</p>
+    <div class="btns">${opt("keep","lr-keep",`Take 1 Stress to keep all ${S.energy} energy`)}</div>`)}
+   ${step("stress","6","Stress",`<p class="small">Current Stress: <b>${S.stress}/5</b>.</p><div class="btns">${opt("stress","lr-stress",`Clear Stress (${S.stress} → 0)`)}</div>`)}
+   ${step("dawn","7","Dawn: item charges",`${regains.length?regains.map(([k,f])=>`<div class="askrow"><span>${f.n}: ${S.ch[k]}/${f.max} charges, regains <b>${f.regain}</b></span>${PERSON()&&f.regain!=="all"?`<input type="number" inputmode="numeric" id="dawn-${k}" placeholder="roll">`:`<span class="small muted">${f.regain==="all"?"all":"rolled for you"}</span>`}</div>`).join(""):'<p class="small muted">None of your modified items have charges.</p>'}
+    <div class="btns">${opt("dawn","lr-dawn","Dawn passes during this rest")}</div>`)}
+   ${step("hp","8","Hit points & hit dice",`<ul class="small" style="margin:0;padding-left:18px">
+     <li>HP back to <b>${maxHp()-(S.hp.bonus||0)}</b>${S.hp.bonus?` (your extra ${S.hp.bonus} max HP ends)`:""}.</li>
+     <li>Hit dice: <b>${B().level-S.hdUsed}/${B().level}</b> now, regain <b>${Math.min(S.hdUsed,Math.max(1,Math.floor(B().level/2)))}</b>.</li>
+     ${S.exh?`<li>Exhaustion ${S.exh} → ${S.exh-1}.</li>`:""}
+     <li>Death saves reset.</li></ul>
+    <div class="btns">${opt("temp","lr-temp",`Clear temp HP (${S.hp.temp})`)}</div>`)}
+   ${step("features","9","Features that come back",`<ul class="small" style="margin:0;padding-left:18px"><li>Guiding Bolt (Fractured Genius)</li><li>Seriach's Fuel</li><li>Guiding Spark</li><li>All used gadgets</li><li>Concentration ends</li></ul>`)}
+   ${step("pack","10","Æther-Pack repair (only if lost or destroyed)",`<p class="small">Rebuild it with tinker's tools and <b>25 gp</b> of materials. Skip this if your pack is fine.</p><div class="btns"><button class="btn" data-act="lrPack">Rebuild for 25 gp scrap</button></div>`)}
+  </div>
+  <div class="panel" style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+   <span class="grow small muted" style="flex:1">${Object.values(L.done).filter(Boolean).length} of 10 steps ticked. Finishing applies HP, hit dice, Stress, energy, charges and resets your features.</span>
+   <button class="btn pri" data-act="doRest" data-k="long">Finish long rest</button>
+  </div>`;
+}
+
 /* ======================= RENDER: BACKGROUND ======================= */
 function renderBackground(){
  const ta=(k,l,h)=>`<div class="panel"><h2>${l}</h2><textarea id="n-${k}" data-bind-text="notes.${k}" style="min-height:${h||90}px">${esc(S.notes[k])}</textarea></div>`;
@@ -1124,6 +1230,13 @@ function render(){
  m.innerHTML=f();
  if(keep){ m.scrollTop=keep.main; m.querySelectorAll(".scrollbox").forEach((x,i)=>{ if(keep.boxes[i]!=null) x.scrollTop=keep.boxes[i]; }); }
  UI.lastTab=UI.tab;
+ const ro=document.getElementById("restover");
+ if(ro){ const prev=ro.querySelector(".restsplash"), st=prev?prev.scrollTop:0;
+  ro.innerHTML = UI.restOpen ? `<div class="restsplash" role="dialog" aria-label="Long rest"><div class="wrap" style="padding-block:0">
+    <div class="rshead"><h1>${S.lr.kind==="short"?"Short":"Long"} <span>rest</span></h1><span class="small muted" style="flex:1">${S.lr.active?"In progress. Close this to check other tabs; your choices are kept.":`Plan and finish a ${S.lr.kind==="short"?"short":"long"} rest.`}</span><button class="btn" data-act="restClose">${S.lr.active?"Back to sheet":"Close"}</button></div>
+    ${renderRest()}</div></div>`
+   : (S.lr && S.lr.active ? `<button class="restpill" data-act="restOpen">Back to ${S.lr.kind==="short"?"short":"long"} rest · ${S.lr.hours-S.lr.used} h left</button>` : "");
+  const now=ro.querySelector(".restsplash"); if(now && prev) now.scrollTop=st; }
 }
 
 /* ======================= MODALS ======================= */
@@ -1299,6 +1412,7 @@ function vacApply(row,total,rs,breach){
  if(breach && PERSON()){ askRolls("Containment Breach!",`<div class="redbox">A capture die showed a 4. The escaping spirit rebounds through the machinery.</div><div class="tell">Roll <b>d100</b> on the wild table.</div>${excess>0?`<p class="small muted">Backlash: ${excess} necrotic to you or an adjacent creature. Apply it from the HP panel if it's you.</p>`:""}`,[{k:"w",label:"Your d100 roll"}],v=>{ const w=Math.max(1,Math.min(100,v.w)); logEv(`Containment Breach, wild table d100 ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); return `<div class="redbox">Wild table result <b class="num">${w}</b>. Tell the DM what it is.</div>${excess>0?`<div class="btns"><button class="btn sm red" data-act="backlash" data-n="${excess}">I take the ${excess} necrotic backlash</button></div>`:""}`; }); }
 }
 function finishInv(cost,r,fIn){
+  if(S.lr && S.lr.active){ S.lr.used+=1; S.lr.tinker=(S.lr.tinker||0)+1; }
   const name=(UI.wbName||"").trim()||"Unnamed device", tier=+(UI.wbTier||0), dc=TIERS[tier][1];
   let res, cls;
   if(r<=5){ const f=fIn!=null?fIn:(PERSON()?0:R(6)), dmg=Math.floor(f/2); if(f) damage(f,"fire",true); setStress(S.stress+1,"meltdown"); S.scrap=Math.max(0,S.scrap-cost); res=`<b>Catastrophic meltdown.</b> It turns to molten slag in your hands. ${cost} gp of materials destroyed. ${f?`You take ${dmg} fire (${f}, halved by resistance)`:`Roll 1d6 fire (halved by resistance) and take it on the HP panel`} and 1 Stress.`; cls="redbox"; }
@@ -1362,6 +1476,7 @@ function diceModal(){
   <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="dtRoll">Roll ${lbl}</button><button class="btn" data-act="close">Close</button></div>
   <div style="margin-top:8px">${UI.dtLast||""}</div>`);
 }
+function afterHD(html){ if(UI.restOpen){ UI.hdLast=html; closeModal(); render(); } else { restModal("short"); document.getElementById("hdres").innerHTML=html; } }
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
  const room=5-S.stress;
@@ -1379,7 +1494,7 @@ function insightModal(){
 
 /* ======================= EVENTS ======================= */
 const ACT = {
- tab:d=>{UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); document.getElementById("main").scrollTop=0;},
+ tab:d=>{UI.restOpen=false; UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); document.getElementById("main").scrollTop=0;},
  combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false,mine:false,plan:{act:null,bon:null,oc:false,note:""}}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
  startTurn:()=>{ const c=S.combat; Object.assign(c,{stdUsed:null,mine:true,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); if(c.plan&&c.plan.oc&&S.stress<5){ c.oc=true; c.plan.oc=false; } logEv(`Round ${c.round}: my turn`); save(); render(); },
  endTurn:()=>{ const c=S.combat; if(c.oc && !c.ocUsed){ setStress(S.stress+1,"Overclock armed this turn"); pushRoll("Overclock","",`+1 Stress for the armed Overclock (now ${S.stress}/5)`); } Object.assign(c,{mine:false,oc:false,ocUsed:false,sts:false}); c.round++; save(); render(); },
@@ -1438,11 +1553,24 @@ const ACT = {
   const r=roll(row[1]); vacApply(row,r.total,r.parts[0].rs,r.parts[0].rs.includes(4)); },
  backlash:d=>{ const r=damage(+d.n,"necrotic",false); save(); render(); toastModal("Backlash",`<p>You took ${r.amt} necrotic. HP ${S.hp.cur}/${maxHp()}.</p>${r.notes.map(x=>`<div class="warnbox">${x}</div>`).join("")}`); },
  breach:()=>{ if(PERSON()){ pushRoll("Wild table","","Roll <b>d100</b> on the wild table"); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Roll <b>d100</b> on the wild table and tell the DM.</div>`; return; } const w=R(100); logEv(`Wild table d100: ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); save(); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Wild table d100: <b class="num">${w}</b></div>`; },
- restModal:d=>restModal(d.k),
+ restModal:d=>{ if(d.k==="long"||d.k==="short"){ if(!(S.lr&&S.lr.active)) { S.lr.kind=d.k; S.lr.hours=d.k==="short"?1:8; } UI.restOpen=true; UI.hdLast=""; closeModal(); render(); const o=document.querySelector(".restsplash"); if(o) o.scrollTop=0; return; } restModal(d.k); },
+ restOpen:()=>{ UI.restOpen=true; UI.hdLast=""; render(); },
+ restClose:()=>{ UI.restOpen=false; render(); },
+ lrLen:d=>{ S.lr.hours=Math.max(1,Math.min(24,+d.v)); save(); render(); },
+ lrBegin:()=>{ const h=S.lr.hours, kind=S.lr.kind||"long"; S.lr={kind,active:true,hours:h,used:0,done:{},research:[],tinker:0,started:Date.now(),opts:{stress:S.settings.lrStress!=="keep",keep:false,dawn:true,temp:S.hp.temp>0}}; logEv(`${kind==="short"?"Short":"Long"} rest started (${h} h)`); save(); render(); },
+ lrCancel:()=>{ UI.restOpen=false; S.lr.research.forEach(k=>{ S.researched[k]=false; }); logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
+ lrDone:d=>{ S.lr.done[d.k]=!S.lr.done[d.k]; save(); render(); },
+ lrOpt:d=>{ S.lr.opts[d.k]=!S.lr.opts[d.k]; save(); render(); },
+ lrResearch:d=>{ const b=BPK[d.k], h=Math.max(1,b.l), i=S.lr.research.indexOf(d.k);
+  if(i>=0){ S.lr.research.splice(i,1); S.researched[d.k]=false; S.lr.used=Math.max(0,S.lr.used-h); logEv(`Undid research: ${b.n}`); }
+  else { S.lr.research.push(d.k); S.researched[d.k]=true; S.lr.used+=h; logEv(`Researched ${b.n} (${h} h)`); }
+  save(); render(); },
+ lrResearchSel:()=>{ const v=document.getElementById("lr-rsel").value; if(v) ACT.lrResearch({k:v}); },
+ lrPack:()=>{ if(S.scrap<25){ toastModal("Not enough scrap",`<p>Rebuilding the Æther-Pack needs 25 gp of materials. You have ${S.scrap} gp.</p>`); return; } S.scrap-=25; logEv("Rebuilt the Æther-Pack (25 gp)"); S.lr.done.pack=true; save(); render(); },
  lrTog:(d,el)=>el.classList.toggle("on"),
  hd:()=>{ if(B().level-S.hdUsed<=0) return;
-  if(PERSON()){ askRolls("Spend a hit die",`<div class="tell">Roll <b>1d8 ${sg(M("con"))}</b> (minimum 1).</div>`,[{k:"h",label:`Total of 1d8${sg(M("con"))}`}],v=>{ S.hdUsed++; const g=Math.max(1,v.h); heal(g); save(); render(); restModal("short"); document.getElementById("hdres").innerHTML=`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">HP ${S.hp.cur}/${maxHp()}</div></div>`; return false; }); return; }
-  S.hdUsed++; const r=roll("1d8+"+M("con")); const g=Math.max(1,r.total); heal(g); save(); render(); restModal("short"); document.getElementById("hdres").innerHTML=`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">${showParts(r)}</div></div>`; },
+  if(PERSON()){ askRolls("Spend a hit die",`<div class="tell">Roll <b>1d8 ${sg(M("con"))}</b> (minimum 1).</div>`,[{k:"h",label:`Total of 1d8${sg(M("con"))}`}],v=>{ S.hdUsed++; const g=Math.max(1,v.h); heal(g); save(); render(); afterHD(`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">HP ${S.hp.cur}/${maxHp()}</div></div>`); return false; }); return; }
+  S.hdUsed++; const r=roll("1d8+"+M("con")); const g=Math.max(1,r.total); heal(g); save(); render(); afterHD(`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">${showParts(r)}</div></div>`); },
  doRest:d=>{
   const dep=S.loadout.filter(g=>g.dep).length; S.loadout.forEach(g=>g.dep=false); S.lim.spark=1;
   let sum=[`${dep} gadgets reset`,"Guiding Spark back"];
@@ -1459,6 +1587,8 @@ const ACT = {
    S.conc="";
    sum.unshift("HP full");
   }
+  UI.restOpen=false;
+  if(S.lr && S.lr.active && (S.lr.kind||"long")===d.k){ sum.push(`${S.lr.used} of ${S.lr.hours} hours used${S.lr.research.length?`, researched ${S.lr.research.map(k=>BPK[k].n).join(", ")}`:""}${S.lr.tinker?`, ${S.lr.tinker} tinkering attempt${S.lr.tinker>1?"s":""}`:""}`); S.lr.active=false; }
   logEv(`${d.k==="long"?"Long":"Short"} rest: ${sum.join(", ")}`); save(); render();
   toastModal(d.k==="long"?"Long rest done":"Short rest done",`<ul class="small">${sum.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>${d.k==="long"?'<p class="small muted">Swap your gadget load-out and Mechanical Modifications now if you want.</p>':""}`);
  },
