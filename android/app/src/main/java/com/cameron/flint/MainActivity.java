@@ -1,7 +1,9 @@
 package com.cameron.flint;
 
 import android.app.Activity;
+import android.content.ContentUris;
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -98,6 +100,39 @@ public class MainActivity extends Activity {
                 if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
                 else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
             });
+        }
+
+        @JavascriptInterface
+        public String saveBackup(String name, String text, int keep) {
+            String folder = Environment.DIRECTORY_DOWNLOADS + "/Flint/";
+            try {
+                ContentValues v = new ContentValues();
+                v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                v.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                v.put(MediaStore.MediaColumns.RELATIVE_PATH, folder);
+                Uri uri = getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                if (uri == null) return "Android refused to create the file.";
+                try (OutputStream os = getContentResolver().openOutputStream(uri)) {
+                    os.write(text.getBytes(StandardCharsets.UTF_8));
+                }
+            } catch (Exception e) {
+                return "Save failed: " + e.getMessage();
+            }
+            // Keep only the newest automatic backups this app wrote.
+            try {
+                Uri col = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+                String[] proj = {MediaStore.MediaColumns._ID};
+                String sel = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + " LIKE ?";
+                String[] args = {folder, "flint-auto-%"};
+                try (Cursor c = getContentResolver().query(col, proj, sel, args, MediaStore.MediaColumns.DATE_ADDED + " DESC")) {
+                    int i = 0;
+                    while (c != null && c.moveToNext()) {
+                        i++;
+                        if (i > keep) getContentResolver().delete(ContentUris.withAppendedId(col, c.getLong(0)), null, null);
+                    }
+                }
+            } catch (Exception ignored) { }
+            return "ok";
         }
 
         @JavascriptInterface

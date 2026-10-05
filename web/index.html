@@ -296,7 +296,7 @@ body.tighter .sb{font-size:9.5px;padding:2px 4px}
 
 <div class="top"><div class="wrap" style="padding-block:0" id="top"></div></div>
 <div class="wrap" id="main"></div>
-<div class="rollbar" id="rollbar"><div class="res" id="lastroll"><span class="dim" id="rollhint">Tap any attack, skill, ability or gadget to roll.</span></div><button class="btn sm" id="rmode" data-act="rollMode">Rolling: in app</button><button class="btn sm" data-act="dice">Dice</button><button class="btn sm" data-act="history">Log</button></div>
+<div class="rollbar" id="rollbar"><div class="res" id="lastroll"><span class="dim" id="rollhint">Tap any attack, skill, ability or gadget to roll.</span></div><button class="btn sm" id="undoBtn" data-act="undo" hidden>Undo</button><button class="btn sm" id="rmode" data-act="rollMode">Rolling: in app</button><button class="btn sm" data-act="dice">Dice</button><button class="btn sm" data-act="history">Log</button></div>
 <div id="restover"></div>
 <div id="modal"></div>
 
@@ -460,9 +460,9 @@ let uid=1; const nid=()=> "i"+Date.now().toString(36)+(uid++);
 function DEF(){
  const it=(n,q,w,o={})=>({id:nid(),n,q,w,worn:false,mod:false,att:false,note:"",...o});
  return {
-  v:4, _t:0,
+  v:4, _t:0, lastAutoBackup:0,
   lr:{kind:"long",active:false,hours:8,used:0,done:{},research:[],tinker:0,opts:{stress:true,keep:false,dawn:true,temp:false}},
-  settings:{loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
+  settings:{autoBackup:true,loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
   mods:{axe:{built:false,holder:"flint",ally:""},rshield:{built:true,holder:"flint",ally:""},pipes:{built:false,holder:"flint",ally:""},mind:{built:false,holder:"flint",ally:""},boots:{built:false,holder:"flint",ally:""},ring:{built:false,holder:"flint",ally:""}},
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
   hp:{cur:45,temp:0,bonus:5}, ds:{s:0,f:0}, hdUsed:0,
@@ -677,7 +677,9 @@ function damage(n,type,resist){
  const before=S.hp.cur; S.hp.cur=Math.max(0,S.hp.cur-rem);
  logEv(`Took ${amt}${type?" "+type:""} damage${resist?" (halved from "+n+")":""}${absorbed?", "+absorbed+" from temp HP":""}. HP ${before} → ${S.hp.cur}`);
  let notes=[];
- if(S.conc && amt>0 && S.settings.concReminder) notes.push(`Concentration on ${S.conc}: Con save DC ${Math.max(10,Math.floor(amt/2))} (you're +${saveBonus("con")}).${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can auto-succeed.":""}`);
+ if(S.conc && amt>0 && S.hp.cur===0){ logEv(`Concentration on ${S.conc} ended (dropped to 0 HP)`); notes.push(`Your concentration on ${S.conc} ended because you dropped to 0 HP.`); S.conc=""; }
+ if(S.conc && amt>0 && S.settings.concReminder) UI.concPending={amt,dc:Math.max(10,Math.floor(amt/2))};
+ if(false) notes.push(`Concentration on ${S.conc}: Con save DC ${Math.max(10,Math.floor(amt/2))} (you're +${saveBonus("con")}).${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can auto-succeed.":""}`);
  if(S.hp.cur===0 && before>0) notes.push("You're at 0 HP. Death saves are on the HP panel.");
  return {amt,notes};
 }
@@ -1265,7 +1267,7 @@ function applySettings(){
 }
 function render(){
  applySettings();
- renderTop();
+ renderTop(); updateUndo();
  const m=document.getElementById("main");
  if(!TABS.some(t=>t[0]===UI.tab)){ UI.tab="sheet"; renderTop(); }
  const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,background:renderBackground,mods:renderMods}[UI.tab]||renderSheet;
@@ -1472,7 +1474,7 @@ function finishInv(cost,r,fIn){
   logEv(`Tinkered ${name} (T${tier}): d100 ${r}`);
   UI.wbResult=`<div class="${cls}">d100 <b class="num">${r}</b> vs ${dc}+ · ${res}</div>`;
   pushRoll("Invention",``,`d100 <b>${r}</b> vs ${dc}+`);
-  save(); render(); closeModal();
+  save(); render(); closeModal(); concPrompt();
 }
 function settingsModal(){
  const st=S.settings;
@@ -1500,6 +1502,7 @@ function settingsModal(){
   <h3>History</h3>
   <div class="btns"><button class="btn" data-act="eventLog">Event log</button><button class="btn" data-act="history">Roll log</button></div>
   <h3>Backup</h3>
+  <div class="list">${window.AndroidBridge&&AndroidBridge.saveBackup?tog("autoBackup","Automatic backups",`After every long rest and once a day when you open the app, a backup goes to Downloads/Flint. The 5 newest are kept.${S.lastAutoBackup?" Last one: "+new Date(S.lastAutoBackup).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})+".":""}`):""}</div>
   <p class="small muted">Everything lives on this device only. Save a backup file now and then, and before uninstalling or switching devices.</p>
   <div class="btns"><button class="btn" data-act="exportFile">Save backup file</button><label class="btn" for="bk-file2" style="cursor:pointer">Load backup file</label><input type="file" id="bk-file2" accept=".json,application/json" hidden><button class="btn" data-act="exportJson">Copy backup</button><button class="btn" data-act="importModal">Paste a backup</button><button class="btn red" data-act="resetModal">Reset to sheet defaults</button></div>
   <p class="status" id="storemsg" style="margin-top:8px">${storeMsg}</p>
@@ -1540,6 +1543,34 @@ function statusModal(){
   <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Exhaustion</span><button class="mini" data-act="statusExh">−</button><b class="num">${S.exh}</b><button class="mini" data-act="statusExhUp">+</button>${S.exh?`<span class="small muted">${EXH[S.exh]}</span>`:""}</div>
   <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="close">Done</button></div>`);
  document.querySelector("#modal .modal")?.classList.add("wide");
+}
+function autoBackup(reason){
+ if(!S.settings.autoBackup || !window.AndroidBridge || !AndroidBridge.saveBackup) return null;
+ const d=new Date(), pad=n=>String(n).padStart(2,"0");
+ const name=`flint-auto-${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.json`;
+ let r="unavailable"; try{ r=AndroidBridge.saveBackup(name, JSON.stringify(S), 5); }catch(e){ r="Save failed"; }
+ if(r==="ok"){ S.lastAutoBackup=Date.now(); storeMsg=`Automatic backup saved (${reason}) to Downloads/Flint`; try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){} }
+ return r;
+}
+function concPrompt(){
+ const P=UI.concPending; UI.concPending=null; if(!P||!S.conc) return false;
+ const bonus=saveBonus("con"), f=rollFactors("save","con"), mind=fxOn("mind")&&S.ch.mind>0;
+ const modeTxt=f.mode==="adv"?"with advantage":f.mode==="dis"?"with disadvantage":"";
+ let res="", passed=null;
+ if(!PERSON()){ const a=R(20), b=R(20); const pick=f.mode==="adv"?Math.max(a,b):f.mode==="dis"?Math.min(a,b):a; const tot=pick+bonus; passed=tot>=P.dc;
+  res=`<div class="rollcard"><div class="big ${passed?"":"red"}">${tot}</div><div class="small dim">d20 [${a}${modeTxt?", "+b:""}] ${sg(bonus)} vs DC ${P.dc} · ${passed?"held":"failed"}</div></div>`;
+  pushRoll("Concentration save","",`<b>${tot}</b> vs DC ${P.dc}: ${passed?"held":"failed"}`); }
+ else pushRoll("Concentration save","",`Roll <b>d20 ${sg(bonus)}</b>${modeTxt?" "+modeTxt:""} vs DC <b>${P.dc}</b>`);
+ modal(`<h2>Concentration</h2>
+  <div class="warnbox">You took <b>${P.amt}</b> damage while concentrating on <b>${esc(S.conc)}</b>.</div>
+  ${PERSON()?`<div class="tell">Roll a <b>Con save: d20 ${sg(bonus)}</b>${modeTxt?" <b>"+modeTxt+"</b>":""} against <b>DC ${P.dc}</b>.</div>`:res}
+  ${f.dis.length||f.adv.length?`<p class="small muted">${[...f.adv.map(x=>"Advantage: "+esc(x)),...f.dis.map(x=>"Disadvantage: "+esc(x))].join(" · ")}</p>`:""}
+  <div class="btns" style="margin-top:10px">
+   ${passed!==false?`<button class="btn ${passed?"pri":"ok"}" data-act="concHeld" data-dc="${P.dc}">${PERSON()?"Made it: keep ":"Keep "}${esc(S.conc)}</button>`:""}
+   ${passed!==true?`<button class="btn red" data-act="concLost">${PERSON()?"Failed: ":""}${esc(S.conc)} ends</button>`:""}
+   ${passed!==true&&mind?`<button class="btn ecto" data-act="concMind">Failed, use Mind Sharpener (${S.ch.mind} left)</button>`:""}
+  </div>`);
+ return true;
 }
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
@@ -1583,7 +1614,7 @@ const ACT = {
   if(d.k==="heal") heal(n);
   if(d.k==="temp"){ S.hp.temp=n; logEv(`Temp HP set to ${n}`); }
   if(d.k==="bonus"){ S.hp.bonus=(S.hp.bonus||0)+n; S.hp.cur=Math.min(maxHp(),S.hp.cur+n); logEv(`Max HP +${n} until long rest (now ${maxHp()})`); }
-  KP.v=""; save(); render(); hpModal(); if(msg) document.getElementById("kpmsg").innerHTML=msg; },
+  KP.v=""; save(); render(); hpModal(); if(msg) document.getElementById("kpmsg").innerHTML=msg; concPrompt(); },
  bonusClear:()=>{ logEv(`Extra ${S.hp.bonus} max HP removed`); S.hp.bonus=0; S.hp.cur=Math.min(S.hp.cur,maxHp()); save(); render(); hpModal(); },
  ds:d=>{ const k=d.k,i=+d.i; S.ds[k]= S.ds[k]===i+1? i : i+1; save(); hpModal(); },
  dsRoll:()=>{ if(PERSON()){ askRolls("Death save",`<div class="tell">Roll a <b>d20</b> with no modifiers. 10 or higher succeeds; a natural 20 brings you back with 1 HP; a natural 1 counts as two failures.</div>`,[{k:"r",label:"Your d20 roll"}],v=>{ dsResult(Math.max(1,Math.min(20,v.r))); hpModal(); return false; }); return; } dsResult(R(20)); hpModal(); },
@@ -1615,7 +1646,7 @@ const ACT = {
  vacRoll:d=>{ const row=SV_TABLE[+d.i];
   if(PERSON()){ askRolls("Soul Vacuum · CR "+row[0],`<div class="tell">Roll <b>${row[1]}</b> and add them up.</div><p class="small muted">Pack holds ${S.energy}/${eMax()}. Anything over capacity becomes necrotic backlash.</p>`,[{k:"t",label:`Total of ${row[1]}`},{k:"four",type:"flag",label:"At least one die showed a 4"}],v=>{ vacApply(row,Math.max(0,v.t),null,v.four); return false; }); return; }
   const r=roll(row[1]); vacApply(row,r.total,r.parts[0].rs,r.parts[0].rs.includes(4)); },
- backlash:d=>{ const r=damage(+d.n,"necrotic",false); save(); render(); toastModal("Backlash",`<p>You took ${r.amt} necrotic. HP ${S.hp.cur}/${maxHp()}.</p>${r.notes.map(x=>`<div class="warnbox">${x}</div>`).join("")}`); },
+ backlash:d=>{ const r=damage(+d.n,"necrotic",false); save(); render(); toastModal("Backlash",`<p>You took ${r.amt} necrotic. HP ${S.hp.cur}/${maxHp()}.</p>${r.notes.map(x=>`<div class="warnbox">${x}</div>`).join("")}`); concPrompt(); },
  breach:()=>{ if(PERSON()){ pushRoll("Wild table","","Roll <b>d100</b> on the wild table"); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Roll <b>d100</b> on the wild table and tell the DM.</div>`; return; } const w=R(100); logEv(`Wild table d100: ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); save(); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Wild table d100: <b class="num">${w}</b></div>`; },
  restModal:d=>{ if(d.k==="long"||d.k==="short"){ if(!(S.lr&&S.lr.active)) { S.lr.kind=d.k; S.lr.hours=d.k==="short"?1:8; } UI.restOpen=true; UI.hdLast=""; closeModal(); render(); const o=document.querySelector(".restsplash"); if(o) o.scrollTop=0; return; } restModal(d.k); },
  restOpenX:()=>{},
@@ -1663,6 +1694,7 @@ const ACT = {
   UI.restOpen=false;
   if(S.lr && S.lr.active && (S.lr.kind||"long")===d.k){ sum.push(`${S.lr.used} of ${S.lr.hours} hours used${S.lr.research.length?`, researched ${S.lr.research.map(k=>BPK[k].n).join(", ")}`:""}${S.lr.tinker?`, ${S.lr.tinker} tinkering attempt${S.lr.tinker>1?"s":""}`:""}`); S.lr.active=false; }
   logEv(`${d.k==="long"?"Long":"Short"} rest: ${sum.join(", ")}`); save(); render();
+  if(d.k==="long"){ const br=autoBackup("long rest"); if(br==="ok") sum.push("backup saved to Downloads/Flint"); }
   toastModal(d.k==="long"?"Long rest done":"Short rest done",`<ul class="small">${sum.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>${d.k==="long"?'<p class="small muted">Swap your gadget load-out and Mechanical Modifications now if you want.</p>':""}`);
  },
  // gadgets
@@ -1774,10 +1806,21 @@ const ACT = {
   <ul><li><b>+1</b> Overclock (once per turn, +3 to a gadget or discharge)</li><li><b>+1</b> keeping all your energy through a long rest</li><li><b>+1 to +5</b> Seriach's Fuel</li><li><b>+1</b> invention meltdown (d100 roll of 1–5)</li><li><b>+1</b> failed Occult Insight</li></ul>
   <p class="small muted">Long rest: the app clears Stress by default (change it in Settings or on the rest screen). What happens at high Stress is up to the DM.</p>`),
  bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`,`${bpCard(b)}<p class="small muted" style="margin-top:6px">${b.l?"Level "+b.l+" blueprint: used once deployed, back after a short or long rest.":"Cantrip blueprint: never runs out."}${S.researched[b.k]?"":" Not researched yet ("+Math.max(1,b.l)+" h of downtime)."}</p>`); },
+ undo:()=>{ const u=UNDO.pop(); if(!u){ updateUndo(); return; } const rolls=S.rolls; S=merge(DEF(),JSON.parse(u.s)); S.rolls=rolls; logEv(`Undid: ${u.label}`); save(); closeModal(); render(); updateUndo(); pushRoll("Undo","",`Undid <b>${esc(u.label)}</b>`); },
+ concHeld:d=>{ logEv(`Kept concentration on ${S.conc} (DC ${d.dc})`); save(); render(); closeModal(); },
+ concLost:()=>{ logEv(`Lost concentration on ${S.conc}`); S.conc=""; save(); render(); closeModal(); },
+ concMind:()=>{ S.ch.mind=Math.max(0,S.ch.mind-1); logEv(`Mind Sharpener kept concentration on ${S.conc}`); save(); render(); closeModal(); },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
-document.addEventListener("click",e=>{ const t=e.target.closest("[data-act]"); if(!t) return; const fn=ACT[t.dataset.act]; if(!fn) return; if(t.dataset.act==="save") e.stopPropagation(); fn(t.dataset,t,e); });
+const UNDO=[];
+const snapOf = () => JSON.stringify(S,(k,v)=>(k==="rolls"||k==="_t"||k==="lastAutoBackup")?undefined:v);
+const UNDO_LABEL={energy:"energy change",stress:"Stress change",lim:"feature use",chg:"charge use",eco:"action economy",exh:"exhaustion change",insp:"Inspiration",iq:"item quantity",iworn:"equip/unequip",research:"research",build:"gadget built",moveK:"load-out order",setTog:"setting",setVal:"setting",setTogQ:"setting",ds:"death save",armor:"armour",shieldT:"shield",overclock:"Overclock",planOc:"plan",planDel:"plan",planClear:"plan",lrOpt:"rest option",lrDone:"rest checklist",lrLen:"rest length",scrapAdj:"scrap"};
+function updateUndo(){ const b=document.getElementById("undoBtn"); if(!b) return; const u=UNDO[UNDO.length-1]; b.hidden=!u; if(u) b.textContent="Undo: "+(u.label.length>28?u.label.slice(0,27)+"…":u.label); }
+document.addEventListener("click",e=>{ const t=e.target.closest("[data-act]"); if(!t) return; const act=t.dataset.act, fn=ACT[act]; if(!fn) return; if(act==="save") e.stopPropagation();
+ const before = act==="undo" ? null : snapOf(), top=S.log[0];
+ fn(t.dataset,t,e);
+ if(before!==null){ const after=snapOf(); if(after!==before){ UNDO.push({s:before,label:(S.log[0]&&S.log[0]!==top)?S.log[0].txt:(UNDO_LABEL[act]||"last change")}); if(UNDO.length>25) UNDO.shift(); updateUndo(); } } });
 document.addEventListener("change",e=>{
  const t=e.target;
  if(t.dataset.bind){ const path=t.dataset.bind.split("."); let o=S; for(let i=0;i<path.length-1;i++) o=o[path[i]]; const v=t.type==="number"?(+t.value||0):t.value; o[path.at(-1)]=v; if(path[0]==="base"&&path[1]==="maxHp") S.hp.cur=Math.min(S.hp.cur,maxHp()); save(); render(); }
@@ -1802,6 +1845,7 @@ window.addEventListener("resize",()=>{ try{ applySettings(); }catch(e){} });
 const SEED={"allyMods": [{"ally": "", "item": ""}, {"ally": "", "item": ""}], "armor": false, "axeLight": false, "base": {"acMisc": 0, "cha": 11, "con": 16, "dex": 14, "int": 18, "level": 6, "martialProf": false, "maxHp": 40, "nextXp": 23000, "san": 9, "speed": 25, "str": 10, "wis": 12, "xp": 19550}, "ch": {"axe": 4, "mind": 4, "pipes": 3, "ring": 1, "rshield": 4}, "coins": {"cp": 36, "ep": 2, "gp": 36, "pp": 0, "sp": 6}, "combat": {"act": false, "bon": false, "oc": false, "ocUsed": false, "on": false, "rea": false, "round": 3, "sts": false}, "conc": "", "cond": {}, "ds": {"f": 0, "s": 0}, "energy": 0, "exh": 0, "hdUsed": 0, "hp": {"cur": 40, "temp": 5}, "insp": false, "inventions": [{"id": "imuvbighc1", "n": "The Sonic Disruptor", "note": "Frequency animal deterrent. −1d4 to saving throws within 30 ft.", "tier": 2}, {"id": "imuvbighc2", "n": "Hydraulic Recoil-Damper", "note": "Advantage on saving throws against grapple, prone and shove.", "tier": 2}], "items": [{"att": false, "id": "imuvbighc3", "mod": false, "n": "Breastplate", "note": "Medium armour, AC 14 + Dex (max 2). No stealth disadvantage. Don 5 min, doff 1 min.", "q": 1, "w": 20, "worn": true}, {"att": true, "fx": "rshield", "id": "imuvbighc4", "mod": true, "n": "Repulsion Shield", "note": "Spring-loaded piston on the inner face, cocked by each melee hit. +1 AC on top of the shield's +2. 4 charges, regains 1d4 at dawn. Reaction after a melee hit: spend 1 charge to push the attacker up to 15 ft.", "q": 1, "w": 6, "worn": true}, {"att": false, "id": "imuvbighc5", "mod": false, "n": "Æther-Pack", "note": "Containment tank, gauges, copper tubing, control wand, foot pedal. Counts as an artificer's tool. Rebuild on a long rest with tinker's tools and 25 gp of materials.", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc10", "mod": false, "n": "Belt Pouch (with coins)", "note": "", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc11", "mod": false, "n": "Tinker's tools", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc12", "mod": false, "n": "Pearl (for Identify)", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc13", "mod": false, "n": "Spyglass", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc14", "mod": false, "n": "Strahd's Tome", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc15", "mod": false, "n": "Magnifying glass", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc16", "mod": false, "n": "Petrified Wood Butterfly", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc17", "mod": false, "n": "Amber Shard (Isek)", "note": "Source of the Fire Bolt and Scorching Ray from your arm.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc18", "mod": false, "n": "Dagger", "note": "Finesse, light, thrown (20/60). 1d4 piercing.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc19", "mod": false, "n": "Light hammer", "note": "Light, thrown (20/60). 1d4 bludgeoning.", "q": 1, "w": 2, "worn": false}], "lim": {"fuel": 1, "gbolt": 1, "spark": 1}, "loadout": [], "log": [{"t": 1791208927593, "txt": "Combat started"}, {"t": 1791208926790, "txt": "Combat ended after 1 round"}, {"t": 1791208925858, "txt": "Combat started"}, {"t": 1791208924986, "txt": "Stress 0 → 1"}, {"t": 1791208924398, "txt": "Stress 1 → 0"}, {"t": 1791208923951, "txt": "Stress 0 → 1"}, {"t": 1791208922784, "txt": "Energy 1 → 0"}, {"t": 1791208922222, "txt": "Energy 0 → 1"}, {"t": 1791208918692, "txt": "Doffed breastplate"}, {"t": 1791208917288, "txt": "Donned breastplate"}, {"t": 1791208915486, "txt": "Doffed breastplate"}, {"t": 1791208889164, "txt": "Healed 2. HP 40 → 40"}, {"t": 1791208881986, "txt": "Temp HP set to 5"}, {"t": 1791208879916, "txt": "Temp HP set to 0"}, {"t": 1791208878424, "txt": "Temp HP set to 0"}], "notes": {"appearance": "About 3 ft tall, wiry rather than bulky. Since the transformation, a cold mineralized husk of blackened iron and coarse ash, veined with amber. Looks more at home in a workshop than a battlefield.", "backstory": "Raised by a patient foster mother who encouraged his obsession with clockwork, Flint left the gnomish burrows at sixteen in pursuit of discovery. For fifteen years he repaired city mechanisms, calibrated astronomical devices and designed security systems, and his Investigator instincts grew sharp: he notices the misplaced cog others overlook. His habit of getting lost in a puzzle has led to close calls with disgruntled clients and cave-ins.", "bonds": "As my memories of my foster mother's warmth fade into the mists, I cling to the intellect and inventive drive she left me; my mind is the final canvas of her legacy, and I must protect it.", "flaws": "I become so engrossed in a new puzzle or device that I ignore immediate danger or my surroundings. I have lost the ability to create art, whimsy, or joy.", "ideals": "Discovery: The world is full of wonders waiting to be found and understood. My purpose is to uncover new secrets and push the boundaries of what's known. I hold my mind as sacred.", "session": "", "traits": "I tend to mutter to myself in Gnomish, explaining my current thoughts or theories aloud."}, "researched": {"absorb": false, "acid": false, "aid": false, "airbubble": false, "alarm": false, "alock": false, "alter": false, "aweapon": false, "blur": false, "bonfire": false, "booming": false, "catapult": false, "cflame": false, "cure": false, "detect": false, "disguise": false, "dlights": false, "dvision": false, "enhance": false, "enlarge": false, "expret": false, "ffall": false, "ffire": false, "firebolt": false, "flife": false, "frostbite": false, "gfb": false, "grease": false, "guidance": false, "heatm": false, "identify": false, "invis": false, "jump": false, "kjaunt": false, "levitate": false, "light": false, "llure": false, "longstr": false, "lrest": false, "magehand": false, "mending": false, "message": false, "mmouth": false, "mstone": false, "mweapon": false, "ppoison": false, "presti": false, "pspray": false, "purify": false, "pyro": false, "resist": false, "rfrost": false, "rtrick": false, "sanct": false, "sburst": false, "sclimb": false, "seeinv": false, "sgrasp": false, "sky": false, "snare": false, "spare": false, "tcb": false, "tclap": false, "twhip": false, "vwarp": false, "web": true}, "rolls": [], "scrap": 46, "shield": true, "stress": 1, "v": 2};
 try{ if(!localStorage.getItem(LKEY)){ S=merge(DEF(),migrate(SEED)); localStorage.setItem(LKEY,JSON.stringify(S)); } }catch(e){}
 loadLocal(); render();
+setTimeout(()=>{ if(Date.now()-(S.lastAutoBackup||0) > 20*3600*1000) autoBackup("daily"); }, 1500);
 try{ navigator.wakeLock?.request("screen").catch(()=>{}); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") navigator.wakeLock?.request("screen").catch(()=>{}); }); }catch(e){}
 connect();
 </script>
