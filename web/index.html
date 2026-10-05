@@ -299,6 +299,11 @@ body.tighter .setbtn2{width:38px;font-size:19px}
 body.tighter .sb{font-size:9.5px;padding:2px 4px}
 .info{cursor:pointer;text-decoration:underline dotted var(--ash3);text-underline-offset:3px}
 .info:active{color:var(--amber)}
+.setbtn2{position:relative}
+.setbtn2[data-sync]::after{content:"";position:absolute;top:6px;right:6px;width:8px;height:8px;border-radius:50%;background:var(--ash3)}
+.setbtn2[data-sync="ok"]::after{background:var(--heal)}
+.setbtn2[data-sync="busy"]::after,.setbtn2[data-sync="pending"]::after{background:var(--warn)}
+.setbtn2[data-sync="err"]::after{background:var(--blood)}
 .subhead{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber);font-weight:700;margin-top:6px}
 .turnstate{font-family:var(--f-display);font-weight:800;font-size:18px;letter-spacing:.6px;text-transform:uppercase;padding:2px 10px;border-radius:6px}
 .turnstate.mine{background:var(--heal);color:#0d1f17}
@@ -672,9 +677,64 @@ function migrate(o){ if(!o||typeof o!=="object") return o; if(!o.v||o.v<2){ if(A
  if(o.v<4){ const m={}; ["axe","rshield","pipes","mind","boots","ring"].forEach(k=>{ const it=(o.items||[]).find(i=>i.fx===k); m[k]={built:!!(it&&it.mod),holder:"flint",ally:""}; }); o.mods=m; delete o.allyMods; delete o.portrait; o.v=4; }
  return o; }
 function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DEF(),migrate(JSON.parse(r))); } }catch(e){} try{ UI.tab=localStorage.getItem(LKEY+"-tab")||UI.tab }catch(e){} }
+/* ---------- device-to-device sync via a private GitHub Gist ---------- */
+const SKEY=LKEY+"-sync", GH="https://api.github.com", GIST_DESC="Flint Cogsworth sync";
+let SY={token:"",gist:"",device:"",base:0,synced:0,last:0}, SYS={status:"off",msg:""}, syncTimer=null, syncBusy=false;
+function loadSync(){ try{ Object.assign(SY, JSON.parse(localStorage.getItem(SKEY)||"{}")); }catch(e){} if(!SY.device){ SY.device=Math.random().toString(36).slice(2,10); saveSync(); } SYS.status=SY.gist?"ok":"off"; }
+function saveSync(){ try{ localStorage.setItem(SKEY, JSON.stringify(SY)); }catch(e){} }
+function syncStatus(st,msg){ if(st==="err" && /failed to fetch|networkerror|load failed/i.test(msg||"")){ st="pending"; msg="No internet. Changes will upload when you're back online."; } SYS.status=st; SYS.msg=msg||""; const b=document.querySelector(".setbtn2"); if(b){ if(SY.gist) b.setAttribute("data-sync",st); else b.removeAttribute("data-sync"); b.title="Settings"+(SY.gist?" · Sync: "+(msg||st):""); } const el=document.getElementById("syncmsg"); if(el) el.textContent=syncLine(); }
+function syncLine(){ if(!SY.gist) return "Not connected."; const ago=SY.last?Math.max(0,Math.round((Date.now()-SY.last)/60000)):null; return (SYS.status==="err"?"Problem: "+SYS.msg:SYS.status==="busy"?"Syncing…":SYS.status==="pending"?(SYS.msg&&/internet/.test(SYS.msg)?SYS.msg:"Changes waiting to upload."):"Up to date.")+(ago!==null?` Last synced ${ago===0?"just now":ago+" min ago"}.`:""); }
+async function gh(path,opts={}){
+ const r=await fetch(GH+path,{method:opts.method||"GET",body:opts.body,headers:Object.assign({"Authorization":"Bearer "+SY.token,"Accept":"application/vnd.github+json"},opts.body?{"Content-Type":"application/json"}:{})});
+ if(!r.ok){ let m=""; try{ m=(await r.json()).message; }catch(e){} throw new Error(r.status===401?"The token was rejected. Check it or make a new one.":r.status===404?"The sync note wasn't found.":`GitHub said ${r.status}${m?": "+m:""}`); }
+ return r.json(); }
+async function readRemote(){ const g=await gh("/gists/"+SY.gist); const f=g.files&&g.files["flint.json"]; if(!f) return null; let t=f.content; if(f.truncated) t=await (await fetch(f.raw_url)).text(); try{ return JSON.parse(t); }catch(e){ return null; } }
+const syncPayload = () => JSON.stringify({v:1,updated:S._t||Date.now(),device:SY.device,state:S});
+async function writeRemote(){ await gh("/gists/"+SY.gist,{method:"PATCH",body:JSON.stringify({files:{"flint.json":{content:syncPayload()}}})}); SY.base=SY.synced=S._t||0; SY.last=Date.now(); saveSync(); }
+function applyRemote(rem){ S=merge(DEF(),migrate(rem.state)); S._t=rem.updated; lastLocal=rem.updated; try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){} SY.base=SY.synced=rem.updated; SY.last=Date.now(); saveSync(); if(typeof UNDO!=="undefined") UNDO.length=0; render(); }
+function conflictModal(rem){
+ const when=t=>t?new Date(t).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"}):"unknown";
+ UI.syncRem=rem;
+ modal(`<h2>Two versions of Flint</h2><p>Flint was changed on another device <b>(${when(rem.updated)})</b> and on this one <b>(${when(S._t)})</b> since they last synced. Which one should both devices use?</p>
+  <div class="small muted">Other device: HP ${rem.state?.hp?.cur??"?"}, energy ${rem.state?.energy??"?"}, Stress ${rem.state?.stress??"?"} · This device: HP ${S.hp.cur}, energy ${S.energy}, Stress ${S.stress}</div>
+  <div class="col" style="margin-top:10px"><button class="btn pri" data-act="syncUseRemote" style="padding:10px">Use the other device's Flint</button><button class="btn" data-act="syncKeepLocal" style="padding:10px">Keep this device's Flint</button></div>
+  <p class="small dim" style="margin-top:8px">An automatic backup of this device's Flint is saved first, so nothing is lost either way.</p>`);
+}
+async function syncPull(){
+ if(!SY.gist||!SY.token||syncBusy) return; syncBusy=true; syncStatus("busy","Checking…");
+ try{ const rem=await readRemote(); SY.last=Date.now();
+  if(rem && rem.state && rem.updated>SY.base && rem.device!==SY.device){ if((S._t||0)>SY.synced) { syncBusy=false; syncStatus("pending","Waiting for your choice"); conflictModal(rem); return; } applyRemote(rem); pushRoll("Sync","","Loaded the latest Flint from your other device"); }
+  else if(rem && rem.updated>SY.base){ SY.base=rem.updated; }
+  saveSync(); syncBusy=false; syncStatus("ok"); if((S._t||0)>SY.synced) syncSoon(2000);
+ }catch(e){ syncBusy=false; syncStatus("err",e.message||"offline"); } }
+async function syncPush(){
+ if(!SY.gist||!SY.token||syncBusy) return; if((S._t||0)<=SY.synced){ syncStatus("ok"); return; }
+ syncBusy=true; syncStatus("busy","Uploading…");
+ try{ const rem=await readRemote();
+  if(rem && rem.updated>SY.base && rem.device!==SY.device){ syncBusy=false; syncStatus("pending","Waiting for your choice"); conflictModal(rem); return; }
+  await writeRemote(); syncBusy=false; syncStatus("ok");
+ }catch(e){ syncBusy=false; syncStatus("err",e.message||"offline"); } }
+function syncSoon(ms){ if(!SY.gist) return; clearTimeout(syncTimer); syncStatus("pending"); syncTimer=setTimeout(syncPush, ms||10000); }
+async function syncConnect(token){
+ SY.token=token.trim(); if(!SY.token) return; syncStatus("busy","Connecting…");
+ try{ let found=null;
+  for(let page=1; page<=5 && !found; page++){ const list=await gh(`/gists?per_page=100&page=${page}`); found=list.find(g=>g.description===GIST_DESC && g.files && g.files["flint.json"]); if(list.length<100) break; }
+  if(found){ SY.gist=found.id; SY.base=0; SY.synced=0; saveSync(); const rem=await readRemote();
+   if(rem && rem.state){ UI.syncRem=rem; modal(`<h2>Flint is already synced</h2><p>Your GitHub account already has a synced Flint, last changed <b>${new Date(rem.updated).toLocaleString([], {weekday:"short",month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</b>.</p><div class="col" style="margin-top:10px"><button class="btn pri" data-act="syncUseRemote" style="padding:10px">Use the synced Flint on this device</button><button class="btn" data-act="syncKeepLocal" style="padding:10px">Replace it with this device's Flint</button></div><p class="small dim" style="margin-top:8px">This device's Flint is backed up first either way.</p>`); syncStatus("pending","Waiting for your choice"); return; }
+   await writeRemote();
+  } else {
+   const g=await gh("/gists",{method:"POST",body:JSON.stringify({description:GIST_DESC,public:false,files:{"flint.json":{content:syncPayload()}}})});
+   SY.gist=g.id; SY.base=SY.synced=S._t||0; SY.last=Date.now(); saveSync();
+  }
+  syncStatus("ok"); settingsModal(); pushRoll("Sync","","Connected. This device now syncs Flint.");
+ }catch(e){ SY.gist=""; saveSync(); syncStatus("err",e.message||"Couldn't connect"); const el=document.getElementById("syncmsg"); if(el) el.textContent="Couldn't connect: "+(e.message||"check your internet"); } }
+window.addEventListener("online",()=>{ syncPull(); });
+document.addEventListener("visibilitychange",()=>{ if(!SY.gist) return; if(document.visibilityState==="visible") syncPull(); else syncPush(); });
+
 function save(){
  pendingRemote=null; lastLocal=Date.now(); S._t=lastLocal;
  try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){}
+ syncSoon(10000);
  if(docRef){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ const t=lastLocal; docRef.set({state:JSON.parse(JSON.stringify(S)),updated:t,cid:CID}).then(()=>{storeMsg="Saved to your account";stat()}).catch(()=>{storeMsg="Account save failed, kept on this device";stat()}); },700); }
 }
 function stat(){ const el=document.getElementById("storemsg"); if(el) el.textContent=storeMsg; }
@@ -1419,7 +1479,7 @@ function applySettings(){
 }
 function render(){
  applySettings();
- renderTop(); updateUndo();
+ renderTop(); updateUndo(); if(typeof syncStatus==="function" && SY.gist) syncStatus(SYS.status,SYS.msg);
  const m=document.getElementById("main");
  if(!TABS.some(t=>t[0]===UI.tab)){ UI.tab="sheet"; renderTop(); }
  const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,background:renderBackground,mods:renderMods}[UI.tab]||renderSheet;
@@ -1651,6 +1711,18 @@ function settingsModal(){
    ${tog("showLocked","Future features","Show level 9 and 15 Spirit Engine features, greyed out.")}
    ${window.AndroidBridge?tog("keepAwake","Keep screen on","Stops the tablet sleeping while the app is open."):""}
   </div>
+  <h3>Sync between devices</h3>
+  ${SY.gist?`<p class="small">Connected to a private note on your GitHub account. Changes upload about 10 seconds after you make them, and each device checks for the newest Flint when it opens.</p>
+   <p class="status" id="syncmsg" style="margin:6px 0">${syncLine()}</p>
+   <div class="btns"><button class="btn" data-act="syncNow">Sync now</button><button class="btn red" data-act="syncDisconnect">Stop syncing on this device</button></div>`
+  :`<p class="small">Keep Flint the same on two devices using a private note (a Gist) on your GitHub account. Do this once on each device:</p>
+   <ol class="small" style="margin:4px 0 0;padding-left:18px">
+    <li>On GitHub: <b>Settings → Developer settings → Personal access tokens → Tokens (classic) → Generate new token (classic)</b>.</li>
+    <li>Note: <b>Flint sync</b>. Expiration: your choice (e.g. 1 year). Tick <b>only "gist"</b>. Tap <b>Generate token</b> and copy it.</li>
+    <li>Paste it below and tap <b>Connect</b>. Use the same token on your other device.</li></ol>
+   <div class="btns" style="margin-top:8px"><input id="sync-token" type="password" autocomplete="off" placeholder="Paste your token (ghp_…)" style="flex:1;min-width:200px"><button class="btn pri" data-act="syncConnect">Connect</button></div>
+   <p class="status" id="syncmsg" style="margin-top:6px">${SYS.status==="err"?"Couldn't connect: "+esc(SYS.msg):"Not connected."}</p>
+   <p class="small dim">The token stays on this device only. It isn't saved in Flint's data or backups.</p>`}
   <h3>History</h3>
   <div class="btns"><button class="btn" data-act="eventLog">Event log</button><button class="btn" data-act="history">Roll log</button></div>
   <h3>Backup</h3>
@@ -1976,6 +2048,11 @@ const ACT = {
  concHeld:d=>{ logEv(`Kept concentration on ${S.conc} (DC ${d.dc})`); save(); render(); closeModal(); },
  concLost:()=>{ logEv(`Lost concentration on ${S.conc}`); S.conc=""; save(); render(); closeModal(); },
  concMind:()=>{ S.ch.mind=Math.max(0,S.ch.mind-1); logEv(`Mind Sharpener kept concentration on ${S.conc}`); save(); render(); closeModal(); },
+ syncConnect:()=>{ const v=(document.getElementById("sync-token")||{}).value||""; if(!v.trim()){ document.getElementById("syncmsg").textContent="Paste your token first."; return; } syncConnect(v); },
+ syncNow:()=>{ syncPull().then(()=>syncPush()); },
+ syncDisconnect:()=>{ SY.token=""; SY.gist=""; SY.base=SY.synced=0; saveSync(); syncStatus("off"); settingsModal(); pushRoll("Sync","","This device stopped syncing. Its Flint stays as it is."); },
+ syncUseRemote:()=>{ const rem=UI.syncRem; if(!rem) return; autoBackup("before sync"); applyRemote(rem); UI.syncRem=null; closeModal(); syncStatus("ok"); pushRoll("Sync","","Using the other device's Flint"); },
+ syncKeepLocal:async()=>{ UI.syncRem=null; closeModal(); autoBackup("before sync"); syncBusy=true; syncStatus("busy","Uploading…"); try{ await writeRemote(); syncBusy=false; syncStatus("ok"); pushRoll("Sync","","Kept this device's Flint and uploaded it"); }catch(e){ syncBusy=false; syncStatus("err",e.message); } },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
@@ -2010,7 +2087,8 @@ document.addEventListener("input",e=>{
 window.addEventListener("resize",()=>{ try{ applySettings(); }catch(e){} });
 const SEED={"allyMods": [{"ally": "", "item": ""}, {"ally": "", "item": ""}], "armor": false, "axeLight": false, "base": {"acMisc": 0, "cha": 11, "con": 16, "dex": 14, "int": 18, "level": 6, "martialProf": false, "maxHp": 40, "nextXp": 23000, "san": 9, "speed": 25, "str": 10, "wis": 12, "xp": 19550}, "ch": {"axe": 4, "mind": 4, "pipes": 3, "ring": 1, "rshield": 4}, "coins": {"cp": 36, "ep": 2, "gp": 36, "pp": 0, "sp": 6}, "combat": {"act": false, "bon": false, "oc": false, "ocUsed": false, "on": false, "rea": false, "round": 3, "sts": false}, "conc": "", "cond": {}, "ds": {"f": 0, "s": 0}, "energy": 0, "exh": 0, "hdUsed": 0, "hp": {"cur": 40, "temp": 5}, "insp": false, "inventions": [{"id": "imuvbighc1", "n": "The Sonic Disruptor", "note": "Frequency animal deterrent. −1d4 to saving throws within 30 ft.", "tier": 2}, {"id": "imuvbighc2", "n": "Hydraulic Recoil-Damper", "note": "Advantage on saving throws against grapple, prone and shove.", "tier": 2}], "items": [{"att": false, "id": "imuvbighc3", "mod": false, "n": "Breastplate", "note": "Medium armour, AC 14 + Dex (max 2). No stealth disadvantage. Don 5 min, doff 1 min.", "q": 1, "w": 20, "worn": true}, {"att": true, "fx": "rshield", "id": "imuvbighc4", "mod": true, "n": "Repulsion Shield", "note": "Spring-loaded piston on the inner face, cocked by each melee hit. +1 AC on top of the shield's +2. 4 charges, regains 1d4 at dawn. Reaction after a melee hit: spend 1 charge to push the attacker up to 15 ft.", "q": 1, "w": 6, "worn": true}, {"att": false, "id": "imuvbighc5", "mod": false, "n": "Æther-Pack", "note": "Containment tank, gauges, copper tubing, control wand, foot pedal. Counts as an artificer's tool. Rebuild on a long rest with tinker's tools and 25 gp of materials.", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc10", "mod": false, "n": "Belt Pouch (with coins)", "note": "", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc11", "mod": false, "n": "Tinker's tools", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc12", "mod": false, "n": "Pearl (for Identify)", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc13", "mod": false, "n": "Spyglass", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc14", "mod": false, "n": "Strahd's Tome", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc15", "mod": false, "n": "Magnifying glass", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc16", "mod": false, "n": "Petrified Wood Butterfly", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc17", "mod": false, "n": "Amber Shard (Isek)", "note": "Source of the Fire Bolt and Scorching Ray from your arm.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc18", "mod": false, "n": "Dagger", "note": "Finesse, light, thrown (20/60). 1d4 piercing.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc19", "mod": false, "n": "Light hammer", "note": "Light, thrown (20/60). 1d4 bludgeoning.", "q": 1, "w": 2, "worn": false}], "lim": {"fuel": 1, "gbolt": 1, "spark": 1}, "loadout": [], "log": [{"t": 1791208927593, "txt": "Combat started"}, {"t": 1791208926790, "txt": "Combat ended after 1 round"}, {"t": 1791208925858, "txt": "Combat started"}, {"t": 1791208924986, "txt": "Stress 0 → 1"}, {"t": 1791208924398, "txt": "Stress 1 → 0"}, {"t": 1791208923951, "txt": "Stress 0 → 1"}, {"t": 1791208922784, "txt": "Energy 1 → 0"}, {"t": 1791208922222, "txt": "Energy 0 → 1"}, {"t": 1791208918692, "txt": "Doffed breastplate"}, {"t": 1791208917288, "txt": "Donned breastplate"}, {"t": 1791208915486, "txt": "Doffed breastplate"}, {"t": 1791208889164, "txt": "Healed 2. HP 40 → 40"}, {"t": 1791208881986, "txt": "Temp HP set to 5"}, {"t": 1791208879916, "txt": "Temp HP set to 0"}, {"t": 1791208878424, "txt": "Temp HP set to 0"}], "notes": {"appearance": "About 3 ft tall, wiry rather than bulky. Since the transformation, a cold mineralized husk of blackened iron and coarse ash, veined with amber. Looks more at home in a workshop than a battlefield.", "backstory": "Raised by a patient foster mother who encouraged his obsession with clockwork, Flint left the gnomish burrows at sixteen in pursuit of discovery. For fifteen years he repaired city mechanisms, calibrated astronomical devices and designed security systems, and his Investigator instincts grew sharp: he notices the misplaced cog others overlook. His habit of getting lost in a puzzle has led to close calls with disgruntled clients and cave-ins.", "bonds": "As my memories of my foster mother's warmth fade into the mists, I cling to the intellect and inventive drive she left me; my mind is the final canvas of her legacy, and I must protect it.", "flaws": "I become so engrossed in a new puzzle or device that I ignore immediate danger or my surroundings. I have lost the ability to create art, whimsy, or joy.", "ideals": "Discovery: The world is full of wonders waiting to be found and understood. My purpose is to uncover new secrets and push the boundaries of what's known. I hold my mind as sacred.", "session": "", "traits": "I tend to mutter to myself in Gnomish, explaining my current thoughts or theories aloud."}, "researched": {"absorb": false, "acid": false, "aid": false, "airbubble": false, "alarm": false, "alock": false, "alter": false, "aweapon": false, "blur": false, "bonfire": false, "booming": false, "catapult": false, "cflame": false, "cure": false, "detect": false, "disguise": false, "dlights": false, "dvision": false, "enhance": false, "enlarge": false, "expret": false, "ffall": false, "ffire": false, "firebolt": false, "flife": false, "frostbite": false, "gfb": false, "grease": false, "guidance": false, "heatm": false, "identify": false, "invis": false, "jump": false, "kjaunt": false, "levitate": false, "light": false, "llure": false, "longstr": false, "lrest": false, "magehand": false, "mending": false, "message": false, "mmouth": false, "mstone": false, "mweapon": false, "ppoison": false, "presti": false, "pspray": false, "purify": false, "pyro": false, "resist": false, "rfrost": false, "rtrick": false, "sanct": false, "sburst": false, "sclimb": false, "seeinv": false, "sgrasp": false, "sky": false, "snare": false, "spare": false, "tcb": false, "tclap": false, "twhip": false, "vwarp": false, "web": true}, "rolls": [], "scrap": 46, "shield": true, "stress": 1, "v": 2};
 try{ if(!localStorage.getItem(LKEY)){ S=merge(DEF(),migrate(SEED)); localStorage.setItem(LKEY,JSON.stringify(S)); } }catch(e){}
-loadLocal(); render();
+loadSync(); loadLocal(); render();
+syncStatus(SY.gist?"ok":"off"); if(SY.gist) setTimeout(syncPull, 400);
 setTimeout(()=>{ if(Date.now()-(S.lastAutoBackup||0) > 20*3600*1000) autoBackup("daily"); }, 1500);
 try{ navigator.wakeLock?.request("screen").catch(()=>{}); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") navigator.wakeLock?.request("screen").catch(()=>{}); }); }catch(e){}
 connect();
