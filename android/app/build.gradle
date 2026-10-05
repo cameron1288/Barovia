@@ -1,0 +1,24 @@
+plugins { id "com.android.application" }
+android {
+    namespace "com.cameron.flint"
+    compileSdk 34
+    defaultConfig {
+        applicationId "com.cameron.flint"
+        minSdk 29
+        targetSdk 34
+        versionCode Integer.parseInt(System.getenv("GITHUB_RUN_NUMBER") ?: "1")
+        versionName "1." + (System.getenv("GITHUB_RUN_NUMBER") ?: "0")
+    }
+    signingConfigs {
+        release {
+            storeFile file("../flint.keystore")
+            storePassword "flintcogsworth"
+            keyAlias "flint"
+            keyPassword "flintcogsworth"
+        }
+    }
+    buildTypes {
+        release { minifyEnabled false; signingConfig signingConfigs.release }
+    }
+    compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }
+}

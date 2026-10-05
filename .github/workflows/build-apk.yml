@@ -1,0 +1,37 @@
+name: Build Flint APK
+on:
+  push:
+    branches: [flint-app]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: "17" }
+      - uses: gradle/actions/setup-gradle@v4
+        with: { gradle-version: "8.9" }
+      - name: Copy the sheet into the app (fonts bundled for offline use)
+        run: |
+          mkdir -p android/app/src/main/assets
+          python3 scripts/bundle_fonts.py web/index.html android/app/src/main/assets/index.html
+          cp web/icon-192.png web/icon-512.png android/app/src/main/assets/
+      - name: Build signed APK
+        working-directory: android
+        run: gradle assembleRelease --no-daemon
+      - name: Rename
+        run: cp android/app/build/outputs/apk/release/app-release.apk Flint-Cogsworth.apk
+      - uses: actions/upload-artifact@v4
+        with: { name: Flint-Cogsworth-apk, path: Flint-Cogsworth.apk }
+      - name: Publish as a release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: flint-v${{ github.run_number }}
+          name: Flint Cogsworth app v1.${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          files: Flint-Cogsworth.apk
+          make_latest: false
+          body: Character sheet app for Flint Cogsworth. Download Flint-Cogsworth.apk on the tablet and open it to install or update.

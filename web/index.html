@@ -1,0 +1,1219 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#14120f"><meta name="mobile-web-app-capable" content="yes">
+<link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
+<style>html,body{margin:0}[hidden]{display:none!important}img{max-width:100%}</style>
+</head><body>
+<title>Flint Cogsworth</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@600;700;800&family=Barlow:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: a fixed gauge cluster (vitals + ability strip) above tabbed work panels, sized for a landscape tablet. Iron-and-ash ground, amber veins for Flint, violet for ectoplasm. */
+:root{
+  --soot:#14120f; --iron:#1d1a16; --iron2:#26221c; --iron3:#312c25; --line:#3d362c;
+  --ash:#ebe4d6; --ash2:#b4aa97; --ash3:#7f7667;
+  --amber:#f2a83b; --amber2:#9a6420; --amberglow:rgba(242,168,59,.14);
+  --ecto:#b28cff; --ecto2:#5e3fa6; --ectoglow:rgba(178,140,255,.16);
+  --blood:#e8604f; --heal:#63c49e; --warn:#e9c75a;
+  --f-display:"Big Shoulders Display","Arial Narrow",Impact,sans-serif;
+  --f-body:"Barlow","Segoe UI",Roboto,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,monospace;
+  --r:8px;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{background:var(--soot);color:var(--ash);font-family:var(--f-body);font-size:15px;line-height:1.4;-webkit-tap-highlight-color:transparent}
+*{box-sizing:border-box}
+button{font:inherit;color:inherit;cursor:pointer}
+input,select,textarea{font:inherit;color:var(--ash);background:var(--soot);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+textarea{width:100%;min-height:90px;resize:vertical;line-height:1.45}
+input[type=number]{width:72px;font-family:var(--f-mono)}
+:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.num{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.wrap{max-width:1400px;margin:0 auto;padding-inline:16px;padding-block:0 96px}
+
+/* ---------- gauge cluster ---------- */
+.top{z-index:20;background:var(--soot);border-bottom:1px solid var(--line);padding-block:10px 8px}
+.row1{display:flex;gap:7px;align-items:stretch;flex-wrap:wrap}
+.ident{display:flex;flex-direction:column;justify-content:center;min-width:0;flex:1 1 130px}
+.ident h1{font-family:var(--f-display);font-weight:800;font-size:26px;line-height:1;margin:0;letter-spacing:.5px;text-transform:uppercase}
+.ident h1 span{color:var(--amber)}
+.ident small{color:var(--ash2);font-size:13px}
+.gauge{background:var(--iron);border:1px solid var(--line);border-radius:var(--r);padding:5px 8px;display:flex;flex-direction:column;justify-content:center;align-items:center;min-width:64px;text-align:center}
+.gauge .lab{font-size:10.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ash2);font-weight:600}
+.gauge .val{font-family:var(--f-display);font-size:28px;font-weight:700;line-height:1.05}
+.gauge.tap{cursor:pointer}
+.gauge.tap:active{background:var(--iron2)}
+.hp{flex:0 1 210px;align-items:stretch;cursor:pointer}
+.hp .hpline{display:flex;align-items:baseline;gap:6px;justify-content:center}
+.hp .val{font-size:32px}
+.hp .max{color:var(--ash2);font-family:var(--f-mono);font-size:14px}
+.hp .tmp{color:var(--ecto);font-family:var(--f-mono);font-size:14px;font-weight:600}
+.bar{height:6px;background:var(--iron3);border-radius:3px;overflow:hidden;margin-top:4px}
+.bar i{display:block;height:100%;background:var(--heal);transition:width .25s}
+.bar i.low{background:var(--warn)} .bar i.crit{background:var(--blood)}
+.ac .val{color:var(--amber)}
+.ac .sub{font-size:10.5px;color:var(--ash2)}
+.pips{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;margin-top:3px}
+.pip{width:13px;height:13px;border-radius:50%;border:1.5px solid var(--ecto2);background:transparent}
+.pip.on{background:var(--ecto);border-color:var(--ecto);box-shadow:0 0 6px var(--ecto)}
+.pip.st{border-color:#7a3a33}.pip.st.on{background:var(--blood);border-color:var(--blood);box-shadow:0 0 6px var(--blood)}
+.energy{min-width:136px}.energy .val{color:var(--ecto)}
+.stress .val{color:var(--blood)}
+.ctl{display:flex;gap:4px;margin-top:4px}
+.mini{border:1px solid var(--line);background:var(--iron2);border-radius:5px;padding:1px 9px;font-weight:700;font-size:15px;line-height:1.3}
+.mini:active{background:var(--iron3)}
+.combatsw{flex:0 0 auto;min-width:92px;border:1.5px solid var(--line);background:var(--iron);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:6px 10px}
+.combatsw .sw{width:52px;height:28px;border-radius:14px;background:var(--iron3);position:relative;transition:background .2s}
+.combatsw .sw::after{content:"";position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:var(--ash2);transition:left .2s,background .2s}
+.combatsw.on{border-color:var(--blood);background:rgba(232,96,79,.1)}
+.combatsw.on .sw{background:var(--blood)}
+.combatsw.on .sw::after{left:27px;background:#fff}
+.combatsw .lab{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
+
+.abil{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:6px}
+@media (min-width:1000px) and (min-height:700px){.top{position:sticky;top:env(safe-area-inset-top,0px)}}
+.ab{background:var(--iron);border:1px solid var(--line);border-radius:var(--r);padding:4px 6px 6px;text-align:center;position:relative;cursor:pointer}
+.ab:active{background:var(--iron2)}
+.ab .k{font-size:11px;letter-spacing:1.6px;font-weight:700;color:var(--ash2)}
+.ab .m{font-family:var(--f-display);font-size:23px;font-weight:700;line-height:1}
+.ab .s{font-family:var(--f-mono);font-size:12px;color:var(--ash3)}
+.ab .sv{display:inline-block;margin-top:3px;font-size:11.5px;border:1px solid var(--line);border-radius:10px;padding:0 7px;font-family:var(--f-mono);background:var(--iron2)}
+.ab .sv.p{border-color:var(--amber2);color:var(--amber)}
+.ab .tag{position:absolute;top:3px;right:4px;font-size:9.5px;font-weight:700;letter-spacing:.5px;padding:0 4px;border-radius:3px}
+.tag.dis{background:rgba(232,96,79,.18);color:var(--blood)}
+.tag.adv{background:rgba(99,196,158,.18);color:var(--heal)}
+.ab.san{border-style:dashed}
+.ab.san .m{color:var(--ecto)}
+
+.tabs{display:flex;gap:2px;margin-top:8px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab{border:0;background:transparent;padding:8px 14px;font-family:var(--f-display);font-size:18px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--ash3);border-bottom:3px solid transparent;white-space:nowrap}
+.tab.on{color:var(--ash);border-bottom-color:var(--amber)}
+.tab.cmb.on{border-bottom-color:var(--blood)}
+.tab .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--blood);margin-left:6px;vertical-align:middle;animation:pulse 1.4s infinite}
+@keyframes pulse{50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.tab .dot{animation:none}*{transition:none!important}}
+
+/* ---------- panels ---------- */
+.grid{display:grid;gap:12px;margin-top:12px}
+.g2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.g3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.gside{grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+@media (max-width:900px){.g3{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:680px){.g2,.g3,.gside{grid-template-columns:minmax(0,1fr)}.abil{grid-template-columns:repeat(4,minmax(0,1fr))}.ident h1{font-size:24px}}
+.panel{background:var(--iron);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;min-width:0}
+.panel h2{font-family:var(--f-display);font-size:19px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;margin:0 0 8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.panel h2 .cnt{font-family:var(--f-mono);font-size:13px;font-weight:600;letter-spacing:0;padding:1px 8px;border-radius:10px;background:var(--iron3);color:var(--ash2)}
+.cnt.full{background:rgba(233,199,90,.18)!important;color:var(--warn)!important}
+.cnt.over{background:rgba(232,96,79,.2)!important;color:var(--blood)!important}
+.panel h2 .sp{flex:1}
+.panel h3{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ash2);margin:12px 0 6px;font-weight:700}
+.muted{color:var(--ash2)} .dim{color:var(--ash3)}
+.small{font-size:13px}
+p{margin:0 0 6px}
+.list{display:flex;flex-direction:column}
+.li{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--iron3);min-width:0}
+.li:last-child{border-bottom:0}
+.li .grow{flex:1;min-width:0}
+.li.tap{cursor:pointer}
+.li.tap:active{background:var(--iron2)}
+.bonus{font-family:var(--f-mono);font-weight:600;min-width:42px;text-align:right}
+.prof{width:16px;text-align:center;color:var(--amber);font-size:12px}
+.chip{display:inline-flex;align-items:center;gap:4px;border:1px solid var(--line);border-radius:12px;padding:1px 9px;font-size:12.5px;background:var(--iron2);white-space:nowrap}
+.chip.amber{border-color:var(--amber2);color:var(--amber)}
+.chip.ecto{border-color:var(--ecto2);color:var(--ecto)}
+.chip.red{border-color:#7a3a33;color:var(--blood)}
+.chip.ok{border-color:#2f6b55;color:var(--heal)}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.btn{border:1px solid var(--line);background:var(--iron2);border-radius:6px;padding:6px 12px;font-weight:600;font-size:14px}
+.btn:active{background:var(--iron3)}
+.btn.pri{background:var(--amber);border-color:var(--amber);color:#1b1206}
+.btn.ecto{background:var(--ecto2);border-color:var(--ecto);color:#fff}
+.btn.red{background:rgba(232,96,79,.15);border-color:var(--blood);color:var(--blood)}
+.btn.ok{background:rgba(99,196,158,.14);border-color:var(--heal);color:var(--heal)}
+.btn.sm{padding:3px 9px;font-size:13px}
+.btn[disabled]{opacity:.38;cursor:not-allowed}
+.btns{display:flex;gap:6px;flex-wrap:wrap}
+.tog{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:6px;padding:5px 10px;background:var(--iron2);font-weight:600;font-size:14px}
+.tog.on{border-color:var(--amber);color:var(--amber);background:var(--amberglow)}
+.tog .box{width:14px;height:14px;border-radius:3px;border:1.5px solid currentColor;display:inline-block}
+.tog.on .box{background:currentColor}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:14px}
+.kv dt{color:var(--ash2)} .kv dd{margin:0}
+.uses{display:flex;gap:4px;flex-wrap:wrap}
+.use{width:20px;height:20px;border-radius:4px;border:1.5px solid var(--amber2);background:var(--amber);cursor:pointer}
+.use.spent{background:transparent;border-color:var(--line)}
+details.rule{border-top:1px solid var(--iron3);padding:6px 0}
+details.rule summary{cursor:pointer;font-weight:600;list-style:none;display:flex;gap:8px;align-items:center}
+details.rule summary::-webkit-details-marker{display:none}
+details.rule summary::before{content:"▸";color:var(--amber);font-size:12px;transition:transform .15s}
+details.rule[open] summary::before{transform:rotate(90deg)}
+details.rule .body{padding:6px 0 2px 18px;font-size:14px;color:var(--ash2)}
+details.rule .body ul{margin:4px 0;padding-left:18px}
+.locked{opacity:.5}
+table.t{width:100%;border-collapse:collapse;font-size:14px}
+table.t td,table.t th{padding:4px 6px;border-bottom:1px solid var(--iron3);text-align:left}
+table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:uppercase}
+
+/* ---------- combat ---------- */
+.turnbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:rgba(232,96,79,.08);border:1px solid #6a342d;border-radius:var(--r);padding:8px 12px;margin-top:12px}
+.econ{display:flex;gap:6px;flex-wrap:wrap}
+.eco{border:1.5px solid var(--heal);color:var(--heal);border-radius:16px;padding:3px 12px;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;background:transparent}
+.eco.used{border-color:var(--line);color:var(--ash3);text-decoration:line-through}
+.round{font-family:var(--f-display);font-size:24px;font-weight:800}
+.oc{border:1.5px solid var(--line);border-radius:var(--r);padding:6px 12px;background:var(--iron2);font-weight:700;display:flex;gap:8px;align-items:center}
+.oc.on{border-color:var(--blood);background:rgba(232,96,79,.16);color:#ffb3a8;box-shadow:0 0 12px rgba(232,96,79,.35)}
+.oc.spent{opacity:.45}
+.opt{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;background:var(--iron2);display:flex;flex-direction:column;gap:4px;text-align:left;width:100%}
+.opt:active{background:var(--iron3)}
+.opt .on1{display:flex;gap:8px;align-items:baseline}
+.opt .nm{font-weight:700;flex:1;min-width:0}
+.opt .cost{font-family:var(--f-mono);font-size:12.5px;color:var(--ecto);white-space:nowrap}
+.opt .meta{font-size:12.5px;color:var(--ash2)}
+.opt.dis{opacity:.4}
+.opt.ectoopt{border-left:3px solid var(--ecto)}
+.opt.gad{border-left:3px solid var(--amber)}
+.col{display:flex;flex-direction:column;gap:6px}
+.colhead{font-family:var(--f-display);font-size:18px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;display:flex;justify-content:space-between;align-items:center}
+
+/* ---------- gadgets / items ---------- */
+.gadget{border:1px solid var(--line);border-radius:var(--r);padding:8px 10px;background:var(--iron2)}
+.gadget.dep{opacity:.5}
+.gadget .hd{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.lvl{font-family:var(--f-mono);font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px;background:var(--iron3);color:var(--ash2)}
+.lvl.c{color:var(--heal)}
+.fx{font-size:14px;color:var(--ash);margin-top:6px}
+.flav{font-size:13px;color:var(--ash3);font-style:italic;margin-top:4px}
+.stat{display:flex;gap:10px;flex-wrap:wrap;font-size:12.5px;color:var(--ash2);margin-top:4px}
+.stat b{color:var(--ash);font-weight:600}
+.search{width:100%;margin-bottom:8px}
+.itemrow{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:6px;align-items:center;padding:5px 0;border-bottom:1px solid var(--iron3)}
+.itemrow .nm{min-width:0;overflow-wrap:anywhere}
+.qty{display:flex;align-items:center;gap:3px}
+.tier{font-family:var(--f-mono);font-size:11px;font-weight:600;padding:1px 6px;border-radius:4px}
+.tier0{background:#2b2a26;color:#cfc6b2}.tier1{background:#24342c;color:var(--heal)}.tier2{background:#3a3220;color:var(--warn)}.tier3{background:#3f2320;color:var(--blood)}
+
+/* ---------- overlays ---------- */
+.modalbg{position:fixed;inset:0;background:rgba(8,7,5,.72);z-index:50;display:flex;align-items:center;justify-content:center;padding:16px}
+.modal{background:var(--iron);border:1px solid var(--line);border-radius:12px;max-width:560px;width:100%;max-height:88vh;overflow:auto;padding:16px 18px}
+.modal h2{font-family:var(--f-display);font-size:24px;font-weight:800;text-transform:uppercase;margin:0 0 10px;letter-spacing:.5px}
+.keypad{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:10px 0}
+.keypad button{padding:12px 0;font-size:20px;font-family:var(--f-mono);border:1px solid var(--line);background:var(--iron2);border-radius:8px}
+.entry{font-family:var(--f-display);font-size:44px;font-weight:700;text-align:center;background:var(--soot);border:1px solid var(--line);border-radius:8px;padding:2px}
+.rollbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--iron);border-top:1px solid var(--line);padding:8px 16px calc(8px + env(safe-area-inset-bottom,0px));display:flex;gap:10px;align-items:center}
+.rollbar .res{flex:1;min-width:0;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rollbar .res b{font-family:var(--f-mono);color:var(--amber);font-size:17px}
+.rollbar.flash{animation:fl .6s}
+@keyframes fl{0%{background:var(--iron3)}100%{background:var(--iron)}}
+.rollcard{border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-bottom:6px;background:var(--iron2)}
+.rollcard .big{font-family:var(--f-display);font-size:30px;font-weight:800;color:var(--amber);line-height:1}
+.rollcard .big.ecto{color:var(--ecto)}
+.rollcard .big.red{color:var(--blood)}
+.status{font-size:12px;color:var(--ash3)}
+.warnbox{border:1px solid #6b5a22;background:rgba(233,199,90,.08);color:var(--warn);border-radius:6px;padding:6px 10px;font-size:13.5px;margin:6px 0}
+.redbox{border:1px solid #7a3a33;background:rgba(232,96,79,.08);color:#ffb3a8;border-radius:6px;padding:6px 10px;font-size:13.5px;margin:6px 0}
+.ectobox{border:1px solid var(--ecto2);background:var(--ectoglow);color:#dccbff;border-radius:6px;padding:6px 10px;font-size:13.5px;margin:6px 0}
+.dsave{display:flex;gap:4px;align-items:center}
+.dsave .use{border-radius:50%}
+.edit input[type=number]{width:60px}
+.sep{height:1px;background:var(--line);margin:10px 0}
+</style>
+
+<div class="top"><div class="wrap" style="padding-block:0" id="top"></div></div>
+<div class="wrap" id="main"></div>
+<div class="rollbar" id="rollbar"><div class="res" id="lastroll"><span class="dim">Tap any attack, skill, ability or gadget to roll. Physical dice? Just read the numbers.</span></div><button class="btn sm" data-act="dice">Dice</button><button class="btn sm" data-act="history">Log</button></div>
+<div id="modal"></div>
+
+<script>
+/* ======================= DATA ======================= */
+const FLAVOR = {"Acid Splash": {"c": "The Corrosive Atomizer", "d": "You raise a specialized glass syringe mounted to your wrist gauntlet and squeeze the pneumatic trigger. A pressurized valve snaps open, spraying a wide, atomized cone of highly concentrated vitriol that eats through flesh and armor alike."}, "Booming Blade": {"c": "The Harmonic Frequency Striker", "d": "You slam a tuning-fork device against the hilt of your weapon. The blade instantly begins to vibrate at a violent, pitch-black ultrasonic frequency. When it hits, it forces a dense pocket of acoustic pressure around the target that violently explodes if they try to move."}, "Create Bonfire": {"c": "The Phosphorus Thermite Capsule", "d": "You drop a miniature, spring-fused clockwork capsule onto the ground. The gears grind for a split second before the core ruptures, igniting a continuous, self-fueling chemical fire that violently vents heat upwards in a 5-foot square."}, "Dancing Lights": {"c": "The Phosphor-Drone Matrix", "d": "You open a small hatch on your pack, releasing up to four tiny, clockwork fireflies. These mini-drones hover on pressurized copper rotors, casting a harsh, chemical-green illumination that you steer using a remote control dial on your forearm."}, "Frostbite": {"c": "The Cryogenic Vent Valve", "d": "You point a sub-zero condenser tube at the target and crank the release wheel. A freezing spray of rapid-expansion liquid nitrogen instantly sweeps over the enemy, causing their muscles to seize and lock up from severe frostbite."}, "Green-Flame Blade": {"c": "The Sulfur-Fuel Injector", "d": "You trigger a small pump built into your weapon's grip, coating the edge of the blade in a highly volatile, sulfur-based oil. When the blade strikes, the impact triggers a spark, causing a sheets of roaring, green chemical fire to arc outward toward a secondary target."}, "Guidance": {"c": "The Tactical HUD Overclock", "d": "You tap an ally’s temple, attaching a small, non-magical wire clip to their ear. The module emits a high-frequency bio-metric pulse that sharpens their cognitive focus and realigns their balance for a split second, pointing out exact structural weak points."}, "Light": {"c": "The Radium Core Clasp", "d": "You screw a tiny, lead-shielded casing containing a glowing shard of radioactive radium onto an object. When you open the manual shutter, it projects a harsh, unblinking beam of cold illumination that pierces the darkness."}, "Lightning Lure": {"c": "The Harpoon Coil Magnet", "d": "You fire a spring-loaded, barbed copper harpoon line directly at a target. The moment the steel teeth bite, you throw a heavy knife-switch on your belt, sending a massive arc of high-voltage current down the line to magnetically yank them toward you."}, "Mage Hand": {"c": "The Pneumatic Grapple Rotor", "d": "You launch a three-clawed mechanical grabber attached to a spool of ultra-fine copper cable. Powered by a small, violently buzzing compressed-air turbine, it hovers and manipulates light objects at a distance under your direct remote guidance."}, "Magic Stone": {"c": "The Kinetic Impact Loader", "d": "You press up to three mundane pebbles into a specialized chemical chamber on your belt. The device rapidly coats the ammunition in an unstable nitrocellulose film, turning them into high-velocity kinetic shells that explode on impact when thrown or slung."}, "Mending": {"c": "The Arc-Welding Blowtorch", "d": "You don your protective goggles and click a miniature blowtorch into your hand. Over the course of a minute, you manually apply heat, liquid copper solder, and mechanical pressure to fuse torn leather, seal cracked glass, or re-weld broken iron gears."}, "Message": {"c": "The Shortwave Audio Transceiver", "d": "You flip a small antenna up from your collar and point a directional microphone at a target. Using a tightly focused, low-frequency acoustic beam, you broadcast a raspy, static-heavy radio signal straight into their ears, completely silent to anyone else."}, "Poison Spray": {"c": "The Sulfur-Gas Diffuser", "d": "You slam your heel down, venting an auxiliary exhaust pipe at your hip. A thick, choking cloud of highly toxic, greenish-yellow sulfurous gas billows outward in a brief, pressurized jet directly into the face of a nearby foe."}, "Prestidigitation": {"c": "The Multi-Utility Toolkit", "d": "You utilize an array of hidden micro-gadgets built into your sleeves. You use a microscopic blowtorch to heat food, a miniature static-collector to spark a candle, a chemical aerosol to spray a foul odor, or a mechanical stamp to print a temporary mark."}, "Ray of Frost": {"c": "The Compressed Cryo-Beam", "d": "You over-pressurize your pack’s coolant loop, firing a continuous, blinding stream of super-chilled chemical vapor from your Emitter. The beam rapidly calcifies the target's joints, coating them in a layer of heavy, movement-slowing ice."}, "Resistance": {"c": "The Bio-Static Regulator", "d": "You slap a small adhesive patch onto an ally’s skin. The internal copper needle injects a micro-dose of an adrenaline-stabilizing serum, hardening their physical nervous system against sudden shocks, poisons, or mental intrusions."}, "Shocking Grasp": {"c": "The High-Voltage Tesla Gauntlet", "d": "You slam a heavy capacitor switch, charging your copper-reinforced glove with a massive, crackling electrical current. When you touch an enemy, the sudden discharge violently disrupts their nervous system, completely freezing their reflexes."}, "Spare the Dying": {"c": "The Defibrillator Paddles", "d": "You tear open a hatch on your pack and slam two zinc plates onto a dying creature's chest. With a loud, mechanical whir-click, the pack discharges a precisely regulated electrical shock straight into their heart, instantly stabilizing their vital signs."}, "Sword Burst": {"c": "The Centrifugal Blade Ring", "d": "You stomp a pressure-plate on your boot, releasing a ring of spring-loaded, razor-sharp clockwork sawblades from your belt. The blades spin violently outward in a 5-foot radius on extended copper arms before snapping back into their housings."}, "Thorn Whip": {"c": "The Steel-Cable Winch", "d": "You fire a barbed, segmented steel cable from your forearm gauntlet. The barbed teeth dig into the enemy, and a high-speed internal gear winch instantly clicks into reverse, violently dragging the target up to 10 feet closer to your position."}, "Thunderclap": {"c": "The Sonic Percussion Blast", "d": "You forcefully slam your heavy mechanical gauntlets together. An explosive percussion cap built into the palms detonates, unleashing a deafening, localized shockwave of acoustic pressure that rattles the teeth of everyone standing near you."}, "Absorb Elements": {"c": "The Thermal Grid Dissipator", "d": "When hit by elemental energy, you slam a lever on your forearm gauntlet. An auxiliary intake grid on your pack vents a blast of cooling gas, catching the incoming shockwave and storing the kinetic friction as pressurized heat to fuel your next melee strike."}, "Alarm": {"c": "The Tripwire Bell Sentry", "d": "You spend a minute stringing out ultra-fine, almost invisible steel hair-wires across a doorframe or camp perimeter, anchoring them to a highly sensitive clockwork bell housing. If a wire is brushed, an internal spring tensioner snaps, letting loose a frantic mechanical alarm."}, "Arcane Weapon": {"c": "The Core Elemental Injector", "d": "You slap a modular chemical cylinder onto your weapon's chamber. By turning a selector dial, you route pressurized tubes of acid, cold, fire, lightning, or poison along the blade or barrel, constantly bathing your strikes in volatile chemical coating."}, "Catapult": {"c": "The Pneumatic Rail-Sling", "d": "You point an over-cranked magnetic cylinder at a nearby object. With a violent hiss of compressed air, the high-pressure pneumatic piston generates massive kinetic force, violently launching the object forward like an invisible cannonball."}, "Cure Wounds": {"c": "The Pneumatic Stabilizing Syringe", "d": "You slam a heavy brass gun syringe into an ally's flesh. The spring-loaded needle violently injects a precisely measured dose of a highly concentrated, coagulating adrenaline cocktail that instantly seals ruptured flesh and stops internal bleeding."}, "Detect Magic": {"c": "The Ultraviolet Radiation Lens", "d": "You click a series of multi-layered amber and violet lenses down over your goggles. You manually calibrate the focus wheel, filtering out normal light spectrums to reveal the ambient humming radiation and heat signatures left behind by active arcane matrixes."}, "Disguise Self": {"c": "The Light-Refraction Shimmer Mesh", "d": "You attach a network of tiny copper pins to your coat and collar. When activated, the modules emit a localized, light-bending camouflage field that forms a pixelated, slightly flickering static illusion around your physical silhouette, masking your clothes and height."}, "Expeditious Retreat": {"c": "The Hydraulic Knee-Brace Overclock", "d": "You engage a high-pressure pump on your thighs, locking your legs into a pair of heavy pneumatic exoskeleton frames. The continuous, rapid pumping of the pistons forces your dead legs into a frantic, high-speed mechanical sprint."}, "Faerie Fire": {"c": "The Phosphorus Flareshot", "d": "You launch a small, pressure-fused glass canister into the air over the target area. The casing shatters with a loud crack, showering everything in a 20-foot cube with a sticky, glowing mist of highly luminescent amber phosphorus that cannot be easily wiped off."}, "False Life": {"c": "The Adrenaline Coagulant Pump", "d": "You activate a slow-release medical tube stitched into your coat. A cocktail of chemical stimulants and artificial numbing agents floods your unliving system, dulling your pain receptors and giving your dead flesh a surge of temporary physical durability."}, "Feather Fall": {"c": "The Compressed Air Drag-Chute", "d": "As you or an ally plunge downward, you trigger an explosive percussion cap on your belt. A blast of highly compressed carbon dioxide vents violently upward, creating a continuous column of pocketed air resistance that slows the descent to a safe, steady glide."}, "Grease": {"c": "The Lard-Aerosol Canister", "d": "You roll a pressurized iron canister across the floor. When it strikes the target point, the nozzle shears off, spraying a wide, thick sheet of super-slick, non-flammable tallow oil that instantly turns a 10-foot square of stone into a treacherous hazard."}, "Identify": {"c": "The Occult Diagnostic Matrix", "d": "You spend a minute clamping a magic item or relic into a heavy brass frame wired to your pack. You flip diagnostic toggles, tracking how the object reacts to electrical currents, magnetic fields, and lens magnification to mathematically deduce its features."}, "Jump": {"c": "The Pneumatic Boot Springs", "d": "You lock two massive, tightly wound steel coils onto the soles of an ally's boots. When they bend their knees, a mechanical trigger releases the tension, yanking the spring straight down and launching the wearer into a massive, calculated leap."}, "Longstrider": {"c": "The Kinetic Ankle-Tensioners", "d": "You wrap spring-loaded leather tension bands tightly around an ally's calves and ankles. The clockwork gears inside the straps store the kinetic energy of each step they take and release it on the upswing, naturally lengthening their stride and boosting speed."}, "Purify Food and Drink": {"c": "The Centrifugal Chemical Filter", "d": "You drop a miniature, hand-cranked brass filter unit into a container of liquid or pass a specialized UV-light rod over a plate of food. The device rapidly extracts or burns away toxins, sulfur, and rot, rendering the substance completely sterile."}, "Sanctuary": {"c": "The High-Frequency Sensory Scrambler", "d": "You activate a small, ticking brass module on an ally's belt. The gadget continuously broadcasts a discordant, high-frequency acoustic whine and a jarring strobe light that violently disrupts the target-acquisition senses of any monster trying to attack them."}, "Snare": {"c": "The Spring-Loaded Steel Winch", "d": "You spend a minute burying a heavy, spring-loaded iron clamping winch in the dirt and camouflaging it with mud and leaves. When a creature steps on the hidden trigger plate, the internal clockwork snaps shut, firing a corded wire loop up around its leg to hoist it into the air."}, "Tasha's Caustic Brew": {"c": "The Vitriol Firehose", "d": "You point a thick copper nozzle attached to a glass chemical tank on your hip. When you pull the primary lever, the pack violently pumps out a stream of thick, bubbling, greenish-black acid that shoots down a 30-foot line, melting anything it clings to."}, "Aid": {"c": "The Multi-Injecting Bio-Strayer", "d": "You throw a centralized chemical distributor onto the ground. The machine clicks loudly, firing up to three auto-targeting misting needles that punch into your allies' gear, injecting a timed-release combat steroid that artificially bolsters their physical resilience and pain thresholds."}, "Air Bubble": {"c": "The Brass Respirator Dome", "d": "You clamp a specialized, non-magical ventilation collar around a creature’s neck. A compact, humming oxygen-scrubbing canister on the device filters out moisture and toxic miasma, generating a localized field of clean, highly pressurized, breathable air around their head."}, "Alter Self": {"c": "The Biomechanical Flesh-Warp Harness", "d": "You lock an adjustable leather-and-iron harness tightly around your torso. By pulling heavy mechanical cords, the device uses internal hydraulic clamps and under-skin needles to painfully physically stretch your vocal cords, deploy clockwork gill-vents at your neck, or mechanically extend hidden metal claws from your gauntlets."}, "Arcane Lock": {"c": "The High-Voltage Magnetic Deadbolt", "d": "You bolt an experimental, heavy iron magnetic casing directly over a door latch, window, or chest lid. You throw an activation latch, forcing a powerful electromagnetic current to permanently weld the mechanism shut until you input the physical bypass code."}, "Blur": {"c": "The High-Frequency Vibration Displacer", "d": "You click a heavy flywheel switch on your belt. Your entire physical form begins to rapidly and violently vibrate at an extreme, blinding frequency. To the naked eye, your silhouette becomes a distorted, shifting smudge, making it nearly impossible for enemies to accurately target you."}, "Continual Flame": {"c": "The Radium-Phosphorus Wick", "d": "You brush an object with an experimental, slow-burning compound of synthetic white phosphorus and crushed radium dust. The unique chemical reaction creates a brilliant, self-sustaining flame that burns completely without heat, fuel, or oxygen, lasting indefinitely."}, "Darkvision": {"c": "The Infrared Light-Amplifier Lens", "d": "You attach a specialized multi-tiered scope directly to a target's goggles or glasses. The internal treated lenses capture and amplify microscopic thermal wavelengths, filtering the shadows into a distinct, high-contrast monochrome image that maps out the darkness."}, "Enhance Ability": {"c": "The Neuro-Muscular Overclock Patch", "d": "You slap a heavy, humming copper capacitor patch onto a target's body. The device continuously emits precisely timed electrical micro-shocks that force their muscle fibers to over-contract (boosting strength/agility) or flood their brain with adrenaline to heighten cognitive clarity."}, "Enlarge/Reduce": {"c": "The Molecular Density Compress-Ray", "d": "You point a multi-chambered lens barrel at a creature or object and manipulate a heavy focus ring. The Emitter discharges a concentrated pulse of high-frequency kinetic radiation that violently contracts or expands the atomic bonds of the target, altering their physical volume and weight."}, "Heat Metal": {"c": "The High-Output Induction Beam", "d": "You aim your main emitter nozzle at a metallic object and squeeze the internal coil trigger. The pack fires a continuous, invisible electromagnetic induction wave that forces the metallic atomic structure of the target's armor or weapon to rapidly friction-heat until it glows white-hot."}, "Invisibility": {"c": "The Light-Refraction Pixel Cape", "d": "You pull a heavy cloak lined with hundreds of microscopic glass prism mirrors over a target. When you slam the primary generator switch on their belt, the mirrors align perfectly, actively catching the light from behind them and projecting it forward to completely erase their silhouette."}, "Kinetic Jaunt": {"c": "The Pressurized Pneumatic Thrusters", "d": "You trigger a pair of auxiliary compressed-air vents built into the calves of your boots. Small, high-pressure directional jets blast soot and air downward with every step you take, physically boosting your momentum so you can glide effortlessly through a crowded battlefield without drawing strikes."}, "Lesser Restoration": {"c": "The Anti-Toxin Injector Gun", "d": "You press a heavy pneumatic needle gun directly against a creature's neck and pull the trigger. With a violent thud, the device forces a highly concentrated, broad-spectrum anti-toxin serum and optical-cleansing flush into their bloodstream, neutralizing poisons, blindness, or diseases."}, "Levitate": {"c": "The Localized Anti-Gravity Repeller", "d": "You fire a magnetic, disc-shaped anchor plate at a target. Once attached, you crank a dial on your wrist controller, forcing the disc's internal gyroscopes to spin at a manic speed that actively repels the ground's gravitational pull, raising them into the air."}, "Magic Mouth": {"c": "The Proximity-Fused Phonograph", "d": "You spend a minute drilling a miniature clockwork phonograph horn into a surface and setting a series of microscopic trigger tripwires. You speak into the horn to record a 25-word message on an internal wax cylinder; when the sensory wires are breached, the mechanical mouth springs open to blast the recording."}, "Magic Weapon": {"c": "The Kinetic Balancing Calibration", "d": "You use your tinker's tools to rapidly adjust a weapon's weight distribution, clamp an advanced, high-friction sharpening guide onto the blade, or add a counter-weight recoil guide to the hilt, physically maximizing its accuracy and lethal impact."}, "Protection from Poison": {"c": "The Inoculation Filter Patch", "d": "You apply an adhesive, needle-lined chemical patch directly over a creature’s main artery. The device slowly and continuously filters their blood through a charcoal-based mesh while pumping in a steady stream of defensive counter-agents that neutralize toxic substances."}, "Pyrotechnics": {"c": "The Magnesium Flash Canister", "d": "You throw a specialized, highly unstable chemical explosive directly into an active fire source. The moment the fuse touches the flame, the canister ruptures, completely consuming the fuel to create either a blinding, high-intensity magnesium flash or a massive, billowing cloud of choking black soot."}, "Rope Trick": {"c": "The Spatial-Phase Winch Hook", "d": "You launch a heavy brass winch block straight up into the air. When it reaches its apex, it deploys a localized, high-frequency electromagnetic field that locks the hook onto a stable, unseen gravitational fold in space. A 60-foot rope drops down, allowing allies to climb up into a cloaked, suspended platform."}, "See Invisibility": {"c": "The Quantum-Phase Filter Goggles", "d": "You use a small wrench to shift a secondary, multi-layered crystalline lens down over your eyes. This lens filters out the standard light spectrum, allowing you to clearly track the unique electromagnetic heat signatures and spatial distortions left behind by invisible or ethereal entities."}, "Skywrite": {"c": "The Pressurized Vapor Mortar", "d": "You launch a heavy, copper-finned chemical missile directly into the upper atmosphere. At its peak, the shell detonates, venting a highly concentrated, slow-dissipating chemical vapor that expands to form precise, dark soot letters against the sky, visible for miles."}, "Spider Climb": {"c": "The Micro-Hook Gauntlets & Soles", "d": "You equip a target with specialized, heavy leather gloves and boots lined with thousands of microscopic, spring-loaded steel hooks and pressurized suction cups. The pneumatic assist pumps click with every step, allowing them to scale walls and hang from ceilings."}, "Vortex Warp": {"c": "The Spatial Displacement Projector", "d": "You lock onto a creature with your main Emitter barrel and charge your pack's massive central capacitor. When you pull the primary lever, a blinding, high-voltage arc-flash violently collapses the spatial coordinates around the target, yanking them through an envelope of raw compression to snap-rebuild them at a different point within 90 feet."}, "Web": {"c": "The Pressurized Liquid-Latex Mortar", "d": "You shoulder a multi-barreled canister launcher and fire a heavy steel shell at a point within 60 feet. The canister explodes on impact, violently spraying a massive, rapidly expanding web of sticky, fast-hardening liquid latex fibers that glues creatures to the floor and walls."}};
+const ABIL = [["str","STR","Strength"],["dex","DEX","Dexterity"],["con","CON","Constitution"],["int","INT","Intelligence"],["wis","WIS","Wisdom"],["cha","CHA","Charisma"]];
+const SKILLS = [
+ ["Acrobatics","dex"],["Animal Handling","wis"],["Arcana","int"],["Athletics","str"],["Deception","cha"],["History","int"],["Insight","wis"],["Intimidation","cha"],["Investigation","int"],["Medicine","wis"],["Nature","int"],["Perception","wis"],["Performance","cha"],["Persuasion","cha"],["Religion","int"],["Sleight of Hand","dex"],["Stealth","dex"],["Survival","wis"],["Tools (Tinker's)","int"]];
+
+/* Blueprints. t: a/b/r/1m ; s: save ; atk: r/m ; dmg ; fx = what actually happens (rules) */
+const BP = [
+ // cantrips
+ {k:"acid",n:"Acid Splash",c:"The Corrosive Atomizer",l:0,t:"a",r:"60 ft",s:"Dex",du:"Instant",dmg:"2d6",dt:"acid",fx:"Pick one creature, or two creatures within 5 ft of each other, in range. Each makes a Dex save or takes 2d6 acid damage."},
+ {k:"booming",n:"Booming Blade",c:"The Harmonic Frequency Striker",l:0,t:"a",r:"Self (5 ft)",du:"1 round",atk:"m",dmg:"1d8",dt:"thunder",fx:"Make a melee weapon attack against one creature within 5 ft as part of the action. On a hit it takes the weapon's normal damage plus 1d8 thunder. If it willingly moves 5 ft or more before the start of your next turn, it takes 2d8 thunder and the effect ends."},
+ {k:"bonfire",n:"Create Bonfire",c:"The Phosphorus Thermite Capsule",l:0,t:"a",r:"60 ft",s:"Dex",du:"Conc, 1 min",conc:1,dmg:"2d8",dt:"fire",fx:"A fire fills a 5-ft cube you can see. A creature there when it appears makes a Dex save or takes 2d8 fire. A creature also saves when it first moves into the space on a turn or ends its turn there. Ignites flammable objects in the space."},
+ {k:"dlights",n:"Dancing Lights",c:"The Phosphor-Drone Matrix",l:0,t:"a",r:"120 ft",du:"Conc, 1 min",conc:1,fx:"Up to four torch-sized lights (or one glowing Medium humanoid shape), each shedding dim light in a 10-ft radius. Bonus action: move any of them up to 60 ft. Each must stay within 20 ft of another light; a light winks out if it leaves range."},
+ {k:"firebolt",n:"Fire Bolt",c:"Magnesium-Core Rail-Lance",l:0,t:"a",r:"120 ft",du:"Instant",atk:"r",dmg:"2d10",dt:"fire",fx:"Ranged spell attack. Hit: 2d10 fire damage. A flammable object hit ignites if nobody is wearing or carrying it."},
+ {k:"frostbite",n:"Frostbite",c:"The Cryogenic Vent Valve",l:0,t:"a",r:"60 ft",s:"Con",du:"Instant",dmg:"2d6",dt:"cold",fx:"Target makes a Con save. Fail: 2d6 cold damage and disadvantage on its next weapon attack roll before the end of its next turn."},
+ {k:"gfb",n:"Green-Flame Blade",c:"The Sulfur-Fuel Injector",l:0,t:"a",r:"Self (5 ft)",du:"Instant",atk:"m",dmg:"1d8",dt:"fire",fx:"Make a melee weapon attack against one creature within 5 ft as part of the action. On a hit it takes the weapon's normal damage plus 1d8 fire, and flame leaps to a different creature of your choice within 5 ft of it for 1d8 + INT mod fire."},
+ {k:"guidance",n:"Guidance",c:"The Tactical HUD Overclock",l:0,t:"a",r:"Touch",du:"Conc, 1 min",conc:1,fx:"A willing creature you touch can roll a d4 and add it to one ability check of its choice, once before the effect ends (before or after the roll)."},
+ {k:"light",n:"Light",c:"The Radium Core Clasp",l:0,t:"a",r:"Touch",du:"1 hour",fx:"An object no bigger than 10 ft sheds bright light in 20 ft and dim light for another 20 ft. Covering it blocks the light. An object held by a hostile creature needs it to fail a Dex save. Using it again ends the previous one."},
+ {k:"llure",n:"Lightning Lure",c:"The Harpoon Coil Magnet",l:0,t:"a",r:"15 ft",s:"Str",du:"Instant",dmg:"2d8",dt:"lightning",fx:"A creature you can see within 15 ft makes a Str save. Fail: it is pulled up to 10 ft straight toward you, then takes 2d8 lightning if it ends within 5 ft of you."},
+ {k:"magehand",n:"Mage Hand",c:"The Pneumatic Grapple Rotor",l:0,t:"a",r:"30 ft",du:"1 min",fx:"A grabber hovers within range. Action: move it up to 30 ft and manipulate an object, open an unlocked door or container, stow or fetch an item, or pour out a vial. It can't attack, activate magic items, or carry more than 10 lb. It ends if it goes more than 30 ft from you."},
+ {k:"mstone",n:"Magic Stone",c:"The Kinetic Impact Loader",l:0,t:"b",r:"Touch",du:"1 min",atk:"r",dmg:"1d6+@int",dt:"bludgeoning",fx:"Charge up to three pebbles. You or anyone holding one can throw it (60 ft) or sling it as a ranged spell attack using your spell attack bonus. Hit: 1d6 + INT mod bludgeoning. Using it again ends any stones still charged."},
+ {k:"mending",n:"Mending",c:"The Arc-Welding Blowtorch",l:0,t:"1m",r:"Touch",du:"Instant",fx:"Repair one break or tear no larger than 1 ft in any dimension (a broken chain link, torn cloak, cracked key, leaking wineskin). It can physically fix a magic item but can't restore its magic."},
+ {k:"message",n:"Message",c:"The Shortwave Audio Transceiver",l:0,t:"a",r:"120 ft",du:"1 round",fx:"Point at a creature in range and whisper a message. Only it hears, and it can whisper back. It can go around corners if you know where the target is. Blocked by 1 ft of stone, 1 inch of metal, a thin sheet of lead, or 3 ft of wood."},
+ {k:"pspray",n:"Poison Spray",c:"The Sulfur-Gas Diffuser",l:0,t:"a",r:"10 ft",s:"Con",du:"Instant",dmg:"2d12",dt:"poison",fx:"A creature you can see within 10 ft makes a Con save or takes 2d12 poison damage."},
+ {k:"presti",n:"Prestidigitation",c:"The Multi-Utility Toolkit",l:0,t:"a",r:"10 ft",du:"Up to 1 hour",fx:"Pick one minor trick: a harmless sensory effect (sparks, puff of wind, faint music, odd odour); light or snuff a candle, torch or small campfire; clean or soil an object up to 1 cubic ft; chill, warm or flavour 1 cubic ft of nonliving material for 1 hour; make a colour, small mark or symbol appear on a surface for 1 hour; or create a trinket or illusory image that fits in your hand until the end of your next turn. Up to three lasting effects at once."},
+ {k:"rfrost",n:"Ray of Frost",c:"The Compressed Cryo-Beam",l:0,t:"a",r:"60 ft",du:"Instant",atk:"r",dmg:"2d8",dt:"cold",fx:"Ranged spell attack. Hit: 2d8 cold damage and the target's speed drops by 10 ft until the start of your next turn."},
+ {k:"resist",n:"Resistance",c:"The Bio-Static Regulator",l:0,t:"a",r:"Touch",du:"Conc, 1 min",conc:1,fx:"A willing creature you touch can roll a d4 and add it to one saving throw of its choice, once before the effect ends (before or after the roll)."},
+ {k:"sgrasp",n:"Shocking Grasp",c:"The High-Voltage Tesla Gauntlet",l:0,t:"a",r:"Touch",du:"Instant",atk:"m",dmg:"2d8",dt:"lightning",fx:"Melee spell attack, with advantage if the target wears metal armour. Hit: 2d8 lightning damage and the target can't take reactions until the start of its next turn."},
+ {k:"spare",n:"Spare the Dying",c:"The Defibrillator Paddles",l:0,t:"a",r:"Touch",du:"Instant",fx:"A living creature at 0 HP becomes stable. No effect on undead or constructs."},
+ {k:"sburst",n:"Sword Burst",c:"The Centrifugal Blade Ring",l:0,t:"a",r:"Self (5 ft)",s:"Dex",du:"Instant",dmg:"2d6",dt:"force",fx:"Every other creature within 5 ft of you makes a Dex save or takes 2d6 force damage."},
+ {k:"twhip",n:"Thorn Whip",c:"The Steel-Cable Winch",l:0,t:"a",r:"30 ft",du:"Instant",atk:"m",dmg:"2d6",dt:"piercing",fx:"Melee spell attack against a creature within 30 ft. Hit: 2d6 piercing, and if it is Large or smaller it is pulled up to 10 ft toward you."},
+ {k:"tclap",n:"Thunderclap",c:"The Sonic Percussion Blast",l:0,t:"a",r:"Self (5 ft)",s:"Con",du:"Instant",dmg:"2d6",dt:"thunder",fx:"Every other creature within 5 ft of you makes a Con save or takes 2d6 thunder damage. The boom is audible 100 ft away."},
+ // level 1
+ {k:"absorb",n:"Absorb Elements",c:"The Thermal Grid Dissipator",l:1,t:"r",r:"Self",du:"1 round",fx:"Reaction when you take acid, cold, fire, lightning or thunder damage. You resist that damage type, including the triggering hit, until the start of your next turn. The first time you hit with a melee attack on your next turn, the target takes an extra 1d6 of that type."},
+ {k:"alarm",n:"Alarm",c:"The Tripwire Bell Sentry",l:1,t:"1m",r:"30 ft",du:"8 hours",rit:1,fx:"Ward a door, window or area up to a 20-ft cube. When a Tiny or larger creature touches or enters it, the alarm goes off. You choose creatures that don't trigger it, and whether it's a mental ping (wakes you, within 1 mile) or a bell audible within 60 ft for 10 seconds."},
+ {k:"catapult",n:"Catapult",c:"The Pneumatic Rail-Sling",l:1,t:"a",r:"60 ft",s:"Dex",du:"Instant",dmg:"3d8",dt:"bludgeoning",fx:"An unattended object of 1 to 5 lb within range flies in a straight line up to 90 ft. A creature in its path makes a Dex save or takes 3d8 bludgeoning and stops it. If it hits a solid surface instead, the object and the surface take 3d8."},
+ {k:"cure",n:"Cure Wounds",c:"The Pneumatic Stabilizing Syringe",l:1,t:"a",r:"Touch",du:"Instant",heal:"1d8+@int",fx:"A creature you touch regains 1d8 + INT mod hit points. No effect on undead or constructs."},
+ {k:"detect",n:"Detect Magic",c:"The Ultraviolet Radiation Lens",l:1,t:"a",r:"Self",du:"Conc, 10 min",conc:1,rit:1,fx:"You sense magic within 30 ft. As an action, you see a faint aura around any visible magic creature or object and learn its school. Blocked by 1 ft of stone, 1 inch of metal, thin lead, or 3 ft of wood or dirt."},
+ {k:"disguise",n:"Disguise Self",c:"The Light-Refraction Shimmer Mesh",l:1,t:"a",r:"Self",du:"1 hour",fx:"Change how you look, including clothes, armour, weapons and belongings: up to 1 ft taller or shorter, thinner or heavier, but the same basic body shape. It doesn't hold up to touch. A creature can use its action on an Investigation check against your DC to see through it."},
+ {k:"expret",n:"Expeditious Retreat",c:"The Hydraulic Knee-Brace Overclock",l:1,t:"b",r:"Self",du:"Conc, 10 min",conc:1,fx:"Take the Dash action now, and Dash as a bonus action on each of your turns until it ends."},
+ {k:"ffire",n:"Faerie Fire",c:"The Phosphorus Flareshot",l:1,t:"a",r:"60 ft",s:"Dex",du:"Conc, 1 min",conc:1,fx:"Objects in a 20-ft cube are outlined in light; each creature there is outlined if it fails a Dex save. Outlined targets shed dim light in 10 ft, can't benefit from being invisible, and attack rolls against them have advantage if the attacker can see them."},
+ {k:"flife",n:"False Life",c:"The Adrenaline Coagulant Pump",l:1,t:"a",r:"Self",du:"1 hour",tmp:"1d4+4",fx:"You gain 1d4 + 4 temporary hit points for the duration."},
+ {k:"ffall",n:"Feather Fall",c:"The Compressed Air Drag-Chute",l:1,t:"r",r:"60 ft",du:"1 min",fx:"Reaction when you or a creature within 60 ft falls. Up to five falling creatures in range descend at 60 ft per round and land on their feet, taking no falling damage."},
+ {k:"grease",n:"Grease",c:"The Lard-Aerosol Canister",l:1,t:"a",r:"60 ft",s:"Dex",du:"1 min",fx:"A 10-ft square becomes difficult terrain. Creatures standing in it when it appears make a Dex save or fall prone. A creature that enters it or ends its turn there also saves or falls prone."},
+ {k:"identify",n:"Identify",c:"The Occult Diagnostic Matrix",l:1,t:"1m",r:"Touch",du:"Instant",rit:1,fx:"Touch an object for the whole casting. If it's magic, learn its properties, how to use them, whether it needs attunement and how many charges it has, plus any spells affecting it. Touching a creature reveals spells currently affecting it."},
+ {k:"jump",n:"Jump",c:"The Pneumatic Boot Springs",l:1,t:"a",r:"Touch",du:"1 min",fx:"The creature you touch has its jump distance tripled."},
+ {k:"longstr",n:"Longstrider",c:"The Kinetic Ankle-Tensioners",l:1,t:"a",r:"Touch",du:"1 hour",fx:"The creature you touch gains +10 ft speed."},
+ {k:"purify",n:"Purify Food and Drink",c:"The Centrifugal Chemical Filter",l:1,t:"a",r:"10 ft",du:"Instant",rit:1,fx:"All nonmagical food and drink within a 5-ft-radius sphere centred on a point in range is cleared of poison and disease."},
+ {k:"sanct",n:"Sanctuary",c:"The High-Frequency Sensory Scrambler",l:1,t:"b",r:"30 ft",s:"Wis",du:"1 min",fx:"Ward a creature in range. Anyone who targets it with an attack or harmful spell first makes a Wis save; on a fail it must pick a new target or lose the attack or spell. No protection from area effects. Ends if the warded creature attacks, deals damage, or casts a spell on an enemy."},
+ {k:"snare",n:"Snare",c:"The Spring-Loaded Steel Winch",l:1,t:"1m",r:"Touch",s:"Dex",du:"8 hours",fx:"Set a 5-ft-radius trap that's nearly invisible (Investigation vs your DC to spot). When a Small, Medium or Large creature moves into it, it makes a Dex save or is hoisted 3 ft into the air upside down and restrained. It repeats the Dex save at the end of each of its turns; another creature can use an action and make an Arcana check vs your DC to free it."},
+ {k:"tcb",n:"Tasha's Caustic Brew",c:"The Vitriol Firehose",l:1,t:"a",r:"Self (30-ft line)",s:"Dex",du:"Conc, 1 min",conc:1,dmg:"2d4",dt:"acid",fx:"A 30-ft long, 5-ft wide line. Each creature in it makes a Dex save or is coated in acid, taking 2d4 acid at the start of each of its turns. A creature can use its action to scrape it off itself or an adjacent creature."},
+ {k:"aweapon",n:"Arcane Weapon (UA)",c:"The Core Elemental Injector",l:1,t:"b",r:"Self",du:"Conc, 1 hour",conc:1,fx:"Touch a weapon and pick acid, cold, fire, lightning, poison or thunder. Hits with it deal an extra 1d6 of that type. Bonus action on later turns to switch type."},
+ // level 2
+ {k:"aid",n:"Aid",c:"The Triple-Dose Endurance Syringe",l:2,t:"a",r:"30 ft",du:"8 hours",fx:"Up to three creatures in range each raise their HP maximum and current HP by 5 for the duration."},
+ {k:"airbubble",n:"Air Bubble",c:"The Brass Respirator Dome",l:2,t:"a",r:"60 ft",du:"24 hours",fx:"A willing creature in range gets a globe of fresh air around its head and can breathe normally anywhere, including underwater or in toxic gas."},
+ {k:"alter",n:"Alter Self",c:"The Morphic Chassis Shell",l:2,t:"a",r:"Self",du:"Conc, 1 hour",conc:1,fx:"Pick one, switching with an action: Aquatic Adaptation (breathe water, swim speed equal to walking); Change Appearance (reshape your look within your size and basic body plan); or Natural Weapons (claws, fangs, horns: 1d6 damage, count as magic, +1 to attack and damage, proficient)."},
+ {k:"alock",n:"Arcane Lock",c:"The Resonance-Keyed Deadbolt",l:2,t:"a",r:"Touch",du:"Until dispelled",fx:"Lock a closed door, window, gate or chest. You and creatures you choose open it freely; a password can suppress it for 1 minute. Otherwise it stays shut until broken or dispelled, and the DC to break or pick it rises by 10. Uses 25 gp of material."},
+ {k:"blur",n:"Blur",c:"The Silhouette Scrambler",l:2,t:"a",r:"Self",du:"Conc, 1 min",conc:1,fx:"Attack rolls against you have disadvantage. Creatures that don't rely on sight (blindsight, truesight) ignore it."},
+ {k:"cflame",n:"Continual Flame",c:"The Self-Sustaining Flameless Burner",l:2,t:"a",r:"Touch",du:"Until dispelled",fx:"A torch-bright flame on an object that gives no heat and needs no air. It can be covered but not smothered or quenched. Uses 50 gp of material."},
+ {k:"dvision",n:"Darkvision",c:"The Arcane Photon Amplification Goggles",l:2,t:"a",r:"Touch",du:"8 hours",fx:"A willing creature you touch gains darkvision out to 60 ft."},
+ {k:"enhance",n:"Enhance Ability",c:"The Single-Vector Stimulant",l:2,t:"a",r:"Touch",du:"Conc, 1 hour",conc:1,fx:"Touch a creature and pick one: Bear's Endurance (advantage on Con checks, 2d6 temp HP); Bull's Strength (advantage on Str checks, carrying capacity doubled); Cat's Grace (advantage on Dex checks, no damage from falls of 20 ft or less); or advantage on Int, Wis or Cha checks."},
+ {k:"enlarge",n:"Enlarge/Reduce",c:"The Arcane Scale Modulator",l:2,t:"a",r:"30 ft",s:"Con",du:"Conc, 1 min",conc:1,fx:"A creature or object you can see grows or shrinks one size (unwilling creatures get a Con save). Enlarged: advantage on Str checks and saves, weapon damage +1d4. Reduced: disadvantage on Str checks and saves, weapon damage −1d4 (minimum 1)."},
+ {k:"heatm",n:"Heat Metal",c:"The Arcane Eddy-Current Projector",l:2,t:"a",r:"60 ft",s:"Con",du:"Conc, 1 min",conc:1,dmg:"2d8",dt:"fire",fx:"A manufactured metal object you can see (weapon, armour) glows red-hot. Anyone touching it takes 2d8 fire now, and again each time you use a bonus action on later turns. If it's held or worn, the creature makes a Con save or drops it if it can; if it keeps it, it has disadvantage on attacks and ability checks until the start of your next turn."},
+ {k:"invis",n:"Invisibility",c:"The Transparency Shell",l:2,t:"a",r:"Touch",du:"Conc, 1 hour",conc:1,fx:"The creature you touch, and what it wears and carries, becomes invisible. It ends for that creature when it attacks or casts a spell."},
+ {k:"kjaunt",n:"Kinetic Jaunt",c:"The Burst-Step Momentum Injector",l:2,t:"b",r:"Self",du:"Conc, 1 min",conc:1,fx:"+10 ft walking speed, your movement doesn't provoke opportunity attacks, and you can move through other creatures' spaces (difficult terrain). End your turn in one and you're shunted to the last open space and take 1d8 force."},
+ {k:"lrest",n:"Lesser Restoration",c:"The Systemic Condition Purge",l:2,t:"a",r:"Touch",du:"Instant",fx:"End one disease, or one of these conditions, on the creature you touch: blinded, deafened, paralyzed, or poisoned."},
+ {k:"levitate",n:"Levitate",c:"The Anti-Gravity Null-Field Harness",l:2,t:"a",r:"60 ft",s:"Con",du:"Conc, 10 min",conc:1,fx:"One creature or loose object up to 500 lb rises up to 20 ft and hangs there (unwilling creatures get a Con save). It can only move by pushing or pulling against fixed objects. You can use your action to raise or lower it up to 20 ft. When it ends, the target floats gently down."},
+ {k:"mmouth",n:"Magic Mouth",c:"The Delayed Arcane Playback Unit",l:2,t:"1m",r:"30 ft",du:"Until dispelled",rit:1,fx:"Record a message of 25 words or fewer in an object, played within 10 minutes once a trigger you set occurs within 30 ft. Uses 10 gp of material."},
+ {k:"mweapon",n:"Magic Weapon",c:"The Resonant Frequency Weapon Charger",l:2,t:"b",r:"Touch",du:"Conc, 1 hour",conc:1,fx:"A nonmagical weapon you touch counts as magic and gets +1 to attack and damage rolls."},
+ {k:"ppoison",n:"Protection from Poison",c:"The Broad-Spectrum Anti-Toxin Injection",l:2,t:"a",r:"Touch",du:"1 hour",fx:"Neutralise one poison affecting the creature you touch. For the duration it has advantage on saves against being poisoned and resistance to poison damage."},
+ {k:"pyro",n:"Pyrotechnics",c:"The Flame-to-Effect Conversion Unit",l:2,t:"a",r:"60 ft",s:"Con",du:"Instant",fx:"Snuff a nonmagical flame up to a 5-ft cube and choose: Fireworks (each creature within 10 ft of it makes a Con save or is blinded until the end of your next turn) or Smoke (20-ft radius of thick smoke, heavily obscured for 1 minute or until a strong wind)."},
+ {k:"rtrick",n:"Rope Trick",c:"The Extradimensional Access Tether",l:2,t:"a",r:"Touch",du:"1 hour",fx:"A rope up to 60 ft long stands straight up; at its top an invisible entrance opens to a hidden space for up to eight Medium or smaller creatures. The rope can be pulled up inside. Attacks and spells can't cross the entrance. Everything drops out when it ends."},
+ {k:"seeinv",n:"See Invisibility",c:"The Phase-Shift Detection Monocle",l:2,t:"a",r:"Self",du:"1 hour",fx:"You see invisible creatures and objects as if they were visible, and see into the Ethereal Plane (ethereal things look ghostly and translucent)."},
+ {k:"sky",n:"Skywrite",c:"The Directed Vapour Trail Projector",l:2,t:"a",r:"Sight",du:"Conc, 1 hour",conc:1,rit:1,fx:"Write up to ten words in cloud across a part of the sky you can see. A strong wind can scatter it."},
+ {k:"sclimb",n:"Spider Climb",c:"The Van der Waals Surface-Grip Set",l:2,t:"a",r:"Touch",du:"Conc, 1 hour",conc:1,fx:"A willing creature can climb walls and walk upside down on ceilings with its hands free, with a climbing speed equal to its walking speed."},
+ {k:"vwarp",n:"Vortex Warp",c:"The Spatial Transposition Projector",l:2,t:"a",r:"90 ft",s:"Con",du:"Instant",fx:"A creature you can see in range makes a Con save (a willing one can choose to fail). Fail: teleport it to an unoccupied space you can see within range, on a surface or liquid that can hold it."},
+ {k:"web",n:"Web",c:"The Adhesive Net Launcher",l:2,t:"a",r:"60 ft",s:"Dex",du:"Conc, 1 hour",conc:1,fx:"A 20-ft cube of webbing, which must be anchored between two solid surfaces or layered on a floor, wall or ceiling. It's difficult terrain and lightly obscured. A creature starting its turn there or entering it makes a Dex save or is restrained; it can use an action on a Str check vs your DC to break free. Fire burns a 5-ft cube of web per round, dealing 2d4 fire to creatures starting their turn in the flames."}
+];
+const FLAV_EXTRA = {
+ "Fire Bolt":"You slot a magnesium slug into a rail along your forearm and close the circuit. Magnetic coils hurl it out white-hot and it ignites in flight.",
+ arm_firebolt:"The amber veins in your iron-and-ash forearm flare. Isek's amber vents a bolt of fire straight from your arm.",
+ arm_scorch:"Your arm splits along its amber seams and three rays of fire tear loose. The energy rips at your body, so you brace against it with a Con save.",
+ gbolt:"Fractured genius: the cracks in your mind line up for one instant, you calculate the exact angle, and a searing lance of light leaves the target glowing for your allies.",
+ pbolt:"You stamp the foot pedal and squeeze the wand trigger. A concentrated beam of violet-white energy lances from the Æther-Pack.",
+ pstream:"You lock the trigger down. The wand pours out a continuous jet of ectoplasm in a straight line while the tank gauges drop fast.",
+ cburst:"You fire a pressurised slug of captured spirit at a point. It ruptures into a violent sphere of ectoplasmic force that hurls everything outward.",
+ overload:"You open every valve. The pack screams as its whole charge pours through the wand into one target, coiling around it in binding spectral chains.",
+ vacuum:"The pedal slams down. The pack starts screaming, the tank glows violet and loose objects slide toward you. The dying creature's essence is torn through the air into the tank. The gauges spin wildly, then CLICK. A tiny green light: CONTAINED. Usually.",
+ rshield:"The incoming blow cocked the spring-loaded piston on the shield's inner face. You release it and the stored kinetic energy slams the attacker away.",
+ spark:"The pack's targeting apparatus locks onto the thread between the creature's body and soul and plucks it, throwing off its resistance.",
+ fuel:"With the tank empty, Seriach turns your body into the containment chamber. You overload yourself and bleed raw ectoplasm into the pack.",
+ insight:"Your hyper-focused, calculated understanding of monsters picks the creature apart. Sometimes you see something you weren't ready for."
+};
+const flavOf = b => (FLAVOR[b.n.replace(" (UA)","")]||{}).d || FLAV_EXTRA[b.n] || "";
+const firstSentence = t => (t.match(/^.*?[.!?](\s|$)/)||[t])[0].trim();
+const BPK = Object.fromEntries(BP.map(b=>[b.k,b]));
+const TIME = {a:"Action",b:"Bonus",r:"Reaction","1m":"1 minute"};
+
+const CONDITIONS = {
+ Blinded:"Can't see; auto-fail sight checks. Attacks vs you have advantage; your attacks have disadvantage.",
+ Charmed:"Can't attack the charmer or target it with harmful effects. Charmer has advantage on social checks vs you.",
+ Deafened:"Can't hear; auto-fail hearing checks.",
+ Frightened:"Disadvantage on checks and attacks while the source is in sight. Can't willingly move closer to it.",
+ Grappled:"Speed 0. Ends if the grappler is incapacitated or you're moved out of reach.",
+ Incapacitated:"No actions or reactions.",
+ Invisible:"Heavily obscured to others. Attacks vs you have disadvantage; your attacks have advantage.",
+ Paralyzed:"Incapacitated, can't move or speak. Auto-fail Str and Dex saves. Attacks vs you have advantage; hits within 5 ft are crits.",
+ Petrified:"Turned to stone. Incapacitated, resistance to all damage, auto-fail Str and Dex saves.",
+ Poisoned:"Disadvantage on attack rolls and ability checks.",
+ Prone:"Crawl only (half speed to stand). Your attacks have disadvantage. Attacks within 5 ft have advantage; beyond 5 ft disadvantage.",
+ Restrained:"Speed 0. Your attacks and Dex saves have disadvantage; attacks vs you have advantage.",
+ Stunned:"Incapacitated, can't move, falters speech. Auto-fail Str and Dex saves; attacks vs you have advantage.",
+ Unconscious:"Incapacitated, prone, drop items. Auto-fail Str and Dex saves. Attacks vs you have advantage; hits within 5 ft are crits."
+};
+const EXH = ["None","Disadvantage on ability checks","Speed halved","Disadvantage on attacks and saves","HP maximum halved","Speed 0","Death"];
+const SV_TABLE = [["¼ – 1","1d4",1],["2 – 3","2d4",2],["4 – 5","3d4",3],["6 – 8","4d4",4],["9 – 12","5d4",5],["13+","6d4",6]];
+const TIERS = [[0,5,"Standard Mundane"],[1,25,"Minor Utility"],[2,50,"Tactical Advantage"],[3,75,"Unstable Prototype"]];
+const IDEAS = [
+ [0,"The Soot-Lamp","Emergency illumination unit"],[0,"The Memory Locket","Voice-loop playback device"],[0,"The Odor Disperser","Scent camouflage unit"],[0,"The Silent Drum","Mechanical noise emitter"],[0,"The Static Projector","Fixed visual display tablet"],[0,"The Inscription Engine","Mechanical text etcher"],[0,"The Wax-Seal Stamp","Identification & marking tool"],[0,"The Pocket Thermometer","Ambient temperature gauge"],
+ [1,"The Coffin-Nail Tracker","Necrotic resonance compass"],[1,"The Iron Canary","Clockwork proximity alarm bird"],[1,"The Mist-Eye","Barovian mist-piercing monocular"],[1,"The Signal Mirror","Long-range light communication relay"],[1,"The Chemical Timer","Countdown fuse"],[1,"The Static Key","Vibration-matched lock pick"],[1,"The Whisper Wire","Short-range communication cable"],[1,"The Pressure Plate Detector","Floor-trap detection wand"],[1,"The Vitals Monitor","Biological status reader"],
+ [2,"The Voltaic Deterrent","Reaction discharge bracer"],[2,"The Pressure Grenade","Sulfur flashbang unit"],[2,"The Spider-Eye","Clockwork proximity alarm drone"],[2,"The Sonic Disruptor","Frequency animal deterrent"],[2,"The Grapple Lancer","Miniature wall-climbing launcher"],[2,"The Fog Bomb","Obscuring chemical canister"],[2,"The Rebreather Hood","Atmospheric filter"],[2,"The Wall-Anchor Piton Set","Assisted climbing system"],[2,"The Concussion Piston","Forced entry tool"],[2,"Hydraulic Recoil-Damper","Shock-absorbing frame"],
+ [3,"The Foot-Snapper","Speed-reducing mechanical trap"],[3,"The Caustic Siphon","Ambient energy drain device"],[3,"The Volt-Cage","Electrostatic restraint field"],[3,"The Phosphor Charge","Blinding sulfur detonator"],[3,"The Amber-Core Bomb","Entity-powered resonance bomb"],[3,"The Dead-Man Switch","Triggered retaliatory payload"],[3,"The Null-Scent Canister","Olfactory suppression device"],[3,"The Clockwork Decoy","Animated distraction unit"]
+];
+/* Magic-item effects (only work while the item has a Mechanical Modification) */
+const FX = {
+ rshield:{n:"Repulsion Shield",max:4,regain:"1d4",rec:"Dawn"},
+ pipes:{n:"Pipes of Haunting",max:3,regain:"1d3",rec:"Dawn"},
+ mind:{n:"Mind Sharpener",max:4,regain:"1d4",rec:"Dawn"},
+ axe:{n:"Radiant Battleaxe",max:4,regain:"1d4",rec:"Dawn"},
+ ring:{n:"Spell-Refueling Ring",max:1,regain:"all",rec:"Dawn"},
+ boots:{n:"Boots of the Winding Path",max:0}
+};
+
+let uid=1; const nid=()=> "i"+Date.now().toString(36)+(uid++);
+function DEF(){
+ const it=(n,q,w,o={})=>({id:nid(),n,q,w,worn:false,mod:false,att:false,note:"",...o});
+ return {
+  v:2, _t:0,
+  allyMods:[{item:"",ally:""},{item:"",ally:""}],
+  base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
+  hp:{cur:40,temp:5}, ds:{s:0,f:0}, hdUsed:0,
+  stress:0, exh:0, energy:0, insp:false,
+  armor:true, shield:true,
+  lim:{gbolt:1,spark:1,fuel:1},
+  ch:{rshield:4,pipes:3,mind:4,axe:4,ring:1},
+  axeLight:false,
+  cond:{}, conc:"",
+  researched:Object.fromEntries(BP.map(b=>[b.k,true])),
+  loadout:[],
+  inventions:[
+   {id:nid(),n:"The Sonic Disruptor",tier:2,note:"Frequency animal deterrent. −1d4 to saving throws within 30 ft."},
+   {id:nid(),n:"Hydraulic Recoil-Damper",tier:2,note:"Advantage on saving throws against grapple, prone and shove."}
+  ],
+  items:[
+   it("Breastplate",1,20,{worn:true,note:"Medium armour, AC 14 + Dex (max 2). No stealth disadvantage. Don 5 min, doff 1 min."}),
+   it("Repulsion Shield",1,6,{worn:true,fx:"rshield",mod:true,att:true,note:"Spring-loaded piston on the inner face, cocked by each melee hit. +1 AC on top of the shield's +2. 4 charges, regains 1d4 at dawn. Reaction after a melee hit: spend 1 charge to push the attacker up to 15 ft."}),
+   it("Æther-Pack",1,0,{worn:true,note:"Containment tank, gauges, copper tubing, control wand, foot pedal. Counts as an artificer's tool. Rebuild on a long rest with tinker's tools and 25 gp of materials."}),
+   it("Belt Pouch (with coins)",1,0,{worn:true}),
+   it("Tinker's tools",1,1),
+   it("Pearl (for Identify)",1,1),
+   it("Spyglass",1,1),
+   it("Strahd's Tome",1,1),
+   it("Magnifying glass",1,0),
+   it("Petrified Wood Butterfly",1,0),
+   it("Amber Shard (Isek)",1,1,{note:"Source of the Fire Bolt and Scorching Ray from your arm."}),
+   it("Dagger",1,1,{note:"Finesse, light, thrown (20/60). 1d4 piercing."}),
+   it("Light hammer",1,2,{note:"Light, thrown (20/60). 1d4 bludgeoning."})
+  ],
+  coins:{cp:36,sp:6,ep:2,gp:36,pp:0}, scrap:46,
+  combat:{on:false,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false},
+  notes:{
+   traits:"I tend to mutter to myself in Gnomish, explaining my current thoughts or theories aloud.",
+   ideals:"Discovery: The world is full of wonders waiting to be found and understood. My purpose is to uncover new secrets and push the boundaries of what's known. I hold my mind as sacred.",
+   bonds:"As my memories of my foster mother's warmth fade into the mists, I cling to the intellect and inventive drive she left me; my mind is the final canvas of her legacy, and I must protect it.",
+   flaws:"I become so engrossed in a new puzzle or device that I ignore immediate danger or my surroundings. I have lost the ability to create art, whimsy, or joy.",
+   appearance:"About 3 ft tall, wiry rather than bulky. Since the transformation, a cold mineralized husk of blackened iron and coarse ash, veined with amber. Looks more at home in a workshop than a battlefield.",
+   backstory:"Raised by a patient foster mother who encouraged his obsession with clockwork, Flint left the gnomish burrows at sixteen in pursuit of discovery. For fifteen years he repaired city mechanisms, calibrated astronomical devices and designed security systems, and his Investigator instincts grew sharp: he notices the misplaced cog others overlook. His habit of getting lost in a puzzle has led to close calls with disgruntled clients and cave-ins.",
+   session:""
+  },
+  log:[], rolls:[]
+ };
+}
+
+/* ======================= STATE & STORAGE ======================= */
+const CID = Math.random().toString(36).slice(2); let pendingRemote = null, lastLocal = 0, lastRemote = 0;
+let S = DEF(), docRef = null, saveTimer = null, storeMsg = "Saved on this tablet";
+let UI = {tab:"sheet", edit:false, bpFilter:"", bpLvl:"all", openBp:{}};
+const LKEY = "flint-cogsworth-v1";
+function merge(d,s){ if(!s||typeof s!=="object") return d; for(const k in d){ if(s[k]===undefined) continue; if(d[k]&&typeof d[k]==="object"&&!Array.isArray(d[k])&&typeof s[k]==="object"&&!Array.isArray(s[k])) d[k]=merge(d[k],s[k]); else d[k]=s[k]; } return d; }
+function migrate(o){ if(!o||typeof o!=="object") return o; if(!o.v||o.v<2){ if(Array.isArray(o.items)) o.items=o.items.filter(i=>!["mind","boots","ring","axe","pipes"].includes(i.fx)); if(!o.allyMods) o.allyMods=[{item:"",ally:""},{item:"",ally:""}]; o.v=2; } return o; }
+function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DEF(),migrate(JSON.parse(r))); } }catch(e){} try{ UI.tab=localStorage.getItem(LKEY+"-tab")||UI.tab }catch(e){} }
+function save(){
+ pendingRemote=null; lastLocal=Date.now(); S._t=lastLocal;
+ try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){}
+ if(docRef){ clearTimeout(saveTimer); saveTimer=setTimeout(()=>{ const t=lastLocal; docRef.set({state:JSON.parse(JSON.stringify(S)),updated:t,cid:CID}).then(()=>{storeMsg="Saved to your account";stat()}).catch(()=>{storeMsg="Account save failed, kept on this device";stat()}); },700); }
+}
+function stat(){ const el=document.getElementById("storemsg"); if(el) el.textContent=storeMsg; }
+async function connect(){
+ try{ if(navigator.storage&&navigator.storage.persist){ const ok=await navigator.storage.persist(); storeMsg= window.AndroidBridge?"Saved inside the Flint app on this tablet":(ok?"Saved on this tablet (protected from automatic clearing)":"Saved on this tablet"); stat(); } }catch(e){}
+ if("serviceWorker" in navigator){ try{ await navigator.serviceWorker.register("sw.js"); }catch(e){} }
+}
+
+/* ======================= DERIVED ======================= */
+const md = s => Math.floor((s-10)/2);
+const sg = n => (n>=0?"+":"")+n;
+const B = () => S.base;
+const M = k => k==="san"? md(B().san) : md(B()[k]);
+const PB = () => Math.ceil(B().level/4)+1;
+const SAVEPROF = {con:1,int:1};
+const SKPROF = {"Arcana":1,"History":2,"Investigation":1,"Perception":1,"Tools (Tinker's)":2};
+const skillBonus = ([n,a]) => M(a) + PB()*(SKPROF[n]||0);
+const saveBonus = k => M(k) + (SAVEPROF[k]?PB():0);
+const DC = () => 8+PB()+M("int")+M("cha");
+const ATK = () => PB()+M("int")+M("cha");
+const eMax = () => 5+M("int");
+const gadgetCap = () => B().level+M("int");
+const invCap = () => Math.max(1,M("int"));
+const modCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:B().level>=6?3:2;
+const attCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:3;
+const carryCap = () => B().str;
+const itemFx = fx => S.items.find(i=>i.fx===fx);
+const fxOn = fx => { const i=itemFx(fx); return !!(i && i.mod); };
+function maxHp(){ let m=B().maxHp; if(S.exh>=4) m=Math.floor(m/2); return m; }
+function speed(){ let s=B().speed; if(S.exh>=5) return 0; if(S.exh>=2) s=Math.floor(s/2); return s; }
+function ac(){
+ const dx=M("dex");
+ let a = S.armor ? 14+Math.min(dx,2) : 10+dx;
+ if(S.shield){ a+=2; if(fxOn("rshield")) a+=1; }
+ return a + (B().acMisc||0);
+}
+const modsUsed = () => S.items.filter(i=>i.mod).length + (S.allyMods||[]).length;
+const carried = () => S.items.filter(i=>!i.worn).reduce((t,i)=>t+(+i.q||0),0);
+const weight = () => S.items.reduce((t,i)=>t+(+i.q||0)*(+i.w||0),0) + Object.values(S.coins).reduce((a,b)=>a+(+b||0),0)/50;
+
+/* ======================= DICE ======================= */
+const R = n => 1+Math.floor(Math.random()*n);
+function roll(expr){
+ expr=String(expr).replace(/@int/g,M("int")).replace(/\s/g,"");
+ let total=0, parts=[], m, re=/([+-]?)(\d*)d(\d+)|([+-]?)(\d+)/g;
+ while((m=re.exec(expr))){
+  if(m[3]){ const n=+(m[2]||1), f=+m[3], sgn=m[1]==="-"?-1:1, rs=[]; for(let i=0;i<n;i++) rs.push(R(f)); const sum=rs.reduce((a,b)=>a+b,0); total+=sgn*sum; parts.push({d:`${n}d${f}`,rs}); }
+  else if(m[5]){ const v=(m[4]==="-"?-1:1)*(+m[5]); total+=v; parts.push({mod:v}); }
+ }
+ return {total,parts,expr};
+}
+const diceOnly = expr => String(expr).replace(/@int/g,"0").match(/\d*d\d+/g)?.join("+")||"0";
+const showParts = r => r.parts.map(p=>p.d?`${p.d}[${p.rs.join(",")}]`:sg(p.mod)).join(" ");
+function pushRoll(title, html, plain){
+ S.rolls.unshift({t:Date.now(),title,html,plain}); S.rolls=S.rolls.slice(0,40);
+ const el=document.getElementById("lastroll"); el.innerHTML=`<span class="muted">${esc(title)}:</span> ${plain}`;
+ const rb=document.getElementById("rollbar"); rb.classList.remove("flash"); void rb.offsetWidth; rb.classList.add("flash");
+}
+function d20(label,bonus,opts={}){
+ const a=R(20), b=R(20);
+ const tag = opts.adv?"ADV":opts.dis?"DIS":"";
+ const pick = opts.adv?Math.max(a,b):opts.dis?Math.min(a,b):a;
+ const tot=pick+bonus;
+ const nat = pick===20?" <span class='chip ok'>NAT 20</span>":pick===1?" <span class='chip red'>NAT 1</span>":"";
+ const html=`<div class="rollcard"><div class="muted small">${esc(label)} ${tag?`<span class="chip ${opts.adv?'ok':'red'}">${tag}</span>`:""}</div><div class="big">${tot}</div><div class="small dim">d20 [${a}${tag?", "+b:""}] ${sg(bonus)}${tag?"":` · 2nd d20 if you have adv/dis: ${b+bonus}`}${nat}</div></div>`;
+ pushRoll(label, html, `<b>${tot}</b> <span class="dim">(d20 ${pick}${sg(bonus)}${tag?" "+tag:""}${tag?"":", alt "+(b+bonus)})</span>`);
+ save(); return {tot,a,b,pick};
+}
+function logEv(txt){ S.log.unshift({t:Date.now(),txt}); S.log=S.log.slice(0,80); }
+const esc = s => String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+/* ======================= RESOURCE CHANGES ======================= */
+function setStress(n,why){
+ n=Math.max(0,Math.min(5,n));
+ if(n!==S.stress){ logEv(`Stress ${S.stress} → ${n}${why?" ("+why+")":""}`); S.stress=n; }
+}
+function setEnergy(n,why){ n=Math.max(0,Math.min(eMax(),n)); if(n!==S.energy){ logEv(`Energy ${S.energy} → ${n}${why?" ("+why+")":""}`); S.energy=n; } }
+function damage(n,type,resist){
+ let amt = resist? Math.floor(n/2) : n;
+ let rem=amt, absorbed=Math.min(S.hp.temp,rem); S.hp.temp-=absorbed; rem-=absorbed;
+ const before=S.hp.cur; S.hp.cur=Math.max(0,S.hp.cur-rem);
+ logEv(`Took ${amt}${type?" "+type:""} damage${resist?" (halved from "+n+")":""}${absorbed?", "+absorbed+" from temp HP":""}. HP ${before} → ${S.hp.cur}`);
+ let notes=[];
+ if(S.conc && amt>0) notes.push(`Concentration on ${S.conc}: Con save DC ${Math.max(10,Math.floor(amt/2))} (you're +${saveBonus("con")}).${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can auto-succeed.":""}`);
+ if(S.hp.cur===0 && before>0) notes.push("You're at 0 HP. Death saves are on the HP panel.");
+ return {amt,notes};
+}
+function heal(n){ const b=S.hp.cur; S.hp.cur=Math.min(maxHp(),S.hp.cur+n); if(S.hp.cur>0){S.ds={s:0,f:0};} logEv(`Healed ${n}. HP ${b} → ${S.hp.cur}`); }
+
+/* ======================= RENDER: TOP ======================= */
+function renderTop(){
+ const hpPct=Math.max(0,Math.min(100,S.hp.cur/maxHp()*100));
+ const cls=hpPct<=25?"crit":hpPct<=50?"low":"";
+ const pips=(n,max,c)=>Array.from({length:max},(_,i)=>`<span class="pip ${c||""} ${i<n?"on":""}"></span>`).join("");
+ const combat=S.combat.on;
+ document.getElementById("top").innerHTML=`
+ <div class="row1">
+  <div class="ident"><h1>Flint <span>Cogsworth</span></h1><small>Lv ${B().level} Artificer · Spirit Engine</small></div>
+  <div class="gauge hp" data-act="hpModal">
+    <div class="lab">Hit points${S.hp.cur===0?' · <span style="color:var(--blood)">DOWN</span>':""}</div>
+    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>
+    <div class="bar"><i class="${cls}" style="width:${hpPct}%"></i></div>
+  </div>
+  <div class="gauge ac tap" data-act="armorModal"><div class="lab">AC</div><div class="val num">${ac()}</div><div class="sub">${S.armor?"Armour on":"No armour"}${S.shield?" · Shield":""}</div></div>
+  <div class="gauge tap" data-act="init"><div class="lab">Init</div><div class="val num">${sg(M("dex"))}</div></div>
+  <div class="gauge"><div class="lab">Speed</div><div class="val num">${speed()}</div></div>
+  <div class="gauge"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
+  <div class="gauge energy"><div class="lab">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
+  <div class="gauge stress"><div class="lab">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
+  <button class="combatsw ${combat?"on":""}" data-act="combatToggle" aria-pressed="${combat}"><span class="lab">${combat?"In combat":"Combat"}</span><span class="sw"></span></button>
+ </div>
+ <div class="abil">
+  ${ABIL.map(([k,K])=>`<div class="ab" data-act="check" data-k="${k}">
+    ${k==="wis"?'<span class="tag dis">DIS SAVE</span>':""}
+    <div class="k">${K}</div><div class="m num">${sg(M(k))}</div><div class="s">${B()[k]}</div>
+    <span class="sv ${SAVEPROF[k]?"p":""}" data-act="save" data-k="${k}">save ${sg(saveBonus(k))}</span></div>`).join("")}
+  <div class="ab san" data-act="check" data-k="san"><span class="tag adv">ADV SAVE</span><div class="k">SANITY</div><div class="m num">${sg(M("san"))}</div><div class="s">${B().san}</div><span class="sv" data-act="save" data-k="san">save ${sg(M("san"))}</span></div>
+ </div>
+ <div class="tabs" role="tablist">
+  ${[["sheet","Character"],["combat","Combat"],["gadgets","Gadgets"],["tinker","Tinkering"],["gear","Gear"],["features","Features"],["notes","Notes"]].map(([k,l])=>`<button class="tab ${k==="combat"?"cmb":""} ${UI.tab===k?"on":""}" data-act="tab" data-k="${k}" role="tab" aria-selected="${UI.tab===k}">${l}${k==="combat"&&combat?'<span class="dot"></span>':""}</button>`).join("")}
+ </div>`;
+}
+
+/* ======================= RENDER: CHARACTER ======================= */
+function usesBoxes(key,max,cur,kind){ return `<span class="uses">${Array.from({length:max},(_,i)=>`<span class="use ${i<cur?"":"spent"}" data-act="${kind}" data-k="${key}" data-i="${i}" title="Tap to spend or restore"></span>`).join("")}</span>`; }
+function renderSheet(){
+ const e=UI.edit;
+ const conds=Object.keys(CONDITIONS);
+ const activeConds=conds.filter(c=>S.cond[c]);
+ return `
+ <div class="grid gside">
+  <div class="grid" style="margin-top:0">
+   <div class="panel">
+    <h2>Quick changes <span class="sp"></span><button class="tog ${e?"on":""}" data-act="editToggle"><span class="box"></span>Edit base stats</button></h2>
+    <div class="btns">
+     <button class="btn red" data-act="hpModal">Damage / heal</button>
+     <button class="btn" data-act="restModal" data-k="short">Short rest</button>
+     <button class="btn" data-act="restModal" data-k="long">Long rest</button>
+     <button class="btn" data-act="xpModal">Add XP</button>
+     <button class="btn" data-act="sanFail">Failed sanity check</button>
+     <button class="btn" data-act="insightModal">Occult Insight</button>
+     <button class="tog ${S.insp?"on":""}" data-act="insp"><span class="box"></span>Inspiration</button>
+    </div>
+    <div class="sep"></div>
+    <div class="kv">
+     <dt>Exhaustion</dt><dd><button class="mini" data-act="exh" data-d="-1">−</button> <b class="num">${S.exh}</b> <button class="mini" data-act="exh" data-d="1">+</button> <span class="muted small">${EXH[S.exh]}${S.exh>1?" (and all above)":""}</span></dd>
+     <dt>Concentrating</dt><dd>${S.conc?`<span class="chip amber">${esc(S.conc)}</span> <button class="btn sm" data-act="concEnd">End</button>`:'<span class="dim small">Nothing. Deploying a concentration gadget sets this.</span>'}</dd>
+     <dt>XP</dt><dd class="num">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()} <span class="dim small">(${Math.max(0,B().nextXp-B().xp).toLocaleString()} to level ${B().level+1})</span></dd>
+     <dt>Hit dice</dt><dd class="num">${B().level-S.hdUsed} of ${B().level} d8 (+${M("con")} each)</dd>
+    </div>
+    ${e?`<div class="sep"></div><div class="edit">
+      <h3>Base stats</h3>
+      <div class="btns">${ABIL.map(([k,K])=>`<label class="small">${K} <input type="number" id="ed-${k}" data-bind="base.${k}" value="${B()[k]}"></label>`).join("")}
+       <label class="small">Sanity <input type="number" id="ed-san" data-bind="base.san" value="${B().san}"></label></div>
+      <div class="btns" style="margin-top:8px">
+       <label class="small">Level <input type="number" id="ed-lv" data-bind="base.level" value="${B().level}"></label>
+       <label class="small">Max HP <input type="number" id="ed-hp" data-bind="base.maxHp" value="${B().maxHp}"></label>
+       <label class="small">Speed <input type="number" id="ed-sp" data-bind="base.speed" value="${B().speed}"></label>
+       <label class="small">AC misc <input type="number" id="ed-ac" data-bind="base.acMisc" value="${B().acMisc}"></label>
+       <label class="small">XP <input type="number" id="ed-xp" data-bind="base.xp" value="${B().xp}" style="width:90px"></label>
+       <label class="small">Next level XP <input type="number" id="ed-nx" data-bind="base.nextXp" value="${B().nextXp}" style="width:90px"></label>
+      </div>
+      <p class="small dim" style="margin-top:6px">Everything derived (modifiers, DC, energy capacity, gadget and invention limits, carry limit) updates from these.</p>
+    </div>`:""}
+   </div>
+   <div class="panel">
+    <h2>Limited features</h2>
+    <div class="list">
+     <div class="li"><div class="grow">Guiding Bolt <span class="dim small">Fractured Genius · 1 / long rest</span></div>${usesBoxes("gbolt",1,S.lim.gbolt,"lim")}</div>
+     <div class="li"><div class="grow">Guiding Spark <span class="dim small">1 / short rest</span></div>${usesBoxes("spark",1,S.lim.spark,"lim")}</div>
+     <div class="li"><div class="grow">Seriach's Fuel <span class="dim small">1 / long rest</span></div>${usesBoxes("fuel",1,S.lim.fuel,"lim")}</div>
+     ${Object.entries(FX).filter(([k,f])=>f.max&&itemFx(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow">${f.n} <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
+    </div>
+   </div>
+   <div class="panel">
+    <h2>Conditions ${activeConds.length?`<span class="cnt over">${activeConds.length} active</span>`:""}</h2>
+    <div class="chips">${conds.map(c=>`<button class="tog ${S.cond[c]?"on":""}" data-act="cond" data-k="${c}"><span class="box"></span>${c}</button>`).join("")}</div>
+    ${activeConds.map(c=>`<p class="small" style="margin-top:6px"><b>${c}:</b> <span class="muted">${CONDITIONS[c]}</span></p>`).join("")}
+   </div>
+  </div>
+  <div class="grid" style="margin-top:0">
+   <div class="panel">
+    <h2>Skills <span class="cnt">Prof ${sg(PB())}</span></h2>
+    <div class="list">
+     ${SKILLS.map(s=>{const p=SKPROF[s[0]]||0;return `<div class="li tap" data-act="skill" data-k="${s[0]}"><span class="prof">${p===2?"◆◆":p?"◆":""}</span><span class="grow">${s[0]} <span class="dim small">${s[1].toUpperCase()}</span></span><span class="bonus">${sg(skillBonus(s))}</span></div>`}).join("")}
+    </div>
+    <p class="small dim" style="margin-top:6px">◆ proficient · ◆◆ expertise. Relic Scholar: double proficiency on History or Investigation about magic items, cursed relics, undead anatomy, Castle Ravenloft and the Amber Temple.</p>
+   </div>
+   <div class="panel">
+    <h2>Senses, defences &amp; proficiencies</h2>
+    <dl class="kv">
+     <dt>Passive Perception</dt><dd class="num">${10+skillBonus(["Perception","wis"])}</dd>
+     <dt>Passive Investigation</dt><dd class="num">${10+skillBonus(["Investigation","int"])}</dd>
+     <dt>Vision</dt><dd>Gloomvision 60 ft, sees through the Barovian mists</dd>
+     <dt>Resistance</dt><dd>Fire</dd>
+     <dt>Saves</dt><dd>Disadvantage on Wis saves · Advantage on Sanity/Composure saves</dd>
+     <dt>Immune</dt><dd>Magical sleep, suffocation</dd>
+     <dt>Armour</dt><dd>Light, medium, shields</dd>
+     <dt>Weapons</dt><dd>Simple, firearms</dd>
+     <dt>Tools</dt><dd>Tinker's, thieves', smith's, woodcarver's, disguise kit</dd>
+     <dt>Languages</dt><dd>Common, Gnomish, Undercommon, Elvish</dd>
+     <dt>Size</dt><dd>Small · 3 ft · 40 lb · age 30 · Neutral Good</dd>
+    </dl>
+   </div>
+  </div>
+ </div>`;
+}
+
+/* ======================= RENDER: COMBAT ======================= */
+function opt(o){
+ const dis = o.dis ? "dis" : "";
+ return `<button class="opt ${o.cls||""} ${dis}" data-act="use" data-k="${o.id}" ${o.dis?`title="${esc(o.dis)}"`:""}>
+  <div class="on1"><span class="nm">${esc(o.n)}</span>${o.cost?`<span class="cost">${o.cost}</span>`:""}</div>
+  ${o.fl?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
+}
+function combatOptions(){
+ const A=[],Bo=[],Re=[];
+ const atk=ATK(), dc=DC(), oc=S.combat.oc?3:0;
+ const iA=PB()+M("int");
+ const iDC=8+PB()+M("int");
+ const pB=()=>"";
+ // actions
+ A.push({id:"firebolt-arm",n:"Fire Bolt (arm)",meta:`120 ft · ${sg(atk)} to hit · 2d10 fire · ignites unattended flammables`,kind:"atk",atk,dmg:"2d10",dt:"fire"});
+ A.push({id:"scorch",n:"Scorching Ray (arm)",meta:`120 ft · 3 rays, ${sg(atk)} each · 2d6 fire per ray · Con save to withstand the energy`,kind:"scorch"});
+ A.push({id:"gbolt",n:"Guiding Bolt",cost:"1/LR",meta:`120 ft · ${sg(atk)} · 4d8 radiant · next attack vs target has advantage`,kind:"atk",atk,dmg:"4d8",dt:"radiant",dis:S.lim.gbolt?0:"Used. Back after a long rest."});
+ if(fxOn("axe")){ const b=M("str")+1+(B().martialProf?PB():0); A.push({id:"axe",n:"Radiant Battleaxe",meta:`Melee · ${sg(b)} to hit${B().martialProf?"":" (not proficient)"} · 1d8${sg(M("str")+1)} slashing (1d10 two-handed)`,kind:"atk",atk:b,dmg:"1d8+"+(M("str")+1),dt:"slashing"}); }
+ A.push({id:"dagger",n:"Dagger",meta:`Melee or thrown 20/60 · ${sg(PB()+M("dex"))} · 1d4${sg(M("dex"))} piercing`,kind:"atk",atk:PB()+M("dex"),dmg:"1d4+"+M("dex"),dt:"piercing"});
+ A.push({id:"hammer",n:"Light hammer",meta:`Melee or thrown 20/60 · ${sg(PB()+M("str"))} · 1d4${M("str")?sg(M("str")):""} bludgeoning`,kind:"atk",atk:PB()+M("str"),dmg:"1d4"+(M("str")?"+"+M("str"):""),dt:"bludgeoning"});
+ if(fxOn("pipes")) A.push({id:"pipes",n:"Pipes of Haunting",cost:`${S.ch.pipes}/3 ch`,meta:"30 ft · DC 15 Wis save or frightened 1 min (repeats save each turn)",kind:"pipes",dis:S.ch.pipes?0:"No charges"});
+ A.push({id:"fuel",n:"Seriach's Fuel",cost:"1/LR",meta:"Only at 0 energy · gain 1–5 Stress, gain that much energy",kind:"fuel",dis:!S.lim.fuel?"Used. Back after a long rest.":S.energy>0?"Pack must be at 0 energy":S.stress>=5?"Already at 5 Stress":0});
+ A.push({id:"insight",n:"Occult Insight",meta:"Action or bonus · DC 8 + CR · fail = +1 Stress",kind:"insight"});
+ // gadgets from loadout
+ const gad=S.loadout.map((g,i)=>({g,i,b:BPK[g.key]})).filter(x=>x.b);
+ const seen={};
+ gad.forEach(({g,i,b})=>{
+  if(b.l===0){ if(seen[b.k]) return; seen[b.k]=1; }
+  const tgt = b.t==="b"?Bo: b.t==="r"?Re: b.t==="a"?A:null; if(!tgt) return;
+  const bits=[b.r]; if(b.atk) bits.push(`${sg(atk)} to hit`); if(b.s) bits.push(`DC ${dc} ${b.s}`); if(b.dmg) bits.push(`${b.dmg.replace("@int",M("int"))} ${b.dt}`); if(b.heal) bits.push(`heal ${b.heal.replace("@int",M("int"))}`); if(b.conc) bits.push("conc");
+  tgt.push({id:"g:"+i,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":"single-use",meta:bits.join(" · "),cls:"gad",kind:"gadget",gi:i,dis:g.dep?"Depleted. Reset on a short or long rest.":0});
+ });
+ // bonus: discharges
+ const DS=[["pbolt","Proton Bolt",1,`60 ft · ${sg(iA)} to hit · 2d8 force`],["pstream","Proton Stream",3,`30-ft line · DC ${iDC} Dex · 2d8 force, half on save`],["cburst","Containment Burst",4,`60 ft, 10-ft radius · DC ${iDC} Str · 2d8 force, push 10 ft; half, no push on save`],["overload","Full Proton Overload",5,`60 ft · DC ${iDC} Str · 6d8 force + restrained to end of your next turn; half on save`]];
+ DS.forEach(([id,n,c,meta])=>Bo.push({id,n,cost:`${c} energy`,meta,cls:"ectoopt",kind:"discharge",e:c,dis:S.energy<c?`Need ${c} energy (have ${S.energy})`:0}));
+ if(fxOn("boots")) Bo.push({id:"boots",n:"Boots of the Winding Path",meta:"Teleport up to 15 ft to a space you occupied earlier this turn",kind:"simple"});
+ if(fxOn("axe")) Bo.push({id:"axelight",n:`Battleaxe light ${S.axeLight?"off":"on"}`,meta:"Bright 30 ft, dim 30 ft more",kind:"axelight"});
+ Bo.push({id:"insightB",n:"Occult Insight",meta:"DC 8 + CR · fail = +1 Stress",kind:"insight"});
+ // reactions
+ Re.push({id:"vacuum",n:"Soul Vacuum",meta:"Hostile CR ¼+ dies within 30 ft · capture energy",cls:"ectoopt",kind:"vacuum"});
+ if(fxOn("rshield")) Re.push({id:"rshield",n:"Repulsion Shield",cost:`${S.ch.rshield}/4 ch`,meta:"After a melee hit on you · push attacker up to 15 ft",kind:"rshield",dis:!S.shield?"Shield not equipped":S.ch.rshield?0:"No charges"});
+ Re.push({id:"spark",n:"Guiding Spark",cost:"1/SR",meta:"Creature within 60 ft saves vs your blueprint or discharge · it subtracts 1d4",kind:"spark",dis:S.lim.spark?0:"Used. Back after a short rest."});
+ if(fxOn("axe")) Re.push({id:"axeblind",n:"Battleaxe flare",cost:`${S.ch.axe}/4 ch`,meta:`When hit by an attack · attacker Con save DC ${dc} or blinded to end of its next turn`,kind:"axeblind",dis:S.ch.axe?0:"No charges"});
+ if(fxOn("mind")) Re.push({id:"mind",n:"Mind Sharpener",cost:`${S.ch.mind}/4 ch`,meta:"Failed Con save to keep concentration · succeed instead",kind:"mind",dis:S.ch.mind?0:"No charges"});
+ Re.push({id:"oa",n:"Opportunity attack",meta:"Enemy leaves your reach · one melee attack",kind:"simple"});
+ [...A,...Bo,...Re].forEach(o=>{ if(o.fl) return; const m={"firebolt-arm":"arm_firebolt",scorch:"arm_scorch",gbolt:"gbolt",pbolt:"pbolt",pstream:"pstream",cburst:"cburst",overload:"overload",vacuum:"vacuum",rshield:"rshield",spark:"spark",fuel:"fuel",insight:"insight",insightB:"insight"}[o.id]; if(m) o.fl=FLAV_EXTRA[m]; if(o.kind==="gadget"){ const b=BPK[S.loadout[o.gi].key]; o.fl=flavOf(b); } });
+ A.forEach(o=>o.slot="act"); Bo.forEach(o=>o.slot="bon"); Re.forEach(o=>o.slot="rea");
+ return {A,Bo,Re};
+}
+let OPTS={};
+function renderCombat(){
+ const C=S.combat;
+ const {A,Bo,Re}=combatOptions();
+ OPTS={}; [...A,...Bo,...Re].forEach(o=>OPTS[o.id]=o);
+ const ocAvail=!C.ocUsed && S.stress<5;
+ const std=["Dash","Disengage","Dodge","Help","Hide","Ready","Search","Use an object"];
+ if(!C.on) return `<div class="panel" style="margin-top:12px">
+  <h2>Not in combat</h2>
+  <p class="muted">Flip the Combat switch at the top when initiative is called. You'll get a turn tracker, Overclock, and every action, bonus action and reaction Flint can take right now, including your loaded gadgets.</p>
+  <div class="btns" style="margin-top:8px"><button class="btn pri" data-act="combatToggle">Start combat</button><button class="btn" data-act="init">Roll initiative (${sg(M("dex"))})</button></div>
+ </div>${combatRef()}`;
+ return `
+ <div class="turnbar">
+  <span class="round">Round ${C.round}</span>
+  <div class="econ">
+   <button class="eco ${C.act?"used":""}" data-act="eco" data-k="act">Action</button>
+   <button class="eco ${C.bon?"used":""}" data-act="eco" data-k="bon">Bonus</button>
+   <button class="eco ${C.rea?"used":""}" data-act="eco" data-k="rea">Reaction</button>
+   <span class="chip">${speed()} ft move</span>
+  </div>
+  <span style="flex:1"></span>
+  <button class="oc ${C.oc?"on":""} ${ocAvail||C.oc?"":"spent"}" data-act="overclock" ${ocAvail||C.oc?"":"disabled"}>${C.oc?"Overclock ARMED · +3, +1 Stress":C.ocUsed?"Overclock used this turn":S.stress>=5?"Overclock (Stress full)":"Overclock"}</button>
+  <button class="btn ${C.sts?"":"ecto"}" data-act="sts" ${C.sts?"disabled":""}>Soul-Targeted +1d6</button>
+  <button class="btn pri" data-act="nextTurn">Start my turn</button>
+  <button class="btn" data-act="combatToggle">End combat</button>
+ </div>
+ ${S.cond&&Object.keys(S.cond).filter(k=>S.cond[k]).length?`<div class="redbox">Active conditions: ${Object.keys(S.cond).filter(k=>S.cond[k]).map(c=>`<b>${c}</b> (${CONDITIONS[c]})`).join(" · ")}</div>`:""}
+ ${S.conc?`<div class="warnbox">Concentrating on <b>${esc(S.conc)}</b>. Damage forces a Con save (${sg(saveBonus("con"))}), DC 10 or half the damage. <button class="btn sm" data-act="concEnd">End it</button></div>`:""}
+ <div class="grid g3">
+  <div class="col"><div class="colhead">Actions <span class="chip ${C.act?"":"ok"}">${C.act?"used":"ready"}</span></div>${A.map(opt).join("")}
+   <div class="chips" style="margin-top:4px">${std.map(s=>`<button class="chip" data-act="stdAct" data-k="${s}">${s}</button>`).join("")}</div></div>
+  <div class="col"><div class="colhead">Bonus actions <span class="chip ${C.bon?"":"ok"}">${C.bon?"used":"ready"}</span></div>${Bo.map(opt).join("")}</div>
+  <div class="col"><div class="colhead">Reactions <span class="chip ${C.rea?"":"ok"}">${C.rea?"used":"ready"}</span></div>${Re.map(opt).join("")}</div>
+ </div>
+ ${S.loadout.length?"":`<div class="warnbox" style="margin-top:10px">No gadgets in your load-out, so none show here. Build them on the Gadgets tab.</div>`}
+ ${combatRef()}`;
+}
+function combatRef(){ return `<div class="grid g2">
+  <div class="panel"><h2>Overclock &amp; Soul-Sight</h2>
+   <p class="small"><b>Overclock:</b> once per turn, before rolling a gadget or discharge, take 1 Stress. Seriach's rage gives +3 to that spell attack roll, or +3 to that save DC and its damage. Arm it, then tap the gadget or discharge.</p>
+   <p class="small"><b>Soul-Targeted Strike:</b> once per turn, when a spell attack hits and beats the target's AC by 5 or more, add 1d6 force.</p>
+   <p class="small"><b>Guiding Spark:</b> reaction, the creature subtracts 1d4 from its save vs your blueprint or discharge.</p>
+  </div>
+  <div class="panel"><h2>Soul Vacuum <span class="sp"></span><button class="btn ecto sm" data-act="soulModal">Capture</button></h2>
+   <table class="t"><tr><th>Creature CR</th>${SV_TABLE.map(r=>`<td>${r[0]}</td>`).join("")}</tr><tr><th>Energy</th>${SV_TABLE.map(r=>`<td class="num">${r[1]}</td>`).join("")}</tr></table>
+   <p class="small muted" style="margin-top:6px">Reaction, hostile creature CR ¼+ dies within 30 ft. Over capacity: excess deals 1 necrotic per point to you or an adjacent creature. Any die showing 4: Containment Breach, roll d100 on the wild table.</p>
+  </div></div>`; }
+
+/* ======================= RENDER: GADGETS ======================= */
+function bpCard(b,inLoad){
+ const f=FLAVOR[b.n.replace(" (UA)","")]||{};
+ const open=UI.openBp[b.k];
+ const stats=[`<span><b>${TIME[b.t]}</b></span>`,`<span>Range <b>${b.r}</b></span>`,`<span><b>${b.du}</b></span>`];
+ if(b.s) stats.push(`<span>Save <b>${b.s} DC ${DC()}</b></span>`);
+ if(b.atk) stats.push(`<span>Attack <b>${sg(ATK())}</b></span>`);
+ if(b.dmg) stats.push(`<span>Damage <b>${b.dmg.replace("@int",M("int"))} ${b.dt}</b></span>`);
+ if(b.rit) stats.push(`<span><b>Ritual</b></span>`);
+ const fl=flavOf(b);
+ return `${fl?`<div class="flav">${esc(fl)}</div>`:""}<div class="stat">${stats.join("")}</div><div class="fx"><b class="small" style="color:var(--ash2);letter-spacing:1px">IN PLAY</b> ${esc(b.fx)}</div>`;
+}
+function renderGadgets(){
+ const cap=gadgetCap(), n=S.loadout.length;
+ const q=UI.bpFilter.toLowerCase();
+ const list=BP.filter(b=>(UI.bpLvl==="all"||String(b.l)===UI.bpLvl) && (!q || (b.n+" "+b.c+" "+b.fx).toLowerCase().includes(q)));
+ const depN=S.loadout.filter(g=>g.dep).length;
+ return `<div class="grid gside">
+  <div class="panel">
+   <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<button class="btn sm" data-act="resetGadgets">Reset ${depN} depleted</button>`:""}</h2>
+   <p class="small dim">Carry limit: Artificer level + INT mod. Levelled gadgets deplete when deployed; cantrips don't. Short or long rest resets depleted gadgets; long rest lets you swap the load-out.</p>
+   <div class="col" style="margin-top:8px">
+   ${n?S.loadout.map((g,i)=>{const b=BPK[g.key]; if(!b) return ""; return `<div class="gadget ${g.dep?"dep":""}">
+     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)}</b>
+      ${g.dep?'<span class="chip red">Depleted</span>':""}
+      <button class="btn sm pri" data-act="deploy" data-i="${i}" ${g.dep?"disabled":""}>Deploy</button>
+      ${g.dep?`<button class="btn sm" data-act="ungdep" data-i="${i}">Reset</button>`:""}
+      <button class="btn sm" data-act="unload" data-i="${i}" title="Dismantle">✕</button></div>
+     <div class="small muted">${b.n}${b.conc?" · concentration":""}</div>
+     ${bpCard(b,true)}</div>`}).join(""):`<div class="warnbox">Empty. Add the gadgets you built at your last long rest from the catalogue.</div>`}
+   </div>
+  </div>
+  <div class="panel">
+   <h2>Blueprint catalogue <span class="cnt">${BP.filter(b=>S.researched[b.k]).length} researched</span></h2>
+   <input class="search" id="bpsearch" type="search" placeholder="Search by spell, contraption or effect" value="${esc(UI.bpFilter)}" data-act-input="bpFilter">
+   <div class="chips" style="margin-bottom:8px">${[["all","All"],["0","Cantrips"],["1","Level 1"],["2","Level 2"]].map(([k,l])=>`<button class="tog ${UI.bpLvl===k?"on":""}" data-act="bpLvl" data-k="${k}"><span class="box"></span>${l}</button>`).join("")}</div>
+   <div class="col">
+   ${list.map(b=>{const r=S.researched[b.k]; return `<div class="gadget">
+     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"C"}</span><b style="flex:1;min-width:0">${esc(b.n)}</b>
+      <button class="tog ${r?"on":""}" data-act="research" data-k="${b.k}" title="Researched (in master catalogue)"><span class="box"></span>${r?"Researched":`R&amp;D ${Math.max(1,b.l)} h`}</button>
+      <button class="btn sm pri" data-act="build" data-k="${b.k}" ${r?"":"disabled"}>Build</button></div>
+     <div class="small" style="color:var(--amber)">${esc(b.c)}</div>
+     ${bpCard(b)}</div>`}).join("")}
+   </div>
+  </div></div>`;
+}
+
+/* ======================= RENDER: TINKERING ======================= */
+function renderTinker(){
+ const cap=invCap(), n=S.inventions.length;
+ return `<div class="grid gside">
+  <div class="grid" style="margin-top:0">
+  <div class="panel">
+   <h2>Active inventions <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span></h2>
+   <p class="small dim">Limit: INT mod. Building past it makes your oldest invention snap or short out.</p>
+   <div class="col" style="margin-top:8px">${n?S.inventions.map((v,i)=>`<div class="gadget">
+     <div class="hd"><span class="tier tier${v.tier}">T${v.tier}</span><b style="flex:1;min-width:0">${esc(v.n)}</b>${i===0&&n>=cap?'<span class="chip red">Oldest, snaps next</span>':""}<button class="btn sm" data-act="scrapInv" data-i="${i}">Scrap</button></div>
+     <textarea id="inv-${v.id}" data-bind-text="inventions.${i}.note" style="min-height:48px;margin-top:6px" placeholder="What it does, per the DM">${esc(v.note)}</textarea></div>`).join(""):`<p class="muted">No active inventions.</p>`}
+   </div>
+  </div>
+  <div class="panel"><h2>Rules</h2>
+   <p class="small">Each attempt: 1 hour of downtime and 1d10 gp of components. Tiny devices only. Describe the effect; the DM sets the tier.</p>
+   <table class="t"><tr><th>d100</th><th>Result</th></tr>
+    <tr><td class="num">1–5</td><td><b style="color:var(--blood)">Catastrophic meltdown.</b> Materials destroyed, 1d6 fire damage (resisted), +1 Stress.</td></tr>
+    <tr><td class="num">&lt; tier</td><td><b>Failure.</b> Materials kept, but hyper-fixation makes you ignore your physical limits.</td></tr>
+    <tr><td class="num">≥ tier</td><td><b style="color:var(--heal)">Success.</b> Works as planned.</td></tr>
+    <tr><td class="num">95–100</td><td><b style="color:var(--amber)">Critical success.</b> Works flawlessly plus a minor bonus (range, durability, silent).</td></tr></table>
+  </div></div>
+  <div class="grid" style="margin-top:0">
+  <div class="panel">
+   <h2>Workbench <span class="sp"></span><span class="chip amber">Scrap: ${S.scrap} gp</span></h2>
+   <div class="btns"><input id="wb-name" type="text" placeholder="Invention name" style="flex:1;min-width:180px" value="${esc(UI.wbName||"")}" data-act-input="wbName">
+    <select id="wb-tier" data-act-change="wbTier">${TIERS.map(([t,dc,l])=>`<option value="${t}" ${(UI.wbTier||0)==t?"selected":""}>Tier ${t} · ${l} (${dc}+)</option>`).join("")}</select></div>
+   <textarea id="wb-note" placeholder="Describe exactly what it should do" style="margin-top:6px;min-height:60px" data-act-input="wbNote">${esc(UI.wbNote||"")}</textarea>
+   <div class="btns" style="margin-top:6px"><button class="btn pri" data-act="buildInv">Spend 1 hour &amp; roll d100</button><button class="btn sm" data-act="scrapAdj" data-d="-1">−1 gp</button><button class="btn sm" data-act="scrapAdj" data-d="1">+1 gp</button><button class="btn sm" data-act="scrapAdj" data-d="10">+10 gp</button></div>
+   ${UI.wbResult||""}
+  </div>
+  <div class="panel"><h2>Idea book</h2>
+   <p class="small dim">Tap to load it onto the workbench.</p>
+   ${TIERS.map(([t,dc,l])=>`<h3>Tier ${t} · ${l} · ${dc}+</h3><div class="chips">${IDEAS.filter(x=>x[0]===t).map(x=>`<button class="chip" data-act="idea" data-n="${esc(x[1])}" data-t="${t}" data-d="${esc(x[2])}" title="${esc(x[2])}">${esc(x[1].replace(/^The /,""))}</button>`).join("")}</div>`).join("")}
+  </div></div></div>`;
+}
+
+/* ======================= RENDER: GEAR ======================= */
+function itemRow(it,i){
+ const fx=it.fx&&FX[it.fx];
+ return `<div class="itemrow">
+  <div class="nm"><b>${esc(it.n)}</b> ${it.mod?'<span class="chip amber">Modified</span>':""} ${it.att?'<span class="chip ecto">Attuned</span>':""}
+   ${it.note?`<div class="small muted">${esc(it.note)}</div>`:""}
+   ${fx?`<div class="btns" style="margin-top:4px"><button class="tog ${it.mod?"on":""}" data-act="imod" data-i="${i}"><span class="box"></span>Mechanical Modification</button><button class="tog ${it.att?"on":""}" data-act="iatt" data-i="${i}"><span class="box"></span>Attuned</button></div>`:""}
+  </div>
+  <div class="qty"><button class="mini" data-act="iq" data-i="${i}" data-d="-1">−</button><span class="num">${it.q}</span><button class="mini" data-act="iq" data-i="${i}" data-d="1">+</button></div>
+  <span class="num small dim">${(+it.w||0)*(+it.q||0)} lb</span>
+  <div class="btns"><button class="btn sm" data-act="iworn" data-i="${i}">${it.worn?"Unequip":"Equip"}</button>${UI.confirmDel===it.id?`<button class="btn sm red" data-act="idelGo" data-i="${i}">Remove</button><button class="btn sm" data-act="idelNo">Keep</button>`:`<button class="btn sm" data-act="idel" data-i="${i}" title="Remove">✕</button>`}</div>
+ </div>`;
+}
+function renderGear(){
+ const c=carried(), cap=carryCap();
+const mods=modsUsed(), atts=S.items.filter(i=>i.att).length;
+ const worn=S.items.map((it,i)=>[it,i]).filter(([it])=>it.worn), bag=S.items.map((it,i)=>[it,i]).filter(([it])=>!it.worn);
+ return `<div class="grid g2">
+  <div class="panel">
+   <h2>Carried <span class="cnt ${c>cap?"over":c===cap?"full":""}">${c} / ${cap} items</span></h2>
+   <p class="small dim">DM's limit: carried (not worn) items up to your Strength score.</p>
+   ${c>cap?`<div class="redbox">Over the limit by ${c-cap}. Drop, stash or equip something.</div>`:""}
+   ${bag.map(([it,i])=>itemRow(it,i)).join("")||'<p class="muted">Nothing carried.</p>'}
+   <h3>Add item</h3>
+   <div class="btns"><input id="ni-name" type="text" placeholder="Item name" style="flex:1;min-width:160px"><input id="ni-q" type="number" value="1" min="1" style="width:60px" aria-label="Quantity"><input id="ni-w" type="number" value="0" min="0" step="0.1" style="width:66px" aria-label="Weight"><button class="tog" id="ni-worn" data-act="niWorn"><span class="box"></span>Worn</button><button class="btn pri" data-act="addItem">Add</button></div>
+   <input id="ni-note" type="text" placeholder="Notes (optional)" style="width:100%;margin-top:6px">
+  </div>
+  <div class="grid" style="margin-top:0">
+   <div class="panel">
+    <h2>Worn &amp; equipped</h2>
+    <div class="chips" style="margin-bottom:6px"><span class="chip ${mods>modCap()?"red":"amber"}">Mechanical Modifications ${mods}/${modCap()}</span><span class="chip ${atts>attCap()?"red":"ecto"}">Attuned ${atts}/${attCap()}</span></div>
+    ${mods>modCap()?`<div class="redbox">Too many modifications for level ${B().level}. Remove one at your next long rest.</div>`:""}
+    ${atts>attCap()?`<div class="redbox">Too many attuned items.</div>`:""}
+    ${worn.map(([it,i])=>itemRow(it,i)).join("")}
+    <h3>Modifications on allies' gear</h3>
+    <p class="small dim">Clockwork you've bolted onto other characters' equipment. Each one uses a modification slot.</p>
+    ${(S.allyMods||[]).map((m,i)=>`<div class="btns" style="margin-top:6px"><input type="text" id="am-item-${i}" data-bind="allyMods.${i}.item" value="${esc(m.item)}" placeholder="Item and modification" style="flex:2;min-width:150px"><input type="text" id="am-ally-${i}" data-bind="allyMods.${i}.ally" value="${esc(m.ally)}" placeholder="Character" style="flex:1;min-width:100px"><button class="btn sm" data-act="amDel" data-i="${i}" title="Reclaim this slot">✕</button></div>`).join("")}
+    <div class="btns" style="margin-top:6px"><button class="btn sm" data-act="amAdd">Add ally modification</button></div>
+   </div>
+   <div class="panel">
+    <h2>Coins &amp; materials</h2>
+    <div class="btns">${["cp","sp","ep","gp","pp"].map(k=>`<label class="small">${k.toUpperCase()} <input type="number" id="coin-${k}" data-bind="coins.${k}" value="${S.coins[k]}"></label>`).join("")}<label class="small">Scrap (gp) <input type="number" id="coin-scrap" data-bind="scrap" value="${S.scrap}"></label></div>
+    <p class="small dim" style="margin-top:6px">Total weight ${weight().toFixed(1)} lb of ${B().str*15} lb capacity. Coins count 50 to the pound.</p>
+   </div>
+  </div></div>`;
+}
+
+/* ======================= RENDER: FEATURES ======================= */
+const R_ = (t,b,cls="") => `<details class="rule ${cls}"><summary>${t}</summary><div class="body">${b}</div></details>`;
+function renderFeatures(){
+ const L=B().level;
+ return `<div class="grid g2">
+ <div class="panel"><h2>Spirit Engine</h2>
+  ${R_("Æther-Pack",`<p>A containment engine strapped to your back: iron tank of swirling violet ectoplasm, gauges, copper pipes, control wand and foot pedal. Counts as an artificer's tool. If lost or destroyed, rebuild it on a long rest with tinker's tools and 25 gp of materials.</p><p>Holds up to <b>${eMax()}</b> Energy (5 + INT mod). On a long rest you lose half your stored Energy (rounded up), unless you take 1 Stress to keep it (up to 5 Stress total).</p>`)}
+  ${R_("Soul Vacuum",`<p>Reaction when a hostile creature of CR ¼ or higher dies within 30 ft. Its essence is ripped into the pack.</p><table class="t"><tr><th>CR</th><th>Energy</th></tr>${SV_TABLE.map(r=>`<tr><td>${r[0]}</td><td class="num">${r[1]}</td></tr>`).join("")}</table><p style="margin-top:6px"><b>Backlash:</b> energy above capacity isn't captured; you or an adjacent creature takes 1 necrotic per excess point.<br><b>Containment Breach:</b> if any die shows a 4, roll d100 on the wild table.</p>`)}
+  ${R_("Ectoplasmic Discharge",`<p>Bonus action, uses INT, counts as an Occult-Tech Blueprint (Overclock applies).</p><ul><li><b>Proton Bolt (1):</b> ranged spell attack, 60 ft, 2d8 force.</li><li><b>Proton Stream (3):</b> 30-ft by 5-ft line, Dex save, 2d8 force, half on success.</li><li><b>Containment Burst (4):</b> 10-ft-radius sphere within 60 ft, Str save, 2d8 force and pushed 10 ft from the centre; half and no push on success.</li><li><b>Full Proton Overload (5):</b> one creature within 60 ft, Str save, 6d8 force and restrained until the end of your next turn (repeats the save at the end of its turns); half and not restrained on success.</li></ul>`)}
+  ${R_("Soul-Sight · Soul-Targeted Strikes",`<p>You see the thread between body and soul. Once per turn, when a spell attack beats the target's AC by 5 or more, add <b>${L>=15?"3d6":L>=9?"2d6":"1d6"}</b> force.</p>`)}
+  ${R_("Guiding Spark",`<p>Reaction when a creature you can see within 60 ft saves against your Blueprint or Discharge: it subtracts 1d4. Once per short or long rest.</p>`)}
+  ${R_("Seriach's Fuel",`<p>Once per long rest, as an action while the pack is at 0 Energy: gain 1 to 5 Stress (never above 5) and the same amount of Energy.</p>`)}
+  ${R_("Level 9 · Recalibration & Tactical Vents",`<p>Pick one configuration after each rest. Whenever you spend 3+ Energy in a turn, its Vent triggers.</p><ul><li><b>Kinetic Deflector:</b> reaction, 2 Energy, reduce damage by 1d10 + INT; at 0, half cover. Vent: +2 AC to your next turn.</li><li><b>Arcane Capacitor:</b> +1 Energy to give an ally +2 AC, a one-level upcast, or resistance to the next damage. Vent: up to 3 creatures in 30 ft get 1d8 + INT temp HP and a free 10-ft move.</li><li><b>Offensive Exhaust:</b> once per turn when you deal damage, a creature within 5 ft of the target takes INT force. Vent: Dex save or 2d6 force to chosen creatures within 5 ft.</li><li><b>Hybrid Regulator:</b> +30 ft discharge range, temp HP equal to Energy spent for a creature within 10 ft, +1 to hit for you and those within 5 ft. Vent: +10 ft move and a free 10-ft move.</li></ul>`, L>=9?"":"locked")}
+  ${R_("Level 15 · Master of the Æther",`<ul><li><b>Perfect Containment:</b> Soul Vacuum 60 ft; roll capture twice and choose, INT mod times per long rest.</li><li><b>Ectoplasmic Mastery:</b> Proton Bolt costs 0; once per turn reduce a discharge cost by 1 (minimum 1).</li><li><b>Final Containment:</b> once per long rest at 0 HP, drop to 1 instead, gain 5 Energy, creatures within 15 ft Str save or 4d8 force and pushed 15 ft. Then +2 Stress and no Soul Vacuum until a long rest.</li></ul>`, L>=15?"":"locked")}
+ </div>
+ <div class="grid" style="margin-top:0">
+ <div class="panel"><h2>Artificer, reworked</h2>
+  ${R_("Blueprint Protocol",`<p>No spell slots and no natural casting. Your spells are physical gadgets.</p><ul><li>Carry up to <b>${gadgetCap()}</b> gadgets (level + INT).</li><li>Deploying one replicates the spell; levelled gadgets are then depleted. Cantrips don't deplete.</li><li>Short or long rest: reset depleted gadgets. Long rest: swap the whole load-out.</li><li>Spell save DC = 8 + prof + INT + CHA = <b>${DC()}</b>. Attack = prof + INT + CHA = <b>${sg(ATK())}</b>.</li><li>R&amp;D: spend downtime hours equal to the spell's level (1 for cantrips) to add a blueprint to your catalogue.</li></ul>`)}
+  ${R_("Overclock Protocol",`<p>Once per turn, when you deploy a gadget or attack with a custom creation, take 1 Stress before rolling. Seriach channels through the machine: +3 to that spell attack roll, or +3 to that save DC and damage roll.</p>`)}
+  ${R_("Mechanical Modifications",`<p>Your infusions are now clockwork, springs and bolted plating with the same mechanical bonuses. You can maintain <b>${modCap()}</b> at level ${L}. Re-rig them on a long rest with your tools. Mark which items are modified on the Gear tab; their effects only appear in combat when modified.</p>`)}
+  ${R_("Malignant Tinkering",`<p>Build Tiny devices: 1 hour and 1d10 gp each, d100 against the DM's tier. Up to <b>${invCap()}</b> active (INT mod). See the Tinkering tab.</p>`)}
+ </div>
+ <div class="panel"><h2>Amber-Veined Gnome</h2>
+  ${R_("Core changes",`<ul><li>Charisma rose to 11.</li><li>Fire resistance.</li><li>Disadvantage on Wisdom saving throws.</li><li>Fire Bolt and Scorching Ray from your arm (Isek's amber). Scorching Ray needs a Con save to withstand the energy.</li></ul>`)}
+  ${R_("Unliving Stasis",`<p>No sleep needed; can't be magically put to sleep. One breath per minute; immune to suffocation.</p>`)}
+  ${R_("Gloomvision",`<p>Darkvision 60 ft, and your eyes cut through the Barovian mists where others are blinded.</p>`)}
+  ${R_("Grave Resilience",`<p>Advantage on all Sanity/Composure saving throws.</p>`)}
+  ${R_("Relic Scholar · Artificer's Lore",`<p>Double proficiency on Intelligence (History) or (Investigation) about magic items, cursed relics, undead anatomy, Castle Ravenloft and the Amber Temple, and History checks about magic, alchemical and technological items.</p>`)}
+  ${R_("The cost",`<ul><li><b>Infusions severed:</b> old infusions and Artillerist features are gone.</li><li><b>The Mother's Loss:</b> without the amber shard from your foster mother, her face, hands and voice are slowly slipping away.</li><li><b>New flaw:</b> cold machine logic. You can build weapons and survival rigs but can no longer create art, whimsy or joy.</li></ul>`)}
+ </div>
+ <div class="panel"><h2>Feats &amp; background</h2>
+  ${R_("Fractured Genius",`<p>+1 to a stat, +1 Sanity. <b>Whispers of the Mad:</b> when you fail a Sanity check, ask the DM one yes/no question about your situation. <b>Isolated Insight:</b> Guiding Bolt once per long rest using INT.</p>`)}
+  ${R_("Occult Insight",`<p>Action or bonus action: learn something about a creature or what it did. DC = 8 + the creature's CR (or spell level). On a failure, gain 1 Stress; you saw something you weren't ready for.</p>`)}
+  ${R_("Investigator · Official Inquiry",`<p>Fast talk, determination and official-looking papers get you access to a place or person tied to a crime you're investigating. Uninvolved people avoid impeding you or pass your requests along. Local law sees you as a nuisance or one of their own.</p>`)}
+ </div></div></div>`;
+}
+
+/* ======================= RENDER: NOTES ======================= */
+function renderNotes(){
+ const ta=(k,l,h)=>`<div class="panel"><h2>${l}</h2><textarea id="n-${k}" data-bind-text="notes.${k}" style="min-height:${h||90}px">${esc(S.notes[k])}</textarea></div>`;
+ return `<div class="grid g2">
+  ${ta("session","Session notes",220)}
+  <div class="panel"><h2>Event log <span class="cnt">${S.log.length}</span></h2>
+   <div class="list" style="max-height:260px;overflow:auto">${S.log.map(l=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(l.t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="grow">${esc(l.txt)}</span></div>`).join("")||'<p class="muted">Changes you make (damage, rests, energy, stress, builds) show up here.</p>'}</div></div>
+  ${ta("traits","Personality traits")}${ta("ideals","Ideals")}${ta("bonds","Bonds")}${ta("flaws","Flaws")}
+  ${ta("appearance","Appearance")}${ta("backstory","Backstory",160)}
+  <div class="panel"><h2>Backup</h2>
+   <p class="small muted">Copy the whole sheet as text to keep somewhere safe, or paste one back in.</p>
+   <p class="small muted">Everything lives on this tablet only. Save a backup file now and then (and before clearing browser data or switching devices).</p>
+   <div class="btns" style="margin-bottom:6px"><button class="btn pri" data-act="exportFile">Save backup file</button><label class="btn" for="bk-file" style="cursor:pointer">Load backup file</label><input type="file" id="bk-file" accept=".json,application/json" hidden></div>
+   <div class="btns"><button class="btn" data-act="exportJson">Copy backup</button><button class="btn" data-act="importModal">Restore from backup</button><button class="btn red" data-act="resetModal">Reset to sheet defaults</button></div>
+   <p class="status" id="storemsg" style="margin-top:8px">${storeMsg}</p>
+  </div>
+ </div>`;
+}
+
+/* ======================= RENDER ROOT ======================= */
+function render(){
+ renderTop();
+ const m=document.getElementById("main");
+ const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,features:renderFeatures,notes:renderNotes}[UI.tab]||renderSheet;
+ m.innerHTML=f();
+}
+
+/* ======================= MODALS ======================= */
+function modal(html){ document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="closeBg"><div class="modal" role="dialog">${html}</div></div>`; }
+function closeModal(){ document.getElementById("modal").innerHTML=""; }
+let KP={v:"",type:"",res:false};
+function hpModal(){
+ const dtypes=["","fire","necrotic","slashing","piercing","bludgeoning","cold","acid","lightning","thunder","poison","psychic","radiant","force"];
+ modal(`<h2>Hit points</h2>
+  <div class="muted small">Current <b class="num">${S.hp.cur}</b> / ${maxHp()} · Temp <b class="num">${S.hp.temp}</b></div>
+  <div class="entry num" id="kpv">${KP.v||"0"}</div>
+  <div class="keypad">${[7,8,9,"⌫",4,5,6,"C",1,2,3,"",0,"00","",""].map(k=>k===""?"<span></span>":`<button data-act="kp" data-k="${k}">${k}</button>`).join("")}</div>
+  <div class="btns" style="margin-bottom:8px"><select id="kp-type" data-act-change="kpType">${dtypes.map(t=>`<option value="${t}" ${KP.type===t?"selected":""}>${t||"Damage type (optional)"}</option>`).join("")}</select>
+   <span class="small muted">${KP.type==="fire"?"Fire: resistance halves it automatically.":""}</span></div>
+  <div class="btns"><button class="btn red" data-act="kpApply" data-k="dmg">Take damage</button><button class="btn ok" data-act="kpApply" data-k="heal">Heal</button><button class="btn ecto" data-act="kpApply" data-k="temp">Set temp HP</button><button class="btn" data-act="close">Close</button></div>
+  ${S.hp.cur===0?`<div class="sep"></div><h3>Death saves</h3><div class="btns"><span class="dsave">Successes ${[0,1,2].map(i=>`<span class="use ${i<S.ds.s?"":"spent"}" data-act="ds" data-k="s" data-i="${i}"></span>`).join("")}</span><span class="dsave">Failures ${[0,1,2].map(i=>`<span class="use ${i<S.ds.f?"":"spent"}" data-act="ds" data-k="f" data-i="${i}" style="${i<S.ds.f?"background:var(--blood);border-color:var(--blood)":""}"></span>`).join("")}</span><button class="btn sm" data-act="dsRoll">Roll death save</button></div>`:""}
+  <div id="kpmsg"></div>`);
+}
+function armorModal(){
+ modal(`<h2>Armour</h2>
+  <div class="btns"><button class="tog ${S.armor?"on":""}" data-act="armor"><span class="box"></span>Breastplate donned</button><button class="tog ${S.shield?"on":""}" data-act="shieldT"><span class="box"></span>Shield equipped</button></div>
+  <table class="t" style="margin-top:10px">
+   <tr><td>${S.armor?"Breastplate 14 + Dex (max 2)":"Unarmoured 10 + Dex"}</td><td class="num">${S.armor?14+Math.min(M("dex"),2):10+M("dex")}</td></tr>
+   <tr><td>Shield${fxOn("rshield")?" + Repulsion +1":""}</td><td class="num">${S.shield?"+"+(2+(fxOn("rshield")?1:0)):"—"}</td></tr>
+   <tr><td>Misc</td><td class="num">${sg(B().acMisc||0)}</td></tr>
+   <tr><th>AC</th><th class="num">${ac()}</th></tr></table>
+  <p class="small muted" style="margin-top:8px">Breastplate takes 5 minutes to don and 1 minute to doff. A shield takes an action. Repulsion Shield's reaction needs the shield on.</p>
+  <div class="btns"><button class="btn" data-act="close">Done</button></div>`);
+}
+function soulModal(r){
+ modal(`<h2>Soul Vacuum</h2><div class="flav" style="font-size:14px">${esc(FLAV_EXTRA.vacuum)}</div><p class="small muted">Reaction · hostile CR ¼+ creature died within 30 ft. Pack holds ${S.energy}/${eMax()}.</p>
+  <div class="btns">${SV_TABLE.map((row,i)=>`<button class="btn ecto" data-act="vacRoll" data-i="${i}">CR ${row[0]}<br><span class="num small">${row[1]}</span></button>`).join("")}</div>
+  <div id="vacres">${r||""}</div>
+  <div class="btns" style="margin-top:10px"><button class="btn" data-act="breach">Roll d100 wild table</button><button class="btn" data-act="close">Close</button></div>`);
+}
+function restModal(kind){
+ const lost=Math.ceil(S.energy/2);
+ if(kind==="short") modal(`<h2>Short rest</h2>
+  <ul class="small"><li>Reset ${S.loadout.filter(g=>g.dep).length} depleted gadgets</li><li>Guiding Spark recovers</li></ul>
+  <h3>Spend hit dice (${B().level-S.hdUsed} left, d8${sg(M("con"))})</h3>
+  <div class="btns"><button class="btn ok" data-act="hd" ${B().level-S.hdUsed?"":"disabled"}>Roll 1 hit die</button><span class="small muted">HP ${S.hp.cur}/${maxHp()}</span></div>
+  <div id="hdres"></div>
+  <div class="btns" style="margin-top:10px"><button class="btn pri" data-act="doRest" data-k="short">Finish short rest</button><button class="btn" data-act="close">Cancel</button></div>`);
+ else modal(`<h2>Long rest</h2>
+  <ul class="small"><li>HP to ${maxHp()}, regain ${Math.max(1,Math.floor(B().level/2))} hit dice, exhaustion −1</li><li>Guiding Bolt, Guiding Spark, Seriach's Fuel recover; gadgets reset (swap your load-out on the Gadgets tab)</li><li>Æther-Pack loses ${lost} of ${S.energy} energy (half, rounded up)</li></ul>
+  <div class="col">
+   <button class="tog on" id="lr-stress" data-act="lrTog"><span class="box"></span>Clear Stress (${S.stress} → 0)</button>
+   <button class="tog ${S.energy?"":"locked"}" id="lr-keep" data-act="lrTog"><span class="box"></span>Take 1 Stress to keep all ${S.energy} energy</button>
+   <button class="tog on" id="lr-dawn" data-act="lrTog"><span class="box"></span>Dawn passes: roll item charge recovery</button>
+   <button class="tog ${S.hp.temp?"on":""}" id="lr-temp" data-act="lrTog"><span class="box"></span>Clear temp HP (${S.hp.temp})</button>
+  </div>
+  <div class="btns" style="margin-top:10px"><button class="btn pri" data-act="doRest" data-k="long">Finish long rest</button><button class="btn" data-act="close">Cancel</button></div>`);
+}
+
+/* ======================= USE OPTIONS (combat) ======================= */
+function spendEco(slot){ if(S.combat.on){ S.combat[slot]=true; } }
+const SLOT = t => t==="b"?"bon":t==="r"?"rea":"act";
+function ocApply(){ if(!S.combat.oc) return 0; S.combat.oc=false; S.combat.ocUsed=true; setStress(S.stress+1,"Overclock"); return 3; }
+function resolveAttack(label,atkB,dmgExpr,dt,ocB){
+ const a=R(20),b=R(20), bonus=atkB+ocB;
+ const d=roll(dmgExpr), crit=roll(diceOnly(dmgExpr));
+ const html=`<div class="rollcard"><div class="muted small">${esc(label)}${ocB?' <span class="chip red">Overclocked +3</span>':""}</div>
+  <div class="btns" style="align-items:baseline"><span class="big">${a+bonus}</span><span class="small dim">to hit · d20 [${a}] ${sg(bonus)} · alt ${b+bonus}${a===20?' <span class="chip ok">CRIT</span>':a===1?' <span class="chip red">NAT 1</span>':""}</span></div>
+  <div class="btns" style="align-items:baseline;margin-top:4px"><span class="big red">${d.total}</span><span class="small dim">${dt} · ${showParts(d)} · on a crit add ${crit.total} (${showParts(crit)})</span></div></div>`;
+ pushRoll(label,html,`<b>${a+bonus}</b> to hit, <b>${d.total}</b> ${dt}${a===20?" CRIT +"+crit.total:""}`);
+ return html;
+}
+function resolveSave(label,dc,save,dmgExpr,dt,ocB,extra){
+ const d=dmgExpr?roll(dmgExpr):null; const tot=d?d.total+ocB:0;
+ const html=`<div class="rollcard"><div class="muted small">${esc(label)}${ocB?' <span class="chip red">Overclocked +3</span>':""}</div>
+  <div class="btns" style="align-items:baseline"><span class="big">DC ${dc+ocB}</span><span class="small dim">${save} save</span></div>
+  ${d?`<div class="btns" style="align-items:baseline;margin-top:4px"><span class="big red">${tot}</span><span class="small dim">${dt} on a fail · ${Math.floor(tot/2)} on a success · ${showParts(d)}${ocB?" +3":""}</span></div>`:""}
+  ${extra?`<div class="small muted">${extra}</div>`:""}</div>`;
+ pushRoll(label,html,`DC <b>${dc+ocB}</b> ${save}${d?`, <b>${tot}</b> ${dt} (half ${Math.floor(tot/2)})`:""}`);
+ return html;
+}
+function useOption(id){
+ const o=OPTS[id]; if(!o) return;
+ if(o.dis){ toastModal(o.n, `<p class="muted">${esc(o.dis===true?"Not available right now.":o.dis)}</p>`); return; }
+ let html="", slot=o.slot||"act";
+ const ocB = (o.kind==="gadget"||o.kind==="discharge") ? ocApply() : 0;
+ switch(o.kind){
+  case "atk": html=resolveAttack(o.n,o.atk,o.dmg,o.dt,0); if(id==="gbolt"){S.lim.gbolt=0;logEv("Used Guiding Bolt");} break;
+  case "scorch": { let rays=[1,2,3].map(n=>{const a=R(20),d=roll("2d6");return `Ray ${n}: <b>${a+ATK()}</b> to hit (d20 ${a}${a===20?" CRIT":""}), <b>${d.total}</b> fire [${d.parts[0].rs}]`}).join("<br>"); const con=R(20)+saveBonus("con");
+    html=`<div class="rollcard"><div class="muted small">Scorching Ray (arm)</div><div class="small">${rays}</div><div class="small" style="margin-top:6px">Con save to withstand it: <b>${con}</b> (DC set by the DM)</div></div>`; pushRoll("Scorching Ray",html,`3 rays, Con save ${con}`); break; }
+  case "discharge": {
+    setEnergy(S.energy-o.e,o.n);
+    const iDC=8+PB()+M("int"), iA=PB()+M("int");
+    if(id==="pbolt") html=resolveAttack(o.n,iA,"2d8","force",ocB);
+    if(id==="pstream") html=resolveSave(o.n,iDC,"Dex","2d8","force",ocB,"30-ft by 5-ft line.");
+    if(id==="cburst") html=resolveSave(o.n,iDC,"Str","2d8","force",ocB,"10-ft radius. Fail: pushed 10 ft from the centre.");
+    if(id==="overload") html=resolveSave(o.n,iDC,"Str","6d8","force",ocB,"Fail: restrained until the end of your next turn; it repeats the save at the end of each of its turns.");
+    break; }
+  case "gadget": {
+    const g=S.loadout[o.gi], b=BPK[g.key];
+    html=deployGadget(o.gi, ocB); slot=SLOT(b.t); break; }
+  case "pipes": S.ch.pipes--; logEv("Pipes of Haunting (charge used)"); html=resolveSave(o.n,15,"Wis",null,"",0,"Each (or only hostile) creature within 30 ft that can hear: frightened of you for 1 minute, repeating the save at the end of each of its turns."); break;
+  case "fuel": fuelModal(); return;
+  case "insight": insightModal(); spendEco(slot); save(); render(); return;
+  case "vacuum": spendEco("rea"); save(); render(); soulModal(); return;
+  case "rshield": S.ch.rshield--; logEv("Repulsion Shield push"); html=`<div class="rollcard"><div class="big">Pushed</div><div class="small muted">Attacker shoved up to 15 ft away. ${S.ch.rshield} charges left.</div></div>`; pushRoll(o.n,html,"attacker pushed 15 ft"); break;
+  case "spark": { S.lim.spark=0; const d=R(4); logEv("Guiding Spark"); html=`<div class="rollcard"><div class="muted small">Guiding Spark</div><div class="big ecto">−${d}</div><div class="small muted">to the creature's saving throw</div></div>`; pushRoll(o.n,html,`<b>−${d}</b> to their save`); break; }
+  case "axeblind": S.ch.axe--; logEv("Battleaxe flare"); html=resolveSave(o.n,DC(),"Con",null,"",0,"Fail: blinded until the end of its next turn."); break;
+  case "mind": S.ch.mind--; logEv("Mind Sharpener: concentration held"); html=`<div class="rollcard"><div class="big">Held</div><div class="small muted">Concentration save succeeds. ${S.ch.mind} charges left.</div></div>`; pushRoll(o.n,html,"concentration held"); break;
+  case "axelight": S.axeLight=!S.axeLight; html=""; pushRoll(o.n,"",S.axeLight?"light on":"light off"); break;
+  case "simple": html=""; pushRoll(o.n,"",o.meta); break;
+ }
+ spendEco(slot); save(); render();
+ if(html) toastModal(o.n, (o.fl&&o.kind!=="gadget"?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(o.fl)}</div>`:"")+html);
+}
+function deployGadget(i, ocB){
+ const g=S.loadout[i], b=BPK[g.key]; if(!g||!b) return "";
+ if(b.l>0){ g.dep=true; }
+ if(b.conc){ if(S.conc && S.conc!==b.n) logEv(`Dropped concentration on ${S.conc}`); S.conc=b.n; }
+ logEv(`Deployed ${b.c} (${b.n})${ocB?" overclocked":""}`);
+ let html="";
+ if(b.atk) html=resolveAttack(`${b.n}`,ATK(),b.dmg,b.dt,ocB);
+ else if(b.s) html=resolveSave(`${b.n}`,DC(),b.s,b.dmg||null,b.dt||"",ocB,"");
+ else if(b.heal){ const h=roll(b.heal); html=`<div class="rollcard"><div class="muted small">${b.n}</div><div class="big" style="color:var(--heal)">${h.total}</div><div class="small dim">healed · ${showParts(h)}</div></div>`; pushRoll(b.n,html,`heals <b>${h.total}</b>`); }
+ else if(b.tmp){ const h=roll(b.tmp); if(h.total>S.hp.temp){S.hp.temp=h.total;} logEv(`False Life: ${h.total} temp HP`); html=`<div class="rollcard"><div class="big ecto">${h.total}</div><div class="small dim">temp HP (applied if higher than current)</div></div>`; pushRoll(b.n,html,`<b>${h.total}</b> temp HP`); }
+ else { html=`<div class="rollcard"><div class="muted small">Deployed</div><div class="big" style="font-size:22px">${esc(b.c)}</div></div>`; pushRoll(b.n,html,"deployed"); }
+ const fl=flavOf(b);
+ return (fl?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(fl)}</div>`:"") + html + `<p class="small" style="margin-top:6px"><b>What happens:</b> ${esc(b.fx)}</p>`;
+}
+function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
+function fuelModal(){
+ const room=5-S.stress;
+ modal(`<h2>Seriach's Fuel</h2><p class="small muted">Overload your own body. Choose how much Stress to take; you gain that much Energy (pack max ${eMax()}).</p>
+ <div class="btns">${[1,2,3,4,5].map(n=>`<button class="btn ${n<=room?"red":""}" data-act="fuelGo" data-n="${n}" ${n<=room?"":"disabled"}>${n} Stress → ${Math.min(n,eMax())} energy</button>`).join("")}</div>
+ <div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Cancel</button></div>`);
+}
+function insightModal(){
+ modal(`<h2>Occult Insight</h2><p class="small muted">Learn something about a creature or what it did. DC = 8 + CR (or spell level). Fail: +1 Stress.</p>
+ <div class="btns"><label class="small">CR / spell level <input type="number" id="oi-cr" value="1" min="0" step="1"></label></div>
+ <div class="btns" style="margin-top:8px"><button class="btn" data-act="oiRoll" data-k="Investigation">Roll Investigation</button><button class="btn" data-act="oiRoll" data-k="Arcana">Roll Arcana</button><button class="btn" data-act="oiRoll" data-k="Insight">Roll Insight</button></div>
+ <div id="oires"></div>
+ <div class="btns" style="margin-top:10px"><button class="btn red" data-act="oiFail">Failed: +1 Stress</button><button class="btn" data-act="close">Close</button></div>`);
+}
+
+/* ======================= EVENTS ======================= */
+const ACT = {
+ tab:d=>{UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); window.scrollTo(0,0);},
+ combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); logEv("Combat started"); UI.tab="combat"; } save(); render(); },
+ nextTurn:()=>{ const c=S.combat; c.round++; Object.assign(c,{act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); save(); render(); },
+ eco:d=>{ S.combat[d.k]=!S.combat[d.k]; save(); render(); },
+ overclock:()=>{ const c=S.combat; if(c.oc){c.oc=false;} else if(!c.ocUsed && S.stress<5){c.oc=true;} save(); render(); },
+ sts:()=>{ S.combat.sts=true; const r=roll(B().level>=15?"3d6":B().level>=9?"2d6":"1d6"); pushRoll("Soul-Targeted Strike",`<div class="rollcard"><div class="big ecto">+${r.total}</div><div class="small dim">force · ${showParts(r)}</div></div>`,`<b>+${r.total}</b> force`); save(); render(); },
+ use:d=>useOption(d.k),
+ stdAct:d=>{ spendEco("act"); pushRoll(d.k,"",{Dash:`+${speed()} ft movement`,Disengage:"no opportunity attacks this turn",Dodge:"attacks vs you have disadvantage, advantage on Dex saves",Help:"ally gets advantage",Hide:`Stealth ${sg(skillBonus(["Stealth","dex"]))}`,Ready:"set a trigger, use your reaction",Search:`Perception ${sg(skillBonus(["Perception","wis"]))} / Investigation ${sg(skillBonus(["Investigation","int"]))}`,"Use an object":"interact with an object"}[d.k]); save(); render(); },
+ hpModal:()=>{ KP={v:"",type:KP.type||"",res:false}; hpModal(); },
+ armorModal:()=>armorModal(),
+ armor:()=>{ S.armor=!S.armor; logEv(S.armor?"Donned breastplate":"Doffed breastplate"); save(); render(); armorModal(); },
+ shieldT:()=>{ S.shield=!S.shield; logEv(S.shield?"Shield equipped":"Shield stowed"); save(); render(); armorModal(); },
+ kp:d=>{ const k=d.k; if(k==="⌫") KP.v=KP.v.slice(0,-1); else if(k==="C") KP.v=""; else if(KP.v.length<4) KP.v+=k; document.getElementById("kpv").textContent=KP.v||"0"; },
+ kpApply:d=>{ const n=parseInt(KP.v||"0",10); if(!n && d.k!=="temp"){return;}
+  let msg="";
+  if(d.k==="dmg"){ const r=damage(n,KP.type,KP.type==="fire"); msg=r.notes.map(x=>`<div class="warnbox">${x}</div>`).join(""); }
+  if(d.k==="heal") heal(n);
+  if(d.k==="temp"){ S.hp.temp=n; logEv(`Temp HP set to ${n}`); }
+  KP.v=""; save(); render(); hpModal(); if(msg) document.getElementById("kpmsg").innerHTML=msg; },
+ ds:d=>{ const k=d.k,i=+d.i; S.ds[k]= S.ds[k]===i+1? i : i+1; save(); hpModal(); },
+ dsRoll:()=>{ const r=R(20); let t; if(r===20){ S.hp.cur=1; S.ds={s:0,f:0}; t="Natural 20: back up with 1 HP!"; } else if(r===1){ S.ds.f=Math.min(3,S.ds.f+2); t="Natural 1: two failures."; } else if(r>=10){ S.ds.s=Math.min(3,S.ds.s+1); t="Success."; } else { S.ds.f=Math.min(3,S.ds.f+1); t="Failure."; }
+  if(S.ds.s>=3) t+=" Stable."; if(S.ds.f>=3) t+=" Three failures."; pushRoll("Death save",``,`<b>${r}</b> ${t}`); logEv(`Death save ${r}: ${t}`); save(); render(); hpModal(); },
+ kpType:(d,el)=>{ KP.type=el.value; hpModal(); },
+ energy:d=>{ setEnergy(S.energy+(+d.d)); save(); render(); },
+ stress:d=>{ setStress(S.stress+(+d.d)); save(); render(); },
+ exh:d=>{ S.exh=Math.max(0,Math.min(6,S.exh+(+d.d))); logEv(`Exhaustion ${S.exh}`); save(); render(); },
+ insp:()=>{ S.insp=!S.insp; save(); render(); },
+ cond:d=>{ S.cond[d.k]=!S.cond[d.k]; logEv(`${d.k} ${S.cond[d.k]?"on":"off"}`); save(); render(); },
+ concEnd:()=>{ logEv(`Ended concentration on ${S.conc}`); S.conc=""; save(); render(); },
+ lim:d=>{ S.lim[d.k]=S.lim[d.k]?0:1; save(); render(); },
+ chg:d=>{ const i=+d.i; S.ch[d.k]= S.ch[d.k]>i ? i : i+1; save(); render(); },
+ editToggle:()=>{ UI.edit=!UI.edit; render(); },
+ check:(d,el,e)=>{ if(e.target.closest("[data-act=save]")) return; const k=d.k; const lbl=k==="san"?"Sanity check":ABIL.find(a=>a[0]===k)[2]+" check"; d20(lbl,M(k)); },
+ save:d=>{ const k=d.k; if(k==="san") d20("Sanity save",M("san"),{adv:true}); else d20((ABIL.find(a=>a[0]===k)[2])+" save",saveBonus(k),{dis:k==="wis"}); },
+ skill:d=>{ const s=SKILLS.find(x=>x[0]===d.k); d20(s[0],skillBonus(s)); },
+ init:()=>{ const r=d20("Initiative",M("dex")); },
+ sanFail:()=>{ logEv("Failed a Sanity check"); save(); toastModal("Whispers of the Mad",`<p>You failed a Sanity check. Ask the DM one yes/no question about your current situation.</p>`); },
+ xpModal:()=>modal(`<h2>Add XP</h2><div class="btns"><input type="number" id="xp-add" value="0" style="width:120px"><button class="btn pri" data-act="xpGo">Add</button><button class="btn" data-act="close">Cancel</button></div><p class="small muted" style="margin-top:6px">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()}</p>`),
+ xpGo:()=>{ const n=+document.getElementById("xp-add").value||0; B().xp+=n; logEv(`+${n} XP (${B().xp})`); save(); render(); closeModal(); if(B().xp>=B().nextXp) toastModal("Level up!",`<p>You've reached ${B().nextXp.toLocaleString()} XP. Turn on <b>Edit base stats</b> on the Character tab to raise your level, max HP and next-level XP.</p>`); },
+ insightModal:()=>insightModal(),
+ oiRoll:d=>{ const cr=+document.getElementById("oi-cr").value||0; const s=SKILLS.find(x=>x[0]===d.k); const a=R(20), t=a+skillBonus(s), dc=8+cr; document.getElementById("oires").innerHTML=`<div class="rollcard"><div class="big ${t>=dc?"":"red"}">${t}</div><div class="small dim">${d.k} d20 [${a}] ${sg(skillBonus(s))} vs DC ${dc} · ${t>=dc?"Success":"Fail: +1 Stress"}</div></div>`; pushRoll("Occult Insight",``,`<b>${t}</b> vs DC ${dc}`); },
+ oiFail:()=>{ setStress(S.stress+1,"Occult Insight failed"); save(); render(); closeModal(); },
+ fuelGo:d=>{ const n=+d.n; setStress(S.stress+n,"Seriach's Fuel"); setEnergy(S.energy+n,"Seriach's Fuel"); S.lim.fuel=0; spendEco("act"); save(); render(); toastModal("Seriach's Fuel",`<div class="ectobox">Your body becomes the containment chamber. +${n} Stress, energy now ${S.energy}.</div>`); },
+ soulModal:()=>soulModal(),
+ vacRoll:d=>{ const row=SV_TABLE[+d.i]; const r=roll(row[1]); const rs=r.parts[0].rs; const room=eMax()-S.energy; const cap=Math.min(room,r.total), excess=r.total-cap; const breach=rs.includes(4);
+  setEnergy(S.energy+cap,"Soul Vacuum CR "+row[0]);
+  let h=`<div class="rollcard"><div class="muted small">Captured from CR ${row[0]} · ${row[1]} [${rs.join(", ")}]</div><div class="big ecto">+${cap}</div><div class="small dim">energy · pack now ${S.energy}/${eMax()}</div></div>`;
+  if(excess>0) h+=`<div class="redbox"><b>Backlash: ${excess} necrotic.</b> It burns through you or an adjacent creature. <button class="btn sm red" data-act="backlash" data-n="${excess}">I take it</button></div>`;
+  if(breach){ const w=R(100); h+=`<div class="redbox"><b>Containment Breach!</b> A die showed 4. Wild table d100: <b class="num">${w}</b></div>`; logEv(`Containment Breach, d100 ${w}`); }
+  pushRoll("Soul Vacuum",h,`+${cap} energy${excess?`, ${excess} backlash`:""}${breach?", BREACH":""}`); save(); render(); soulModal(h); },
+ backlash:d=>{ const r=damage(+d.n,"necrotic",false); save(); render(); toastModal("Backlash",`<p>You took ${r.amt} necrotic. HP ${S.hp.cur}/${maxHp()}.</p>${r.notes.map(x=>`<div class="warnbox">${x}</div>`).join("")}`); },
+ breach:()=>{ const w=R(100); logEv(`Wild table d100: ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); save(); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Wild table d100: <b class="num">${w}</b></div>`; },
+ restModal:d=>restModal(d.k),
+ lrTog:(d,el)=>el.classList.toggle("on"),
+ hd:()=>{ if(B().level-S.hdUsed<=0) return; S.hdUsed++; const r=roll("1d8+"+M("con")); const g=Math.max(1,r.total); heal(g); save(); render(); restModal("short"); document.getElementById("hdres").innerHTML=`<div class="rollcard"><div class="big" style="color:var(--heal)">+${g}</div><div class="small dim">${showParts(r)}</div></div>`; },
+ doRest:d=>{
+  const dep=S.loadout.filter(g=>g.dep).length; S.loadout.forEach(g=>g.dep=false); S.lim.spark=1;
+  let sum=[`${dep} gadgets reset`,"Guiding Spark back"];
+  if(d.k==="long"){
+   const clr=document.getElementById("lr-stress").classList.contains("on"), keep=document.getElementById("lr-keep").classList.contains("on"), dawn=document.getElementById("lr-dawn").classList.contains("on"), tmp=document.getElementById("lr-temp").classList.contains("on");
+   S.hp.cur=maxHp(); if(tmp) S.hp.temp=0; S.ds={s:0,f:0};
+   S.hdUsed=Math.max(0,S.hdUsed-Math.max(1,Math.floor(B().level/2)));
+   if(S.exh>0) S.exh--;
+   S.lim.gbolt=1; S.lim.fuel=1;
+   if(clr) setStress(0,"long rest");
+   if(S.energy){ if(keep && S.stress<5){ setStress(S.stress+1,"kept pack energy"); sum.push(`kept ${S.energy} energy for 1 Stress`); } else { const l=Math.ceil(S.energy/2); setEnergy(S.energy-l,"long rest bleed-off"); sum.push(`pack lost ${l} energy`); } }
+   if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!itemFx(k)) continue; const g=f.regain==="all"?f.max:roll(f.regain).total; const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
+   S.conc="";
+   sum.unshift("HP full");
+  }
+  logEv(`${d.k==="long"?"Long":"Short"} rest: ${sum.join(", ")}`); save(); render();
+  toastModal(d.k==="long"?"Long rest done":"Short rest done",`<ul class="small">${sum.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>${d.k==="long"?'<p class="small muted">Swap your gadget load-out and Mechanical Modifications now if you want.</p>':""}`);
+ },
+ // gadgets
+ bpLvl:d=>{ UI.bpLvl=d.k; render(); },
+ flav:d=>{ UI.openBp[d.k]=!UI.openBp[d.k]; render(); },
+ research:d=>{ S.researched[d.k]=!S.researched[d.k]; if(S.researched[d.k]) logEv(`Researched blueprint: ${BPK[d.k].n}`); save(); render(); },
+ build:d=>{ if(S.loadout.length>=gadgetCap()){ toastModal("Load-out full",`<p>You can carry ${gadgetCap()} gadgets. Dismantle one first.</p>`); return; } S.loadout.push({key:d.k,dep:false}); logEv(`Built ${BPK[d.k].c}`); save(); render(); },
+ unload:d=>{ const g=S.loadout.splice(+d.i,1)[0]; logEv(`Dismantled ${BPK[g.key]?.c}`); save(); render(); },
+ ungdep:d=>{ S.loadout[+d.i].dep=false; save(); render(); },
+ resetGadgets:()=>{ S.loadout.forEach(g=>g.dep=false); logEv("Reset depleted gadgets"); save(); render(); },
+ deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); toastModal(b.c,h); },
+ // tinkering
+ idea:d=>{ UI.wbName=d.n; UI.wbTier=+d.t; UI.wbNote=d.d; UI.wbResult=""; render(); },
+ scrapAdj:d=>{ S.scrap=Math.max(0,S.scrap+(+d.d)); save(); render(); },
+ buildInv:()=>{
+  const name=(UI.wbName||"").trim()||"Unnamed device", tier=+(UI.wbTier||0), dc=TIERS[tier][1], cost=R(10), r=R(100);
+  let res, cls;
+  if(r<=5){ const f=R(6), dmg=Math.floor(f/2); damage(f,"fire",true); setStress(S.stress+1,"meltdown"); S.scrap=Math.max(0,S.scrap-cost); res=`<b>Catastrophic meltdown.</b> It turns to molten slag in your hands. ${cost} gp of materials destroyed. You take ${dmg} fire (${f}, halved by resistance) and 1 Stress.`; cls="redbox"; }
+  else if(r<dc){ res=`<b>Failure.</b> The blueprint doesn't work. Materials are fine, but your fixation on the broken device makes you ignore your physical limits (ask the DM).`; cls="warnbox"; }
+  else {
+   S.scrap=Math.max(0,S.scrap-cost);
+   let snapped="";
+   if(S.inventions.length>=invCap()){ const o=S.inventions.shift(); snapped=` Your oldest invention, <b>${esc(o.n)}</b>, violently snaps.`; logEv(`${o.n} snapped (over invention limit)`); }
+   S.inventions.push({id:nid(),n:name,tier,note:(UI.wbNote||"")+(r>=95?" [Critical: minor bonus]":"")});
+   res= r>=95?`<b>Critical success!</b> ${esc(name)} works flawlessly and gains a minor bonus (range, durability, or silent). ${cost} gp used.${snapped}`:`<b>Success.</b> ${esc(name)} works as planned. ${cost} gp used.${snapped}`; cls=r>=95?"ectobox":"ectobox";
+   UI.wbName="";UI.wbNote="";
+  }
+  logEv(`Tinkered ${name} (T${tier}): d100 ${r}`);
+  UI.wbResult=`<div class="${cls}">d100 <b class="num">${r}</b> vs ${dc}+ · ${res}</div>`;
+  pushRoll("Invention",``,`d100 <b>${r}</b> vs ${dc}+`);
+  save(); render();
+ },
+ scrapInv:d=>{ const o=S.inventions.splice(+d.i,1)[0]; logEv(`Scrapped ${o.n}`); save(); render(); },
+ // gear
+ iq:d=>{ const it=S.items[+d.i]; it.q=Math.max(0,(+it.q||0)+(+d.d)); if(it.q===0) UI.confirmDel=it.id; save(); render(); },
+ iworn:d=>{ const it=S.items[+d.i]; if(it.worn===false && false){} it.worn=!it.worn; save(); render(); },
+ idel:d=>{ UI.confirmDel=S.items[+d.i].id; render(); },
+ idelNo:()=>{ UI.confirmDel=null; render(); },
+ idelGo:d=>{ const it=S.items.splice(+d.i,1)[0]; UI.confirmDel=null; logEv(`Removed ${it.n}`); save(); render(); },
+ imod:d=>{ const it=S.items[+d.i]; if(!it.mod && modsUsed()>=modCap()){ toastModal("Modification limit",`<p>You can maintain ${modCap()} Mechanical Modifications at level ${B().level}. Remove one first.</p>`); return; } it.mod=!it.mod; logEv(`${it.n}: modification ${it.mod?"installed":"removed"}`); save(); render(); },
+ iatt:d=>{ const it=S.items[+d.i]; if(!it.att && S.items.filter(i=>i.att).length>=attCap()){ toastModal("Attunement limit",`<p>You can attune to ${attCap()} items.</p>`); return; } it.att=!it.att; save(); render(); },
+ niWorn:(d,el)=>el.classList.toggle("on"),
+ addItem:()=>{ const n=document.getElementById("ni-name").value.trim(); if(!n) return; const worn=document.getElementById("ni-worn").classList.contains("on"); const q=+document.getElementById("ni-q").value||1;
+  if(!worn && carried()+q>carryCap()){ toastModal("Over the carry limit",`<p>That would put you at ${carried()+q} / ${carryCap()} carried items. It's added anyway; drop or equip something.</p>`); }
+  S.items.push({id:nid(),n,q,w:+document.getElementById("ni-w").value||0,worn,mod:false,att:false,note:document.getElementById("ni-note").value.trim()}); logEv(`Added ${n}`); save(); render(); },
+ // misc
+ dice:()=>modal(`<h2>Dice</h2><div class="btns">${[4,6,8,10,12,20,100].map(f=>`<button class="btn" data-act="rollDie" data-f="${f}">d${f}</button>`).join("")}</div>
+  <div class="btns" style="margin-top:8px"><input id="dexpr" type="text" placeholder="e.g. 2d8+3" style="flex:1"><button class="btn pri" data-act="rollExpr">Roll</button></div><div id="dres"></div><div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Close</button></div>`),
+ rollDie:d=>{ const r=R(+d.f); pushRoll("d"+d.f,"",`<b>${r}</b>`); document.getElementById("dres").innerHTML=`<div class="rollcard"><div class="big">${r}</div><div class="small dim">d${d.f}</div></div>`; save(); },
+ rollExpr:()=>{ const e=document.getElementById("dexpr").value; if(!/d\d/.test(e)) return; const r=roll(e); pushRoll(e,"",`<b>${r.total}</b> ${showParts(r)}`); document.getElementById("dres").innerHTML=`<div class="rollcard"><div class="big">${r.total}</div><div class="small dim">${showParts(r)}</div></div>`; save(); },
+ history:()=>modal(`<h2>Roll log</h2>${S.rolls.map(r=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(r.t).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}</span><span class="grow"><b>${esc(r.title)}</b>: ${r.plain}</span></div>`).join("")||'<p class="muted">No rolls yet.</p>'}<div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Close</button></div>`),
+ exportJson:async(d,el)=>{ const txt=JSON.stringify(S); try{ await navigator.clipboard.writeText(txt); el.textContent="Copied"; }catch(e){ modal(`<h2>Backup</h2><p class="small muted">Select all and copy.</p><textarea id="bk-out" style="min-height:240px">${esc(txt)}</textarea><div class="btns"><button class="btn" data-act="close">Close</button></div>`); const t=document.getElementById("bk-out"); t.focus(); t.select(); } },
+ importModal:()=>modal(`<h2>Restore from backup</h2><p class="small muted">Paste a backup. This replaces the current sheet.</p><textarea id="bk-in" style="min-height:200px"></textarea><div class="btns"><button class="btn pri" data-act="importGo">Restore</button><button class="btn" data-act="close">Cancel</button></div><div id="bk-err"></div>`),
+ importGo:()=>{ try{ const o=JSON.parse(document.getElementById("bk-in").value); S=merge(DEF(),migrate(o)); logEv("Restored from backup"); save(); render(); closeModal(); }catch(e){ document.getElementById("bk-err").innerHTML=`<div class="redbox">That isn't a valid backup. Copy the full text from "Copy backup".</div>`; } },
+ resetModal:()=>modal(`<h2>Reset Flint?</h2><p class="muted">This puts everything back to the character sheet as of level 6 and erases your changes, notes and log.</p><div class="btns"><button class="btn red" data-act="resetGo">Reset everything</button><button class="btn" data-act="close">Cancel</button></div>`),
+ resetGo:()=>{ S=DEF(); save(); render(); closeModal(); },
+ amAdd:()=>{ if(modsUsed()>=modCap()){ toastModal("Modification limit",`<p>All ${modCap()} modification slots are in use.</p>`); return; } (S.allyMods=S.allyMods||[]).push({item:"",ally:""}); save(); render(); },
+ amDel:d=>{ const m=S.allyMods.splice(+d.i,1)[0]; logEv(`Reclaimed modification${m.item?": "+m.item:""}${m.ally?" from "+m.ally:""}`); save(); render(); },
+ exportFile:()=>{ const fname="flint-backup-"+new Date().toISOString().slice(0,10)+".json";
+  if(window.AndroidBridge){ const r=AndroidBridge.saveFile(fname, JSON.stringify(S,null,1)); logEv("Saved backup file"); save(); toastModal(r==="ok"?"Backup saved":"Couldn't save backup", r==="ok"?"<p>Saved to your tablet's <b>Downloads</b> folder as "+fname+".</p>":"<p>"+esc(r)+"</p>"); return; }
+  const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="flint-backup-"+new Date().toISOString().slice(0,10)+".json"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); logEv("Saved backup file"); save(); },
+ close:()=>closeModal(),
+ closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
+};
+document.addEventListener("click",e=>{ const t=e.target.closest("[data-act]"); if(!t) return; const fn=ACT[t.dataset.act]; if(!fn) return; if(t.dataset.act==="save") e.stopPropagation(); fn(t.dataset,t,e); });
+document.addEventListener("change",e=>{
+ const t=e.target;
+ if(t.dataset.bind){ const path=t.dataset.bind.split("."); let o=S; for(let i=0;i<path.length-1;i++) o=o[path[i]]; const v=t.type==="number"?(+t.value||0):t.value; o[path.at(-1)]=v; if(path[0]==="base"&&path[1]==="maxHp") S.hp.cur=Math.min(S.hp.cur,maxHp()); save(); render(); }
+ if(t.dataset.actChange){ if(t.dataset.actChange==="wbTier"){ UI.wbTier=+t.value; } else ACT[t.dataset.actChange]?.(t.dataset,t,e); }
+});
+document.addEventListener("change",e=>{ if(e.target.id!=="bk-file"||!e.target.files[0]) return; const r=new FileReader(); r.onload=()=>{ try{ S=merge(DEF(),migrate(JSON.parse(r.result))); logEv("Loaded backup file"); save(); render(); toastModal("Backup loaded","<p>Flint is restored from the file.</p>"); }catch(err){ toastModal("Couldn't read that file","<p>Pick a backup saved from this app (flint-backup-….json).</p>"); } }; r.readAsText(e.target.files[0]); });
+document.addEventListener("focusout",()=>{ setTimeout(()=>{ if(pendingRemote && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||"")){ S=pendingRemote; pendingRemote=null; render(); } },50); });
+document.addEventListener("input",e=>{
+ const t=e.target;
+ if(t.dataset.bindText){ const path=t.dataset.bindText.split("."); let o=S; for(let i=0;i<path.length-1;i++) o=o[path[i]]; o[path.at(-1)]=t.value; save(); }
+ if(t.dataset.actInput){ const k=t.dataset.actInput; UI[k]=t.value; if(k==="bpFilter"){ const pos=t.selectionStart; render(); const n=document.getElementById("bpsearch"); n.focus(); try{n.setSelectionRange(pos,pos)}catch(_){} } }
+});
+
+/* ======================= BOOT ======================= */
+const SEED={"allyMods": [{"ally": "", "item": ""}, {"ally": "", "item": ""}], "armor": false, "axeLight": false, "base": {"acMisc": 0, "cha": 11, "con": 16, "dex": 14, "int": 18, "level": 6, "martialProf": false, "maxHp": 40, "nextXp": 23000, "san": 9, "speed": 25, "str": 10, "wis": 12, "xp": 19550}, "ch": {"axe": 4, "mind": 4, "pipes": 3, "ring": 1, "rshield": 4}, "coins": {"cp": 36, "ep": 2, "gp": 36, "pp": 0, "sp": 6}, "combat": {"act": false, "bon": false, "oc": false, "ocUsed": false, "on": false, "rea": false, "round": 3, "sts": false}, "conc": "", "cond": {}, "ds": {"f": 0, "s": 0}, "energy": 0, "exh": 0, "hdUsed": 0, "hp": {"cur": 40, "temp": 5}, "insp": false, "inventions": [{"id": "imuvbighc1", "n": "The Sonic Disruptor", "note": "Frequency animal deterrent. −1d4 to saving throws within 30 ft.", "tier": 2}, {"id": "imuvbighc2", "n": "Hydraulic Recoil-Damper", "note": "Advantage on saving throws against grapple, prone and shove.", "tier": 2}], "items": [{"att": false, "id": "imuvbighc3", "mod": false, "n": "Breastplate", "note": "Medium armour, AC 14 + Dex (max 2). No stealth disadvantage. Don 5 min, doff 1 min.", "q": 1, "w": 20, "worn": true}, {"att": true, "fx": "rshield", "id": "imuvbighc4", "mod": true, "n": "Repulsion Shield", "note": "Spring-loaded piston on the inner face, cocked by each melee hit. +1 AC on top of the shield's +2. 4 charges, regains 1d4 at dawn. Reaction after a melee hit: spend 1 charge to push the attacker up to 15 ft.", "q": 1, "w": 6, "worn": true}, {"att": false, "id": "imuvbighc5", "mod": false, "n": "Æther-Pack", "note": "Containment tank, gauges, copper tubing, control wand, foot pedal. Counts as an artificer's tool. Rebuild on a long rest with tinker's tools and 25 gp of materials.", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc10", "mod": false, "n": "Belt Pouch (with coins)", "note": "", "q": 1, "w": 0, "worn": true}, {"att": false, "id": "imuvbighc11", "mod": false, "n": "Tinker's tools", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc12", "mod": false, "n": "Pearl (for Identify)", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc13", "mod": false, "n": "Spyglass", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc14", "mod": false, "n": "Strahd's Tome", "note": "", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc15", "mod": false, "n": "Magnifying glass", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc16", "mod": false, "n": "Petrified Wood Butterfly", "note": "", "q": 1, "w": 0, "worn": false}, {"att": false, "id": "imuvbighc17", "mod": false, "n": "Amber Shard (Isek)", "note": "Source of the Fire Bolt and Scorching Ray from your arm.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc18", "mod": false, "n": "Dagger", "note": "Finesse, light, thrown (20/60). 1d4 piercing.", "q": 1, "w": 1, "worn": false}, {"att": false, "id": "imuvbighc19", "mod": false, "n": "Light hammer", "note": "Light, thrown (20/60). 1d4 bludgeoning.", "q": 1, "w": 2, "worn": false}], "lim": {"fuel": 1, "gbolt": 1, "spark": 1}, "loadout": [], "log": [{"t": 1791208927593, "txt": "Combat started"}, {"t": 1791208926790, "txt": "Combat ended after 1 round"}, {"t": 1791208925858, "txt": "Combat started"}, {"t": 1791208924986, "txt": "Stress 0 → 1"}, {"t": 1791208924398, "txt": "Stress 1 → 0"}, {"t": 1791208923951, "txt": "Stress 0 → 1"}, {"t": 1791208922784, "txt": "Energy 1 → 0"}, {"t": 1791208922222, "txt": "Energy 0 → 1"}, {"t": 1791208918692, "txt": "Doffed breastplate"}, {"t": 1791208917288, "txt": "Donned breastplate"}, {"t": 1791208915486, "txt": "Doffed breastplate"}, {"t": 1791208889164, "txt": "Healed 2. HP 40 → 40"}, {"t": 1791208881986, "txt": "Temp HP set to 5"}, {"t": 1791208879916, "txt": "Temp HP set to 0"}, {"t": 1791208878424, "txt": "Temp HP set to 0"}], "notes": {"appearance": "About 3 ft tall, wiry rather than bulky. Since the transformation, a cold mineralized husk of blackened iron and coarse ash, veined with amber. Looks more at home in a workshop than a battlefield.", "backstory": "Raised by a patient foster mother who encouraged his obsession with clockwork, Flint left the gnomish burrows at sixteen in pursuit of discovery. For fifteen years he repaired city mechanisms, calibrated astronomical devices and designed security systems, and his Investigator instincts grew sharp: he notices the misplaced cog others overlook. His habit of getting lost in a puzzle has led to close calls with disgruntled clients and cave-ins.", "bonds": "As my memories of my foster mother's warmth fade into the mists, I cling to the intellect and inventive drive she left me; my mind is the final canvas of her legacy, and I must protect it.", "flaws": "I become so engrossed in a new puzzle or device that I ignore immediate danger or my surroundings. I have lost the ability to create art, whimsy, or joy.", "ideals": "Discovery: The world is full of wonders waiting to be found and understood. My purpose is to uncover new secrets and push the boundaries of what's known. I hold my mind as sacred.", "session": "", "traits": "I tend to mutter to myself in Gnomish, explaining my current thoughts or theories aloud."}, "researched": {"absorb": false, "acid": false, "aid": false, "airbubble": false, "alarm": false, "alock": false, "alter": false, "aweapon": false, "blur": false, "bonfire": false, "booming": false, "catapult": false, "cflame": false, "cure": false, "detect": false, "disguise": false, "dlights": false, "dvision": false, "enhance": false, "enlarge": false, "expret": false, "ffall": false, "ffire": false, "firebolt": false, "flife": false, "frostbite": false, "gfb": false, "grease": false, "guidance": false, "heatm": false, "identify": false, "invis": false, "jump": false, "kjaunt": false, "levitate": false, "light": false, "llure": false, "longstr": false, "lrest": false, "magehand": false, "mending": false, "message": false, "mmouth": false, "mstone": false, "mweapon": false, "ppoison": false, "presti": false, "pspray": false, "purify": false, "pyro": false, "resist": false, "rfrost": false, "rtrick": false, "sanct": false, "sburst": false, "sclimb": false, "seeinv": false, "sgrasp": false, "sky": false, "snare": false, "spare": false, "tcb": false, "tclap": false, "twhip": false, "vwarp": false, "web": true}, "rolls": [], "scrap": 46, "shield": true, "stress": 1, "v": 2};
+try{ if(!localStorage.getItem(LKEY)){ S=merge(DEF(),migrate(SEED)); localStorage.setItem(LKEY,JSON.stringify(S)); } }catch(e){}
+loadLocal(); render();
+try{ navigator.wakeLock?.request("screen").catch(()=>{}); document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") navigator.wakeLock?.request("screen").catch(()=>{}); }); }catch(e){}
+connect();
+</script>
+
+</body></html>
