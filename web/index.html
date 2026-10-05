@@ -72,7 +72,14 @@ input[type=number]{width:72px;font-family:var(--f-mono)}
 .combatsw .lab{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;font-weight:700}
 
 .abil{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px;margin-top:6px}
-@media (min-width:1000px) and (min-height:700px){.top{position:sticky;top:env(safe-area-inset-top,0px)}}
+body{display:flex;flex-direction:column;overflow:hidden}
+.top{flex:none}
+#main{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;width:100%;padding-bottom:70px}
+#main.fill{display:flex;flex-direction:column;overflow:hidden;padding-bottom:58px}
+#main.fill > .grid{flex:1 1 auto;min-height:0;grid-template-rows:minmax(0,1fr)}
+#main.fill > .grid > .panel{display:flex;flex-direction:column;min-height:0;overflow:hidden}
+#main.fill .scrollbox{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding-right:4px}
+@media (max-width:680px){#main.fill{display:block;overflow-y:auto;padding-bottom:70px}#main.fill > .grid > .panel{overflow:visible}#main.fill .scrollbox{overflow:visible}}
 .ab{background:var(--iron);border:1px solid var(--line);border-radius:var(--r);padding:4px 6px 6px;text-align:center;position:relative;cursor:pointer}
 .ab:active{background:var(--iron2)}
 .ab .k{font-size:11px;letter-spacing:1.6px;font-weight:700;color:var(--ash2)}
@@ -762,7 +769,7 @@ function renderGadgets(){
   <div class="panel">
    <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<span class="chip red">${depN} used until a rest</span>`:""}</h2>
    <p class="small dim">Carry limit: Artificer level + INT mod. A levelled gadget stays used once deployed until your next short or long rest; cantrips never run out. Long rest lets you swap the load-out. Use the arrows to put your favourites first; Combat follows this order.</p>
-   <div class="col" style="margin-top:8px">
+   <div class="col scrollbox" style="margin-top:8px">
    ${n?loadGroups().map(G=>{const b=G.b, many=G.n>1, ready=G.ready.length, dep=G.n-ready; return `<div class="gadget ${b.l&&!ready?"dep":""}">
      <div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="moveK" data-k="${b.k}" data-d="-1" title="Move up" ${G.pos===0?"disabled":""}>▲</button><button class="mini" data-act="moveK" data-k="${b.k}" data-d="1" title="Move down" ${G.pos===G.last?"disabled":""}>▼</button></span><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)} ${many?`<span class="mult">×${G.n}</span>`:""}</b>
       ${b.l?`<span class="useddot" title="${ready} ready, ${dep} used">${G.all.map(j=>`<i class="${S.loadout[j].dep?"u":""}"></i>`).join("")}</span>${dep?`<span class="chip ${ready?"":"red"}">${ready?dep+" used":"Used"}</span>`:""}`:""}
@@ -777,7 +784,7 @@ function renderGadgets(){
    <h2>Blueprint catalogue <span class="cnt">${BP.filter(b=>S.researched[b.k]).length} researched</span></h2>
    <input class="search" id="bpsearch" type="search" placeholder="Search by spell, contraption or effect" value="${esc(UI.bpFilter)}" data-act-input="bpFilter">
    <div class="chips" style="margin-bottom:8px">${[["all","All"],["0","Cantrips"],["1","Level 1"],["2","Level 2"]].map(([k,l])=>`<button class="tog ${UI.bpLvl===k?"on":""}" data-act="bpLvl" data-k="${k}"><span class="box"></span>${l}</button>`).join("")}</div>
-   <div class="col">
+   <div class="col scrollbox">
    ${list.map(b=>{const r=S.researched[b.k]; return `<div class="gadget">
      <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"C"}</span><b style="flex:1;min-width:0">${esc(b.n)}</b>
       <button class="tog ${r?"on":""}" data-act="research" data-k="${b.k}" title="Researched (in master catalogue)"><span class="box"></span>${r?"Researched":`R&amp;D ${Math.max(1,b.l)} h`}</button>
@@ -947,7 +954,11 @@ function render(){
  renderTop();
  const m=document.getElementById("main");
  const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,features:renderFeatures,notes:renderNotes}[UI.tab]||renderSheet;
+ const keep = UI.lastTab===UI.tab ? {main:m.scrollTop, boxes:[...m.querySelectorAll(".scrollbox")].map(x=>x.scrollTop)} : null;
+ m.classList.toggle("fill", UI.tab==="gadgets");
  m.innerHTML=f();
+ if(keep){ m.scrollTop=keep.main; m.querySelectorAll(".scrollbox").forEach((x,i)=>{ if(keep.boxes[i]!=null) x.scrollTop=keep.boxes[i]; }); }
+ UI.lastTab=UI.tab;
 }
 
 /* ======================= MODALS ======================= */
@@ -1177,7 +1188,7 @@ function insightModal(){
 
 /* ======================= EVENTS ======================= */
 const ACT = {
- tab:d=>{UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); window.scrollTo(0,0);},
+ tab:d=>{UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); document.getElementById("main").scrollTop=0;},
  combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
  nextTurn:()=>{ const c=S.combat; c.round++; Object.assign(c,{act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); save(); render(); },
  eco:d=>{ S.combat[d.k]=!S.combat[d.k]; save(); render(); },
