@@ -286,6 +286,8 @@ body.tighter .setbtn2{width:38px;font-size:19px}
 .sb.conc{color:var(--amber);border-color:var(--amber2);background:var(--amberglow)}
 .sb.exh{color:var(--warn);border-color:#6b5a22;background:rgba(233,199,90,.1)}
 body.tighter .sb{font-size:9.5px;padding:2px 4px}
+.info{cursor:pointer;text-decoration:underline dotted var(--ash3);text-underline-offset:3px}
+.info:active{color:var(--amber)}
 .subhead{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber);font-weight:700;margin-top:6px}
 .turnstate{font-family:var(--f-display);font-weight:800;font-size:18px;letter-spacing:.6px;text-transform:uppercase;padding:2px 10px;border-radius:6px}
 .turnstate.mine{background:var(--heal);color:#0d1f17}
@@ -699,8 +701,8 @@ function renderTop(){
   <div class="gauge tap" data-act="init"><div class="lab">Init</div><div class="val num">${sg(M("dex"))}</div></div>
   <div class="gauge tap" data-act="speedInfo"><div class="lab">Speed</div><div class="val num">${speed()}</div></div>
   <div class="gauge tap" data-act="dcInfo"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
-  <div class="gauge energy"><div class="lab">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
-  <div class="gauge stress"><div class="lab">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
+  <div class="gauge energy"><div class="lab info" data-act="energyInfo">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
+  <div class="gauge stress"><div class="lab info" data-act="stressInfo">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
   <div class="hdrctl">
   <button class="combatsw ${combat?"on":""}" data-act="combatToggle" aria-pressed="${combat}"><span class="lab">${combat?"In combat":"Combat"}</span><span class="sw"></span></button>
   <button class="setbtn2" data-act="settings" aria-label="Settings" title="Settings">⚙</button>
@@ -784,10 +786,10 @@ function renderSheet(){
    <div class="panel">
     <h2>Limited features</h2>
     <div class="list">
-     <div class="li"><div class="grow">Guiding Bolt <span class="dim small">Fractured Genius · 1 / long rest</span></div>${usesBoxes("gbolt",1,S.lim.gbolt,"lim")}</div>
-     <div class="li"><div class="grow">Guiding Spark <span class="dim small">1 / short rest</span></div>${usesBoxes("spark",1,S.lim.spark,"lim")}</div>
-     <div class="li"><div class="grow">Seriach's Fuel <span class="dim small">1 / long rest</span></div>${usesBoxes("fuel",1,S.lim.fuel,"lim")}</div>
-     ${Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow">${f.n} <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
+     <div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="gbolt">Guiding Bolt</span> <span class="dim small">Fractured Genius · 1 / long rest</span></div>${usesBoxes("gbolt",1,S.lim.gbolt,"lim")}</div>
+     <div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="spark">Guiding Spark</span> <span class="dim small">1 / short rest</span></div>${usesBoxes("spark",1,S.lim.spark,"lim")}</div>
+     <div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="fuel">Seriach's Fuel</span> <span class="dim small">1 / long rest</span></div>${usesBoxes("fuel",1,S.lim.fuel,"lim")}</div>
+     ${Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow"><span class="info" data-act="featInfo" data-k="${k}">${f.n}</span> <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
     </div>
    </div>
    <div class="panel">
@@ -795,10 +797,10 @@ function renderSheet(){
     <dl class="kv">
      <dt>Passive Perception</dt><dd class="num">${10+skillBonus(["Perception","wis"])}</dd>
      <dt>Passive Investigation</dt><dd class="num">${10+skillBonus(["Investigation","int"])}</dd>
-     <dt>Vision</dt><dd>Gloomvision 60 ft, sees through the Barovian mists</dd>
-     <dt>Resistance</dt><dd>Fire</dd>
-     <dt>Saves</dt><dd>Disadvantage on Wis saves · Advantage on Sanity/Composure saves</dd>
-     <dt>Immune</dt><dd>Magical sleep, suffocation</dd>
+     <dt><span class="info" data-act="traitInfo" data-k="vision">Vision</span></dt><dd>Gloomvision 60 ft, sees through the Barovian mists</dd>
+     <dt><span class="info" data-act="traitInfo" data-k="resist">Resistance</span></dt><dd>Fire</dd>
+     <dt><span class="info" data-act="traitInfo" data-k="saves">Saves</span></dt><dd>Disadvantage on Wis saves · Advantage on Sanity/Composure saves</dd>
+     <dt><span class="info" data-act="traitInfo" data-k="immune">Immune</span></dt><dd>Magical sleep, suffocation</dd>
      <dt>Armour</dt><dd>Light, medium, shields</dd>
      <dt>Weapons</dt><dd>Simple, firearms</dd>
      <dt>Tools</dt><dd>Tinker's, thieves', smith's, woodcarver's, disguise kit</dd>
@@ -957,7 +959,7 @@ function renderGadgets(){
    <p class="small dim">Carry limit: Artificer level + INT mod. A levelled gadget stays used once deployed until your next short or long rest; cantrips never run out. Long rest lets you swap the load-out. Use the arrows to put your favourites first; Combat follows this order.</p>
    <div class="col scrollbox" style="margin-top:8px">
    ${n?loadGroups().map(G=>{const b=G.b, many=G.n>1, ready=G.ready.length, dep=G.n-ready; return `<div class="gadget ${b.l&&!ready?"dep":""}">
-     <div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="moveK" data-k="${b.k}" data-d="-1" title="Move up" ${G.pos===0?"disabled":""}>▲</button><button class="mini" data-act="moveK" data-k="${b.k}" data-d="1" title="Move down" ${G.pos===G.last?"disabled":""}>▼</button></span><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)} ${many?`<span class="mult">×${G.n}</span>`:""}</b>
+     <div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="moveK" data-k="${b.k}" data-d="-1" title="Move up" ${G.pos===0?"disabled":""}>▲</button><button class="mini" data-act="moveK" data-k="${b.k}" data-d="1" title="Move down" ${G.pos===G.last?"disabled":""}>▼</button></span><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0"><span class="info" data-act="bpInfo" data-k="${b.k}">${esc(b.c)}</span> ${many?`<span class="mult">×${G.n}</span>`:""}</b>
       ${b.l?`<span class="useddot" title="${ready} ready, ${dep} used">${G.all.map(j=>`<i class="${S.loadout[j].dep?"u":""}"></i>`).join("")}</span>${dep?`<span class="chip ${ready?"":"red"}">${ready?dep+" used":"Used"}</span>`:""}`:""}
       <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>${b.l&&!ready?"Used":S.combat.on?(S.combat.mine||b.t==="r"?"Deploy · "+TIME[b.t]:"Plan · "+TIME[b.t]):"Deploy"}</button>
       <button class="btn sm" data-act="build" data-k="${b.k}" title="Build another">+1</button>
@@ -973,7 +975,7 @@ function renderGadgets(){
    <div class="chips" style="margin-bottom:8px">${[["all","All"],["0","Cantrips"],["1","Level 1"],["2","Level 2"]].map(([k,l])=>`<button class="tog ${UI.bpLvl===k?"on":""}" data-act="bpLvl" data-k="${k}"><span class="box"></span>${l}</button>`).join("")}<span style="flex:1"></span><button class="tog ${ST.bpResOnly?"on":""}" data-act="setTogQ" data-k="bpResOnly"><span class="box"></span>Researched only</button></div>
    <div class="col scrollbox">
    ${list.map(b=>{const r=S.researched[b.k]; return `<div class="gadget">
-     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"C"}</span><b style="flex:1;min-width:0">${esc(b.n)}</b>
+     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"C"}</span><b style="flex:1;min-width:0"><span class="info" data-act="bpInfo" data-k="${b.k}">${esc(b.n)}</span></b>
       <button class="tog ${r?"on":""}" data-act="research" data-k="${b.k}" title="Researched (in master catalogue)"><span class="box"></span>${r?"Researched":`R&amp;D ${Math.max(1,b.l)} h`}</button>
       <button class="btn sm pri" data-act="build" data-k="${b.k}" ${r?"":"disabled"}>Build</button></div>
      <div class="small" style="color:var(--amber)">${esc(b.c)}${ST.catDetails?"":` <span class="dim">· ${TIME[b.t]} · ${b.r}${b.s?" · "+b.s+" save":""}${b.atk?" · attack":""}${b.dmg?" · "+b.dmg.replace("@int",M("int"))+" "+b.dt:""}</span>`}</div>
@@ -1751,6 +1753,27 @@ const ACT = {
  statusAdd:d=>{ S.cond[d.k]=true; logEv(`${d.k} on`); save(); render(); statusModal(); },
  statusExhUp:()=>{ S.exh=Math.min(6,S.exh+1); logEv(`Exhaustion ${S.exh}`); save(); render(); statusModal(); },
  statusExh:()=>{ S.exh=Math.max(0,S.exh-1); logEv(`Exhaustion ${S.exh}`); save(); render(); statusModal(); },
+ featInfo:d=>{ const k=d.k;
+  const T={
+   gbolt:["Guiding Bolt · Fractured Genius",`<p>Once per long rest, without using a gadget or any resources. Uses INT.</p><p><b>Ranged spell attack</b>, 120 ft, ${sg(ATK())} to hit. <b>Hit:</b> 4d8 radiant. The next attack roll against the target before the end of your next turn has advantage.</p><p class="small muted">Natural 20: ${critDmg("4d8")} radiant (max + proficiency). Status: ${S.lim.gbolt?"ready":"used until a long rest"}.</p>`],
+   spark:["Guiding Spark · Spirit Engine",`<p><b>Reaction</b>, once per short or long rest. When a creature you can see within 60 ft makes a saving throw against one of your Blueprints or Ectoplasmic Discharges, you interfere with the link between its body and soul.</p><p>The creature <b>subtracts 1d4</b> from that saving throw.</p><p class="small muted">Status: ${S.lim.spark?"ready":"used until a rest"}.</p>`],
+   fuel:["Seriach's Fuel · Spirit Engine",`<p><b>Action</b>, once per long rest, only while the Æther-Pack is at <b>0 energy</b>. The entity overloads your body as a backup containment chamber.</p><p>Choose to gain <b>1 to 5 Stress</b> (never above 5). You gain that much energy immediately.</p><p class="small muted">Status: ${S.lim.fuel?"ready":"used until a long rest"} · energy ${S.energy}/${eMax()} · Stress ${S.stress}/5.</p>`]
+  };
+  if(T[k]) return infoPop(T[k][0],T[k][1]);
+  const f=INFK[k]; if(f) infoPop(f.n+" · Mechanical Modification",`${showFl()?`<div class="flav">${esc(f.fl)}</div>`:""}<p style="margin-top:6px">${esc(f.fx)}</p><p class="small muted">Charges: ${S.ch[k]??"—"}${FX[k]&&FX[k].max?"/"+FX[k].max:""}.</p>`); },
+ traitInfo:d=>{ const T={
+   vision:["Gloomvision","<p>Darkvision out to 60 ft: dim light counts as bright and darkness as dim, in shades of grey.</p><p>Your eyes also cut straight through the Barovian mists, so you see clearly where others are blinded by them.</p><p class='small muted'>Amber-Veined Gnome trait; replaces your old darkvision.</p>"],
+   resist:["Fire resistance","<p>You take half damage from fire (rounded down). The app halves fire damage automatically when you choose fire on the HP keypad, and for an invention meltdown.</p><p class='small muted'>Amber-Veined Gnome trait.</p>"],
+   saves:["Saving throw traits",`<ul><li><b>Disadvantage on Wisdom saves</b> (Amber-Veined transformation).</li><li><b>Advantage on Sanity/Composure saves</b> (Grave Resilience).</li><li>Proficient in <b>Constitution</b> (${sg(saveBonus("con"))}) and <b>Intelligence</b> (${sg(saveBonus("int"))}) saves.</li></ul><p class='small muted'>The roll pop-up applies these for you.</p>`],
+   immune:["Unliving Stasis","<ul><li><b>Sleepless:</b> you don't need sleep and can't be put to sleep by magic.</li><li><b>Suspended respiration:</b> you take one breath per minute and are immune to suffocation.</li></ul><p class='small muted'>Amber-Veined Gnome trait.</p>"]
+  }; const t=T[d.k]; if(t) infoPop(t[0],t[1]); },
+ energyInfo:()=>infoPop("Æther-Pack energy",`<div class="what" style="color:var(--ecto)">${S.energy} / ${eMax()}</div>
+  <ul><li><b>Capacity:</b> 5 + INT mod = ${eMax()}.</li><li><b>Gain it:</b> Soul Vacuum (reaction when a hostile CR ¼+ creature dies within 30 ft), or Seriach's Fuel at 0 energy.</li><li><b>Spend it:</b> Proton Bolt 1, Proton Stream 3, Containment Burst 4, Full Proton Overload 5.</li><li><b>Over capacity:</b> excess from Soul Vacuum burns through as 1 necrotic per point to you or an adjacent creature.</li><li><b>Long rest:</b> lose half (rounded up) unless you take 1 Stress to keep it all.</li></ul>`),
+ stressInfo:()=>infoPop("Stress",`<div class="what" style="color:var(--blood)">${S.stress} / 5</div>
+  <p>Stress comes from pushing the machine and the entity inside you. You can't go above 5.</p>
+  <ul><li><b>+1</b> Overclock (once per turn, +3 to a gadget or discharge)</li><li><b>+1</b> keeping all your energy through a long rest</li><li><b>+1 to +5</b> Seriach's Fuel</li><li><b>+1</b> invention meltdown (d100 roll of 1–5)</li><li><b>+1</b> failed Occult Insight</li></ul>
+  <p class="small muted">Long rest: the app clears Stress by default (change it in Settings or on the rest screen). What happens at high Stress is up to the DM.</p>`),
+ bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`,`${bpCard(b)}<p class="small muted" style="margin-top:6px">${b.l?"Level "+b.l+" blueprint: used once deployed, back after a short or long rest.":"Cantrip blueprint: never runs out."}${S.researched[b.k]?"":" Not researched yet ("+Math.max(1,b.l)+" h of downtime)."}</p>`); },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
