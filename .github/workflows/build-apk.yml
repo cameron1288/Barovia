@@ -33,5 +33,5 @@ jobs:
           name: Flint Cogsworth app v1.${{ github.run_number }}
           target_commitish: ${{ github.sha }}
           files: Flint-Cogsworth.apk
-          make_latest: false
+          make_latest: true
           body: Character sheet app for Flint Cogsworth. Download Flint-Cogsworth.apk on the tablet and open it to install or update.
