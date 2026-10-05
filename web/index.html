@@ -222,6 +222,7 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .tell b{color:var(--amber);font-family:var(--f-mono)}
 .askrow{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px}
 .askrow input{width:96px;font-size:20px;text-align:center}
+.useddot{display:inline-flex;gap:3px;vertical-align:middle}.useddot i{width:11px;height:11px;border-radius:50%;background:var(--amber);display:inline-block}.useddot i.u{background:transparent;border:1.5px solid var(--ash3)}
 .mult{font-family:var(--f-mono);font-weight:600;font-size:13px;padding:1px 7px;border-radius:10px;background:var(--amber);color:#1b1206}
 .setbtn .val{font-size:20px;line-height:1.2}
 .modal.wide{max-width:720px}
@@ -671,7 +672,7 @@ function combatOptions(){
   const tgt = b.t==="b"?Bo: b.t==="r"?Re: b.t==="a"?A:null; if(!tgt) return;
   const bits=[b.r]; if(b.atk) bits.push(`${sg(atk)} to hit`); if(b.s) bits.push(`DC ${dc} ${b.s}`); if(b.dmg) bits.push(`${b.dmg.replace("@int",M("int"))} ${b.dt}`); if(b.heal) bits.push(`heal ${b.heal.replace("@int",M("int"))}`); if(b.conc) bits.push("conc");
   const gi=G.ready.length?G.ready[0]:G.all[0];
-  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · "),cls:"gad",kind:"gadget",gi,dis:b.l>0&&!G.ready.length?"All depleted. Reset on a short or long rest.":0});
+  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · "),cls:"gad",kind:"gadget",gi,dis:b.l>0&&!G.ready.length?"Used. Ready again after a short or long rest.":0});
  });
  // bonus: discharges
  const DS=[["pbolt","Proton Bolt",1,`60 ft · ${sg(iA)} to hit · 2d8 force`],["pstream","Proton Stream",3,`30-ft line · DC ${iDC} Dex · 2d8 force, half on save`],["cburst","Containment Burst",4,`60 ft, 10-ft radius · DC ${iDC} Str · 2d8 force, push 10 ft; half, no push on save`],["overload","Full Proton Overload",5,`60 ft · DC ${iDC} Str · 6d8 force + restrained to end of your next turn; half on save`]];
@@ -751,7 +752,7 @@ function bpCard(b,inLoad){
  const fl=flavOf(b);
  return `${fl&&showFl()?`<div class="flav">${esc(fl)}</div>`:""}<div class="stat">${stats.join("")}</div><div class="fx"><b class="small" style="color:var(--ash2);letter-spacing:1px">IN PLAY</b> ${esc(b.fx)}</div>`;
 }
-function loadGroups(){ const out=[], at={}; S.loadout.forEach((g,i)=>{ const b=BPK[g.key]; if(!b) return; if(at[g.key]===undefined){ at[g.key]=out.length; out.push({b,n:0,ready:[],all:[]}); } const G=out[at[g.key]]; G.n++; G.all.push(i); if(!g.dep||b.l===0) G.ready.push(i); }); return out; }
+function loadGroups(){ const out=[], at={}; S.loadout.forEach((g,i)=>{ const b=BPK[g.key]; if(!b) return; if(at[g.key]===undefined){ at[g.key]=out.length; out.push({b,n:0,ready:[],all:[]}); } const G=out[at[g.key]]; G.n++; G.all.push(i); if(!g.dep||b.l===0) G.ready.push(i); }); out.forEach((G,j)=>{ G.pos=j; G.last=out.length-1; }); return out; }
 function renderGadgets(){
  const cap=gadgetCap(), n=S.loadout.length;
  const q=UI.bpFilter.toLowerCase();
@@ -759,14 +760,13 @@ function renderGadgets(){
  const depN=S.loadout.filter(g=>g.dep).length;
  return `<div class="grid gside">
   <div class="panel">
-   <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<button class="btn sm" data-act="resetGadgets">Reset ${depN} depleted</button>`:""}</h2>
-   <p class="small dim">Carry limit: Artificer level + INT mod. Levelled gadgets deplete when deployed; cantrips don't. Short or long rest resets depleted gadgets; long rest lets you swap the load-out.</p>
+   <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<span class="chip red">${depN} used until a rest</span>`:""}</h2>
+   <p class="small dim">Carry limit: Artificer level + INT mod. A levelled gadget stays used once deployed until your next short or long rest; cantrips never run out. Long rest lets you swap the load-out. Use the arrows to put your favourites first; Combat follows this order.</p>
    <div class="col" style="margin-top:8px">
    ${n?loadGroups().map(G=>{const b=G.b, many=G.n>1, ready=G.ready.length, dep=G.n-ready; return `<div class="gadget ${b.l&&!ready?"dep":""}">
-     <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)} ${many?`<span class="mult">×${G.n}</span>`:""}</b>
-      ${b.l?(dep?`<span class="chip ${ready?"":"red"}">${ready}/${G.n} ready</span>`:(many?`<span class="chip ok">${ready} ready</span>`:"")):""}
-      <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>Deploy</button>
-      ${dep?`<button class="btn sm" data-act="resetK" data-k="${b.k}">Reset</button>`:""}
+     <div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="moveK" data-k="${b.k}" data-d="-1" title="Move up" ${G.pos===0?"disabled":""}>▲</button><button class="mini" data-act="moveK" data-k="${b.k}" data-d="1" title="Move down" ${G.pos===G.last?"disabled":""}>▼</button></span><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)} ${many?`<span class="mult">×${G.n}</span>`:""}</b>
+      ${b.l?`<span class="useddot" title="${ready} ready, ${dep} used">${G.all.map(j=>`<i class="${S.loadout[j].dep?"u":""}"></i>`).join("")}</span>${dep?`<span class="chip ${ready?"":"red"}">${ready?dep+" used":"Used"}</span>`:""}`:""}
+      <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>${b.l&&!ready?"Used":"Deploy"}</button>
       <button class="btn sm" data-act="build" data-k="${b.k}" title="Build another">+1</button>
       <button class="btn sm" data-act="unloadK" data-k="${b.k}" title="Dismantle one">−1</button></div>
      <div class="small muted">${b.n}${b.conc?" · concentration":""}</div>
@@ -1093,7 +1093,7 @@ function deployGadget(i, ocB){
  else if(b.tmp){ const h=roll(b.tmp); if(h.total>S.hp.temp){S.hp.temp=h.total;} logEv(`False Life: ${h.total} temp HP`); html=`<div class="rollcard"><div class="big ecto">${h.total}</div><div class="small dim">temp HP (applied if higher than current)</div></div>`; pushRoll(b.n,html,`<b>${h.total}</b> temp HP`); }
  else { html=`<div class="rollcard"><div class="muted small">Deployed</div><div class="big" style="font-size:22px">${esc(b.c)}</div></div>`; pushRoll(b.n,html,"deployed"); }
  const fl=flavOf(b);
- return (fl&&showFl()?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(fl)}</div>`:"") + html + `<p class="small" style="margin-top:6px"><b>What happens:</b> ${esc(b.fx)}</p>`;
+ return (fl&&showFl()?`<div class="flav" style="font-size:14px;margin-bottom:6px">${esc(fl)}</div>`:"") + html + `<p class="small" style="margin-top:6px"><b>What happens:</b> ${esc(b.fx)}</p>` + (b.l>0?`<p class="small muted">This gadget is now used until your next short or long rest. <button class="btn sm" data-act="undoUse" data-i="${i}">Undo, tapped by mistake</button></p>`:"");
 }
 function dsResult(r){ let t; if(r===20){ S.hp.cur=1; S.ds={s:0,f:0}; t="Natural 20: back up with 1 HP!"; } else if(r===1){ S.ds.f=Math.min(3,S.ds.f+2); t="Natural 1: two failures."; } else if(r>=10){ S.ds.s=Math.min(3,S.ds.s+1); t="Success."; } else { S.ds.f=Math.min(3,S.ds.f+1); t="Failure."; }
  if(S.ds.s>=3) t+=" Stable."; if(S.ds.f>=3) t+=" Three failures."; pushRoll("Death save",``,`<b>${r}</b> ${t}`); logEv(`Death save ${r}: ${t}`); save(); render(); }
@@ -1257,12 +1257,11 @@ const ACT = {
  research:d=>{ S.researched[d.k]=!S.researched[d.k]; if(S.researched[d.k]) logEv(`Researched blueprint: ${BPK[d.k].n}`); save(); render(); },
  build:d=>{ if(S.loadout.length>=gadgetCap()){ toastModal("Load-out full",`<p>You can carry ${gadgetCap()} gadgets. Dismantle one first.</p>`); return; } S.loadout.push({key:d.k,dep:false}); logEv(`Built ${BPK[d.k].c}`); save(); render(); },
  unload:d=>{ const g=S.loadout.splice(+d.i,1)[0]; logEv(`Dismantled ${BPK[g.key]?.c}`); save(); render(); },
- ungdep:d=>{ S.loadout[+d.i].dep=false; save(); render(); },
- resetGadgets:()=>{ S.loadout.forEach(g=>g.dep=false); logEv("Reset depleted gadgets"); save(); render(); },
+ moveK:d=>{ const G=loadGroups(); const i=G.findIndex(x=>x.b.k===d.k), j=i+(+d.d); if(i<0||j<0||j>=G.length) return; [G[i],G[j]]=[G[j],G[i]]; S.loadout=G.flatMap(x=>x.all.map(k=>S.loadout[k])); save(); render(); },
+ undoUse:d=>{ const g=S.loadout[+d.i]; if(g && g.dep){ g.dep=false; logEv(`Undid use of ${BPK[g.key].c}`); save(); render(); } closeModal(); },
  deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); if(h) toastModal(b.c,h); },
  deployK:d=>{ const i=S.loadout.findIndex(g=>g.key===d.k && (!g.dep||BPK[g.key].l===0)); if(i<0) return; ACT.deploy({i:String(i)}); },
  unloadK:d=>{ let i=-1; S.loadout.forEach((g,j)=>{ if(g.key===d.k && (i<0 || (g.dep && !S.loadout[i].dep))) i=j; }); if(i<0) return; S.loadout.splice(i,1); logEv(`Dismantled one ${BPK[d.k].c}`); save(); render(); },
- resetK:d=>{ S.loadout.forEach(g=>{ if(g.key===d.k) g.dep=false; }); save(); render(); },
  healMe:d=>{ heal(+d.n); save(); render(); closeModal(); },
  // tinkering
  idea:d=>{ UI.wbName=d.n; UI.wbTier=+d.t; UI.wbNote=d.d; UI.wbResult=""; render(); },
