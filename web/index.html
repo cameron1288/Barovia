@@ -406,7 +406,7 @@ const CONDITIONS = {
  Stunned:"Incapacitated, can't move, falters speech. Auto-fail Str and Dex saves; attacks vs you have advantage.",
  Unconscious:"Incapacitated, prone, drop items. Auto-fail Str and Dex saves. Attacks vs you have advantage; hits within 5 ft are crits."
 };
-const EXH = ["None","Disadvantage on ability checks","Speed halved","Disadvantage on attacks and saves","HP maximum halved","Speed 0","Death"];
+const EXH = ["None","Disadvantage on ability checks and saving throws","Speed halved","Disadvantage on attack rolls","HP maximum halved","Speed 0","Death"];
 const SV_TABLE = [["¼ – 1","1d4",1],["2 – 3","2d4",2],["4 – 5","3d4",3],["6 – 8","4d4",4],["9 – 12","5d4",5],["13+","6d4",6]];
 const TIERS = [[0,5,"Standard Mundane"],[1,25,"Minor Utility"],[2,50,"Tactical Advantage"],[3,75,"Unstable Prototype"]];
 const IDEAS = [
@@ -592,7 +592,7 @@ function rollFactors(kind, abil, skill){
   if(c.Deafened) notes.push("Deafened: a check that relies on hearing automatically fails.");
  }
  if(kind==="save"){
-  if(S.exh>=3) dis.push("Exhaustion "+S.exh+" (disadvantage on saving throws)");
+  if(S.exh>=1) dis.push("Exhaustion "+S.exh+" (disadvantage on saving throws)");
   if(abil==="wis") dis.push("Amber-Veined: disadvantage on Wisdom saves");
   if(abil==="san") adv.push("Grave Resilience: advantage on Sanity and Composure saves");
   if(abil==="dex" && c.Restrained) dis.push("Restrained (Dex saves)");
