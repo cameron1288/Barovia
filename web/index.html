@@ -855,8 +855,9 @@ function renderCombat(){
   <h2>${C.mine?"This turn's plan":"Next turn"} <span class="sp"></span>${P.act||P.bon||P.note||P.oc?`<button class="btn sm" data-act="planClear">Clear plan</button>`:""}</h2>
   <div class="plangrid">
    ${slot("act","Action")}${slot("bon","Bonus action")}
-   <div class="slot"><span class="lab">Movement &amp; notes</span><textarea id="plan-note" data-bind-text="combat.plan.note" style="min-height:52px" placeholder="e.g. Step behind the pillar, Overclock the Proton Bolt on the wight">${esc(P.note||"")}</textarea>${P.oc?'<span class="chip red">Overclock planned</span>':""}</div>
+   <div class="slot"><span class="lab">Movement &amp; notes</span><textarea id="plan-note" data-bind-text="combat.plan.note" style="min-height:52px" placeholder="e.g. Step behind the pillar, Overclock the Proton Bolt on the wight">${esc(P.note||"")}</textarea></div>
   </div>
+  ${P.oc||C.oc?`<div class="redbox" style="margin-top:8px"><b>Overclock ${C.oc?"armed":"planned"}.</b> Cost: <b>1 Stress</b> (${S.stress} → ${Math.min(5,S.stress+1)} of 5), taken before you roll. Bonus on your next gadget or Ectoplasmic Discharge this turn: <b>+3 to the spell attack roll</b> (${sg(ATK())} → ${sg(ATK()+3)}), or for a saving-throw effect <b>+3 to the save DC</b> (${DC()} → ${DC()+3}) <b>and +3 damage</b>. Once per turn.${S.stress>=5?' <b>You are at 5 Stress, so it can\'t be used.</b>':S.stress===4?" This puts you at the 5 Stress maximum.":""}</div>`:""}
   <p class="small dim" style="margin-top:6px">${C.mine?"Tap Go to use each planned option, or tap anything below to use it now.":"While others play, tapping an action or bonus action plans it here. Reactions still happen immediately. Start my turn when it's your go."}</p>
  </div>
  ${S.cond&&Object.keys(S.cond).filter(k=>S.cond[k]).length?`<div class="redbox">Active conditions: ${Object.keys(S.cond).filter(k=>S.cond[k]).map(c=>`<b>${c}</b> (${CONDITIONS[c]})`).join(" · ")}</div>`:""}
