@@ -729,7 +729,8 @@ function combatOptions(){
   const tgt = b.t==="b"?Bo: b.t==="r"?Re: b.t==="a"?A:null; if(!tgt) return;
   const bits=[b.r]; if(b.atk) bits.push(`${sg(atk)} to hit`); if(b.s) bits.push(`DC ${dc} ${b.s}`); if(b.dmg) bits.push(`${b.dmg.replace("@int",M("int"))} ${b.dt}`); if(b.heal) bits.push(`heal ${b.heal.replace("@int",M("int"))}`); if(b.conc) bits.push("conc");
   const gi=G.ready.length?G.ready[0]:G.all[0];
-  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · "),cls:"gad",kind:"gadget",gi,dis:b.l>0&&!G.ready.length?"Used. Ready again after a short or long rest.":0});
+  const cc=concConflict(b);
+  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · ")+(cc?` · <span style="color:var(--warn)">ends concentration on ${esc(cc)}</span>`:""),cls:"gad",kind:"gadget",gi,dis:b.l>0&&!G.ready.length?"Used. Ready again after a short or long rest.":0});
  });
  // bonus: discharges
  const DS=[["pbolt","Proton Bolt",1,`60 ft · ${sg(iA)} to hit · 2d8 force`],["pstream","Proton Stream",3,`30-ft line · DC ${iDC} Dex · 2d8 force, half on save`],["cburst","Containment Burst",4,`60 ft, 10-ft radius · DC ${iDC} Str · 2d8 force, push 10 ft; half, no push on save`],["overload","Full Proton Overload",5,`60 ft · DC ${iDC} Str · 6d8 force + restrained to end of your next turn; half on save`]];
@@ -828,6 +829,7 @@ function bpCard(b,inLoad){
  const fl=flavOf(b);
  return `${fl&&showFl()?`<div class="flav">${esc(fl)}</div>`:""}<div class="stat">${stats.join("")}</div><div class="fx"><b class="small" style="color:var(--ash2);letter-spacing:1px">IN PLAY</b> ${esc(b.fx)}</div>`;
 }
+const concConflict = b => (b && b.conc && S.conc && S.conc!==b.n) ? S.conc : null;
 function loadGroups(){ const out=[], at={}; S.loadout.forEach((g,i)=>{ const b=BPK[g.key]; if(!b) return; if(at[g.key]===undefined){ at[g.key]=out.length; out.push({b,n:0,ready:[],all:[]}); } const G=out[at[g.key]]; G.n++; G.all.push(i); if(!g.dep||b.l===0) G.ready.push(i); }); out.forEach((G,j)=>{ G.pos=j; G.last=out.length-1; }); return out; }
 function renderGadgets(){
  const cap=gadgetCap(), n=S.loadout.length;
@@ -846,6 +848,7 @@ function renderGadgets(){
       <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>${b.l&&!ready?"Used":S.combat.on?(S.combat.mine||b.t==="r"?"Deploy · "+TIME[b.t]:"Plan · "+TIME[b.t]):"Deploy"}</button>
       <button class="btn sm" data-act="build" data-k="${b.k}" title="Build another">+1</button>
       <button class="btn sm" data-act="unloadK" data-k="${b.k}" title="Dismantle one">−1</button></div>
+     ${concConflict(b)?`<div class="small" style="color:var(--warn)">Concentration: deploying this ends ${esc(concConflict(b))}.</div>`:""}
      <div class="small muted">${b.n} · ${TIME[b.t]} · ${b.r}${b.s?" · DC "+DC()+" "+b.s:""}${b.atk?" · "+sg(ATK())+" to hit":""}${b.dmg?" · "+b.dmg.replace("@int",M("int"))+" "+b.dt:""}${b.conc?" · concentration":""}</div>
      ${ST.loadDetails?bpCard(b,true):""}</div>`}).join(""):`<div class="warnbox">Empty. Add the gadgets you built at your last long rest from the catalogue.</div>`}
    </div>
@@ -1151,6 +1154,8 @@ function useOption(id){
  const costly = ["discharge","rshield","spark","fuel","axeblind","mind","pipes"].includes(o.kind) || o.id==="gbolt" || (o.kind==="gadget" && BPK[S.loadout[o.gi].key].l>0);
  if(S.settings.confirmSpend && costly && UI.confirmed!==id){ modal(`<h2>Use ${esc(o.n)}?</h2><p class="muted">${o.cost?esc(o.cost)+" · ":""}${o.meta}</p><div class="btns" style="margin-top:10px"><button class="btn pri" data-act="useConfirm" data-k="${id}">Use it</button><button class="btn" data-act="close">Cancel</button></div>`); return; }
  UI.confirmed=null;
+ if(o.kind==="gadget"){ const gb=BPK[S.loadout[o.gi].key], cc=concConflict(gb); if(cc && UI.concOk!==id){ concModal(gb,cc,`data-act="concOk" data-k="${id}"`); return; } }
+ UI.concOk=null;
  let html="", slot=o.slot||"act";
  const ocB = (o.kind==="gadget"||o.kind==="discharge") ? ocApply() : 0;
  switch(o.kind){
@@ -1273,6 +1278,9 @@ function settingsModal(){
   <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="close">Done</button></div>`);
  document.querySelector("#modal .modal")?.classList.add("wide");
 }
+function concModal(b,cc,attrs){
+ modal(`<h2>End concentration?</h2><div class="warnbox">You're concentrating on <b>${esc(cc)}</b>. Deploying <b>${esc(b.c)}</b> (${esc(b.n)}) also needs concentration, so <b>${esc(cc)}</b> ends.</div><div class="btns" style="margin-top:10px"><button class="btn pri" ${attrs}>Deploy and end ${esc(cc)}</button><button class="btn" data-act="close">Keep ${esc(cc)}</button></div>`);
+}
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
  const room=5-S.stress;
@@ -1378,7 +1386,7 @@ const ACT = {
  unload:d=>{ const g=S.loadout.splice(+d.i,1)[0]; logEv(`Dismantled ${BPK[g.key]?.c}`); save(); render(); },
  moveK:d=>{ const G=loadGroups(); const i=G.findIndex(x=>x.b.k===d.k), j=i+(+d.d); if(i<0||j<0||j>=G.length) return; [G[i],G[j]]=[G[j],G[i]]; S.loadout=G.flatMap(x=>x.all.map(k=>S.loadout[k])); save(); render(); },
  undoUse:d=>{ const g=S.loadout[+d.i]; if(g && g.dep){ g.dep=false; logEv(`Undid use of ${BPK[g.key].c}`); save(); render(); } closeModal(); },
- deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); if(h) toastModal(b.c,h); },
+ deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const cc=concConflict(b); if(cc && UI.concOkI!==String(i)){ concModal(b,cc,`data-act="concOk" data-i="${i}"`); return; } UI.concOkI=null; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); if(h) toastModal(b.c,h); },
  deployK:d=>{ const bk=BPK[d.k]; if(S.combat.on && !S.combat.mine && bk.t!=="r" && bk.t!=="1m"){ const slot=bk.t==="b"?"bon":"act"; S.combat.plan[slot]="g:"+d.k; pushRoll("Planned","",`<b>${esc(bk.c)}</b> for your next ${slot==="act"?"action":"bonus action"}`); save(); render(); return; } const i=S.loadout.findIndex(g=>g.key===d.k && (!g.dep||BPK[g.key].l===0)); if(i<0) return; ACT.deploy({i:String(i)}); },
  unloadK:d=>{ let i=-1; S.loadout.forEach((g,j)=>{ if(g.key===d.k && (i<0 || (g.dep && !S.loadout[i].dep))) i=j; }); if(i<0) return; S.loadout.splice(i,1); logEv(`Dismantled one ${BPK[d.k].c}`); save(); render(); },
  healMe:d=>{ heal(+d.n); save(); render(); closeModal(); },
@@ -1429,6 +1437,7 @@ const ACT = {
  eventLog:()=>modal(`<h2>Event log</h2><div class="list">${S.log.map(l=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(l.t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="grow">${esc(l.txt)}</span></div>`).join("")||'<p class="muted">Nothing yet.</p>'}</div><div class="btns" style="margin-top:10px"><button class="btn" data-act="settings">Back to settings</button><button class="btn pri" data-act="close">Done</button></div>`),
  modBuild:d=>{ const m=S.mods[d.k]; if(!m.built && modsUsed()>=modCap()){ toastModal("All slots used",`<p>You can keep ${modCap()} modifications built at level ${B().level}. Unbuild one first.</p>`); return; } m.built=!m.built; logEv(`${INFK[d.k].n} ${m.built?"built":"dismantled"}`); if(m.built&&m.holder==="flint") ensureInfItem(d.k); save(); render(); },
  modHolder:d=>{ const m=S.mods[d.k]; if(m.holder===d.v) return; m.holder=d.v; if(d.v==="ally"){ const i=S.items.findIndex(x=>x.fx===d.k); if(i>=0){ logEv(`${S.items[i].n} handed to an ally`); S.items.splice(i,1); } } else ensureInfItem(d.k); save(); render(); },
+ concOk:d=>{ closeModal(); if(d.k){ UI.concOk=d.k; UI.confirmed=d.k; useOption(d.k); } else { UI.concOkI=d.i; ACT.deploy({i:d.i}); } },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
