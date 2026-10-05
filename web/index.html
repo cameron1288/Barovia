@@ -233,6 +233,22 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .mult{font-family:var(--f-mono);font-weight:600;font-size:13px;padding:1px 7px;border-radius:10px;background:var(--amber);color:#1b1206}
 .setbtn .val{font-size:20px;line-height:1.2}
 .modal.wide{max-width:720px}
+.charlayout{display:grid;grid-template-columns:minmax(260px,330px) minmax(0,1fr);gap:12px;margin-top:12px;align-items:start}
+.charlayout > .grid{margin-top:0}
+@media (max-width:760px){.charlayout{grid-template-columns:minmax(0,1fr)}}
+.pimg{width:100%;max-height:420px;object-fit:cover;border-radius:8px;border:1px solid var(--line);display:block}
+.pempty{aspect-ratio:3/4;max-height:360px;width:100%;border:1.5px dashed var(--line);border-radius:8px;display:flex;align-items:center;justify-content:center;color:var(--ash3);text-align:center;padding:16px}
+.planpanel{margin-top:12px;border-color:var(--amber2);background:linear-gradient(0deg,var(--iron),var(--iron)),var(--iron)}
+.plangrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,1.2fr);gap:8px}
+@media (max-width:760px){.plangrid{grid-template-columns:minmax(0,1fr)}}
+.slot{border:1.5px dashed var(--line);border-radius:8px;padding:8px 10px;min-height:64px;display:flex;flex-direction:column;gap:4px}
+.slot.full{border-style:solid;border-color:var(--amber);background:var(--amberglow)}
+.slot .lab{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ash2);font-weight:700}
+.opt.planned{outline:2px solid var(--amber);outline-offset:-2px}
+.subhead{font-size:11px;letter-spacing:1.4px;text-transform:uppercase;color:var(--amber);font-weight:700;margin-top:6px}
+.turnstate{font-family:var(--f-display);font-weight:800;font-size:18px;letter-spacing:.6px;text-transform:uppercase;padding:2px 10px;border-radius:6px}
+.turnstate.mine{background:var(--heal);color:#0d1f17}
+.turnstate.wait{background:var(--iron3);color:var(--ash2)}
 </style>
 
 <div class="top"><div class="wrap" style="padding-block:0" id="top"></div></div>
@@ -378,7 +394,7 @@ let uid=1; const nid=()=> "i"+Date.now().toString(36)+(uid++);
 function DEF(){
  const it=(n,q,w,o={})=>({id:nid(),n,q,w,worn:false,mod:false,att:false,note:"",...o});
  return {
-  v:3, _t:0,
+  v:3, _t:0, portrait:"",
   settings:{rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
   allyMods:[{item:"",ally:""},{item:"",ally:""}],
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
@@ -411,7 +427,7 @@ function DEF(){
    it("Light hammer",1,2,{note:"Light, thrown (20/60). 1d4 bludgeoning."})
   ],
   coins:{cp:36,sp:6,ep:2,gp:36,pp:0}, scrap:46,
-  combat:{on:false,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false},
+  combat:{on:false,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false,mine:false,plan:{act:null,bon:null,oc:false,note:""}},
   notes:{
    traits:"I tend to mutter to myself in Gnomish, explaining my current thoughts or theories aloud.",
    ideals:"Discovery: The world is full of wonders waiting to be found and understood. My purpose is to uncover new secrets and push the boundaries of what's known. I hold my mind as sacred.",
@@ -560,10 +576,11 @@ function renderTop(){
   <div class="ab san" data-act="check" data-k="san"><span class="tag adv">ADV SAVE</span><div class="k">SANITY</div><div class="m num">${sg(M("san"))}</div><div class="s">${B().san}</div><span class="sv" data-act="save" data-k="san">save ${sg(M("san"))}</span></div>
  </div>
  <div class="tabs" role="tablist">
-  ${[["sheet","Character"],["combat","Combat"],["gadgets","Gadgets"],["tinker","Tinkering"],["gear","Gear"],["features","Features"],["notes","Notes"]].map(([k,l])=>`<button class="tab ${k==="combat"?"cmb":""} ${UI.tab===k?"on":""}" data-act="tab" data-k="${k}" role="tab" aria-selected="${UI.tab===k}">${l}${k==="combat"&&combat?'<span class="dot"></span>':""}</button>`).join("")}
+  ${TABS.map(([k,l])=>`<button class="tab ${k==="combat"?"cmb":""} ${UI.tab===k?"on":""}" data-act="tab" data-k="${k}" role="tab" aria-selected="${UI.tab===k}">${l}${k==="combat"&&combat?'<span class="dot"></span>':""}</button>`).join("")}
  </div>`;
 }
 
+const TABS=[["sheet","Character"],["combat","Combat"],["gadgets","Gadgets"],["tinker","Tinkering"],["gear","Gear"],["background","Background"]];
 /* ======================= RENDER: CHARACTER ======================= */
 function usesBoxes(key,max,cur,kind){ return `<span class="uses">${Array.from({length:max},(_,i)=>`<span class="use ${i<cur?"":"spent"}" data-act="${kind}" data-k="${key}" data-i="${i}" title="Tap to spend or restore"></span>`).join("")}</span>`; }
 function renderSheet(){
@@ -571,8 +588,19 @@ function renderSheet(){
  const conds=Object.keys(CONDITIONS);
  const activeConds=conds.filter(c=>S.cond[c]);
  return `
- <div class="grid gside">
-  <div class="grid" style="margin-top:0">
+ <div class="charlayout">
+  <div class="grid">
+   <div class="panel">
+    <h2>Skills <span class="cnt">Prof ${sg(PB())}</span></h2>
+    <div class="list">
+     ${SKILLS.map(s=>{const p=SKPROF[s[0]]||0;return `<div class="li tap" data-act="skill" data-k="${s[0]}"><span class="prof">${p===2?"◆◆":p?"◆":""}</span><span class="grow">${s[0]} <span class="dim small">${s[1].toUpperCase()}</span></span><span class="bonus">${sg(skillBonus(s))}</span></div>`}).join("")}
+    </div>
+    <p class="small dim" style="margin-top:6px">◆ proficient · ◆◆ expertise. Relic Scholar: double proficiency on History or Investigation about magic items, cursed relics, undead anatomy, Castle Ravenloft and the Amber Temple.</p>
+   </div>
+  </div>
+  <div class="grid">
+   <div class="grid g2" style="margin-top:0">
+    <div class="grid" style="margin-top:0">
    <div class="panel">
     <h2>Quick changes <span class="sp"></span><button class="tog ${e?"on":""}" data-act="editToggle"><span class="box"></span>Edit base stats</button></h2>
     <div class="btns">
@@ -590,7 +618,7 @@ function renderSheet(){
      <dt>Concentrating</dt><dd>${S.conc?`<span class="chip amber">${esc(S.conc)}</span> <button class="btn sm" data-act="concEnd">End</button>`:'<span class="dim small">Nothing. Deploying a concentration gadget sets this.</span>'}</dd>
      <dt>XP</dt><dd class="num">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()} <span class="dim small">(${Math.max(0,B().nextXp-B().xp).toLocaleString()} to level ${B().level+1})</span></dd>
      <dt>Max HP</dt><dd class="num">${maxHp()} <span class="dim small">(${B().maxHp} base${S.hp.bonus?` + ${S.hp.bonus} until long rest`:""}${S.exh>=4?", halved by exhaustion":""})</span></dd>
-     <dt>Modifications</dt><dd>${modsUsed()} / ${modCap()} <span class="small muted">${[...S.items.filter(i=>i.mod).map(i=>esc(i.n)),...(S.allyMods||[]).map(m=>esc(m.item||"unnamed")+(m.ally?" ("+esc(m.ally)+")":""))].join(" · ")}</span> <button class="btn sm" data-act="tab" data-k="gear">Manage</button></dd>
+     <dt>Modifications</dt><dd>${modsUsed()} / ${modCap()} <span class="small muted">${(()=>{ const named=(S.allyMods||[]).filter(m=>m.item||m.ally), blank=(S.allyMods||[]).length-named.length; return [...S.items.filter(i=>i.mod).map(i=>esc(i.n)),...named.map(m=>esc(m.item||"Ally item")+(m.ally?" ("+esc(m.ally)+")":"")),...(blank?[blank+" on allies' gear (not named yet)"]:[])].join(" · "); })()}</span> <button class="btn sm" data-act="tab" data-k="gear">Manage</button></dd>
      <dt>Hit dice</dt><dd class="num">${B().level-S.hdUsed} of ${B().level} d8 (+${M("con")} each)</dd>
     </div>
     ${e?`<div class="sep"></div><div class="edit">
@@ -609,6 +637,13 @@ function renderSheet(){
     </div>`:""}
    </div>
    <div class="panel">
+    <h2>Conditions ${activeConds.length?`<span class="cnt over">${activeConds.length} active</span>`:""}</h2>
+    <div class="chips">${conds.map(c=>`<button class="tog ${S.cond[c]?"on":""}" data-act="cond" data-k="${c}"><span class="box"></span>${c}</button>`).join("")}</div>
+    ${activeConds.map(c=>`<p class="small" style="margin-top:6px"><b>${c}:</b> <span class="muted">${CONDITIONS[c]}</span></p>`).join("")}
+   </div>
+    </div>
+    <div class="grid" style="margin-top:0">
+   <div class="panel">
     <h2>Limited features</h2>
     <div class="list">
      <div class="li"><div class="grow">Guiding Bolt <span class="dim small">Fractured Genius · 1 / long rest</span></div>${usesBoxes("gbolt",1,S.lim.gbolt,"lim")}</div>
@@ -616,20 +651,6 @@ function renderSheet(){
      <div class="li"><div class="grow">Seriach's Fuel <span class="dim small">1 / long rest</span></div>${usesBoxes("fuel",1,S.lim.fuel,"lim")}</div>
      ${Object.entries(FX).filter(([k,f])=>f.max&&itemFx(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow">${f.n} <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
     </div>
-   </div>
-   <div class="panel">
-    <h2>Conditions ${activeConds.length?`<span class="cnt over">${activeConds.length} active</span>`:""}</h2>
-    <div class="chips">${conds.map(c=>`<button class="tog ${S.cond[c]?"on":""}" data-act="cond" data-k="${c}"><span class="box"></span>${c}</button>`).join("")}</div>
-    ${activeConds.map(c=>`<p class="small" style="margin-top:6px"><b>${c}:</b> <span class="muted">${CONDITIONS[c]}</span></p>`).join("")}
-   </div>
-  </div>
-  <div class="grid" style="margin-top:0">
-   <div class="panel">
-    <h2>Skills <span class="cnt">Prof ${sg(PB())}</span></h2>
-    <div class="list">
-     ${SKILLS.map(s=>{const p=SKPROF[s[0]]||0;return `<div class="li tap" data-act="skill" data-k="${s[0]}"><span class="prof">${p===2?"◆◆":p?"◆":""}</span><span class="grow">${s[0]} <span class="dim small">${s[1].toUpperCase()}</span></span><span class="bonus">${sg(skillBonus(s))}</span></div>`}).join("")}
-    </div>
-    <p class="small dim" style="margin-top:6px">◆ proficient · ◆◆ expertise. Relic Scholar: double proficiency on History or Investigation about magic items, cursed relics, undead anatomy, Castle Ravenloft and the Amber Temple.</p>
    </div>
    <div class="panel">
     <h2>Senses, defences &amp; proficiencies</h2>
@@ -647,14 +668,17 @@ function renderSheet(){
      <dt>Size</dt><dd>Small · 3 ft · 40 lb · age 30 · Neutral Good</dd>
     </dl>
    </div>
+    </div>
+   </div>
+   ${renderFeatures()}
   </div>
  </div>`;
 }
 
 /* ======================= RENDER: COMBAT ======================= */
-function opt(o){
+function opt(o,isPlanned){
  const dis = o.dis ? "dis" : "";
- return `<button class="opt ${o.cls||""} ${dis}" data-act="use" data-k="${o.id}" ${o.dis?`title="${esc(o.dis)}"`:""}>
+ return `<button class="opt ${o.cls||""} ${dis} ${isPlanned?"planned":""}" data-act="use" data-k="${o.id}" ${o.dis?`title="${esc(o.dis)}"`:""}>
   <div class="on1"><span class="nm">${esc(o.n)}</span>${o.cost?`<span class="cost">${o.cost}</span>`:""}</div>
   ${o.fl&&showFl()?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
 }
@@ -669,8 +693,9 @@ function combatOptions(){
  A.push({id:"scorch",n:"Scorching Ray (arm)",meta:`120 ft · 3 rays, ${sg(atk)} each · 2d6 fire per ray · Con save to withstand the energy`,kind:"scorch"});
  A.push({id:"gbolt",n:"Guiding Bolt",cost:"1/LR",meta:`120 ft · ${sg(atk)} · 4d8 radiant · next attack vs target has advantage`,kind:"atk",atk,dmg:"4d8",dt:"radiant",dis:S.lim.gbolt?0:"Used. Back after a long rest."});
  if(fxOn("axe")){ const b=M("str")+1+(B().martialProf?PB():0); A.push({id:"axe",n:"Radiant Battleaxe",meta:`Melee · ${sg(b)} to hit${B().martialProf?"":" (not proficient)"} · 1d8${sg(M("str")+1)} slashing (1d10 two-handed)`,kind:"atk",atk:b,dmg:"1d8+"+(M("str")+1),dt:"slashing"}); }
- A.push({id:"dagger",n:"Dagger",meta:`Melee or thrown 20/60 · ${sg(PB()+M("dex"))} · 1d4${sg(M("dex"))} piercing`,kind:"atk",atk:PB()+M("dex"),dmg:"1d4+"+M("dex"),dt:"piercing"});
- A.push({id:"hammer",n:"Light hammer",meta:`Melee or thrown 20/60 · ${sg(PB()+M("str"))} · 1d4${M("str")?sg(M("str")):""} bludgeoning`,kind:"atk",atk:PB()+M("str"),dmg:"1d4"+(M("str")?"+"+M("str"):""),dt:"bludgeoning"});
+ const hasItem = n => S.items.some(i=>(+i.q||0)>0 && i.n.toLowerCase().includes(n));
+ if(hasItem("dagger")) A.push({id:"dagger",n:"Dagger",meta:`Melee or thrown 20/60 · ${sg(PB()+M("dex"))} · 1d4${sg(M("dex"))} piercing`,kind:"atk",atk:PB()+M("dex"),dmg:"1d4+"+M("dex"),dt:"piercing"});
+ if(hasItem("light hammer")) A.push({id:"hammer",n:"Light hammer",meta:`Melee or thrown 20/60 · ${sg(PB()+M("str"))} · 1d4${M("str")?sg(M("str")):""} bludgeoning`,kind:"atk",atk:PB()+M("str"),dmg:"1d4"+(M("str")?"+"+M("str"):""),dt:"bludgeoning"});
  if(fxOn("pipes")) A.push({id:"pipes",n:"Pipes of Haunting",cost:`${S.ch.pipes}/3 ch`,meta:"30 ft · DC 15 Wis save or frightened 1 min (repeats save each turn)",kind:"pipes",dis:S.ch.pipes?0:"No charges"});
  A.push({id:"fuel",n:"Seriach's Fuel",cost:"1/LR",meta:"Only at 0 energy · gain 1–5 Stress, gain that much energy",kind:"fuel",dis:!S.lim.fuel?"Used. Back after a long rest.":S.energy>0?"Pack must be at 0 energy":S.stress>=5?"Already at 5 Stress":0});
  A.push({id:"insight",n:"Occult Insight",meta:"Action or bonus · DC 8 + CR · fail = +1 Stress",kind:"insight"});
@@ -710,28 +735,47 @@ function renderCombat(){
   <p class="muted">Flip the Combat switch at the top when initiative is called. You'll get a turn tracker, Overclock, and every action, bonus action and reaction Flint can take right now, including your loaded gadgets.</p>
   <div class="btns" style="margin-top:8px"><button class="btn pri" data-act="combatToggle">Start combat</button><button class="btn" data-act="init">Roll initiative (${sg(M("dex"))})</button></div>
  </div>${combatRef()}`;
+ const P=C.plan||(C.plan={act:null,bon:null,oc:false,note:""});
+ const planned=new Set([P.act,P.bon].filter(Boolean));
+ const optP=o=>opt(o, planned.has(o.id));
+ const col=list=>{ const base=list.filter(o=>o.kind!=="gadget"), gad=list.filter(o=>o.kind==="gadget"); return base.map(optP).join("")+(gad.length?`<div class="subhead">Gadgets</div>`+gad.map(optP).join(""):""); };
+ const slot=(k,label)=>{ const id=P[k]; let body;
+  if(!id) body=`<span class="small dim">${C.mine?"Nothing planned.":"Tap an "+(k==="act"?"action":"bonus action")+" below."}</span>`;
+  else if(id.startsWith("std:")) body=`<b>${esc(id.slice(4))}</b>`;
+  else { const o=OPTS[id]; body=o?`<b>${esc(o.n)}</b><span class="small muted">${o.meta}</span>${o.dis?`<span class="small" style="color:var(--blood)">${esc(o.dis===true?"Not available":o.dis)}</span>`:""}`:`<span class="small" style="color:var(--blood)">No longer available</span>`; }
+  return `<div class="slot ${id?"full":""}"><span class="lab">${label}</span>${body}${id?`<div class="btns">${C.mine?`<button class="btn sm pri" data-act="planGo" data-k="${k}">Go</button>`:""}<button class="btn sm" data-act="planDel" data-k="${k}">Remove</button></div>`:""}</div>`; };
  return `
  <div class="turnbar">
   <span class="round">Round ${C.round}</span>
-  <div class="econ">
+  <span class="turnstate ${C.mine?"mine":"wait"}">${C.mine?"Your turn":"Waiting"}</span>
+  ${C.mine?`<div class="econ">
    <button class="eco ${C.act?"used":""}" data-act="eco" data-k="act">Action</button>
    <button class="eco ${C.bon?"used":""}" data-act="eco" data-k="bon">Bonus</button>
    <button class="eco ${C.rea?"used":""}" data-act="eco" data-k="rea">Reaction</button>
    <span class="chip">${speed()} ft move</span>
-  </div>
+  </div>`:`<div class="econ"><button class="eco ${C.rea?"used":""}" data-act="eco" data-k="rea">Reaction</button></div>`}
   <span style="flex:1"></span>
-  <button class="oc ${C.oc?"on":""} ${ocAvail||C.oc?"":"spent"}" data-act="overclock" ${ocAvail||C.oc?"":"disabled"}>${C.oc?"Overclock ARMED · +3, +1 Stress":C.ocUsed?"Overclock used this turn":S.stress>=5?"Overclock (Stress full)":"Overclock"}</button>
+  ${C.mine?`<button class="oc ${C.oc?"on":""} ${ocAvail||C.oc?"":"spent"}" data-act="overclock" ${ocAvail||C.oc?"":"disabled"}>${C.oc?"Overclock ARMED · +3, +1 Stress":C.ocUsed?"Overclock used this turn":S.stress>=5?"Overclock (Stress full)":"Overclock"}</button>
   <button class="btn ${C.sts?"":"ecto"}" data-act="sts" ${C.sts?"disabled":""}>Soul-Targeted +1d6</button>
-  <button class="btn pri" data-act="nextTurn">Start my turn</button>
+  <button class="btn pri" data-act="endTurn">End my turn</button>`:`<button class="oc ${P.oc?"on":""}" data-act="planOc">${P.oc?"Overclock planned":"Plan Overclock"}</button>
+  <button class="btn pri" data-act="startTurn">Start my turn</button>`}
   <button class="btn" data-act="combatToggle">End combat</button>
+ </div>
+ <div class="panel planpanel">
+  <h2>${C.mine?"This turn's plan":"Next turn"} <span class="sp"></span>${P.act||P.bon||P.note||P.oc?`<button class="btn sm" data-act="planClear">Clear plan</button>`:""}</h2>
+  <div class="plangrid">
+   ${slot("act","Action")}${slot("bon","Bonus action")}
+   <div class="slot"><span class="lab">Movement &amp; notes</span><textarea id="plan-note" data-bind-text="combat.plan.note" style="min-height:52px" placeholder="e.g. Step behind the pillar, Overclock the Proton Bolt on the wight">${esc(P.note||"")}</textarea>${P.oc?'<span class="chip red">Overclock planned</span>':""}</div>
+  </div>
+  <p class="small dim" style="margin-top:6px">${C.mine?"Tap Go to use each planned option, or tap anything below to use it now.":"While others play, tapping an action or bonus action plans it here. Reactions still happen immediately. Start my turn when it's your go."}</p>
  </div>
  ${S.cond&&Object.keys(S.cond).filter(k=>S.cond[k]).length?`<div class="redbox">Active conditions: ${Object.keys(S.cond).filter(k=>S.cond[k]).map(c=>`<b>${c}</b> (${CONDITIONS[c]})`).join(" · ")}</div>`:""}
  ${S.conc?`<div class="warnbox">Concentrating on <b>${esc(S.conc)}</b>. Damage forces a Con save (${sg(saveBonus("con"))}), DC 10 or half the damage. <button class="btn sm" data-act="concEnd">End it</button></div>`:""}
  <div class="grid g3">
-  <div class="col"><div class="colhead">Actions <span class="chip ${C.act?"":"ok"}">${C.act?"used":"ready"}</span></div>${A.map(opt).join("")}
+  <div class="col"><div class="colhead">Actions <span class="chip ${C.act?"":"ok"}">${C.mine?(C.act?"used":"ready"):"plan"}</span></div>${col(A)}
    <div class="chips" style="margin-top:4px">${std.map(s=>`<button class="chip" data-act="stdAct" data-k="${s}">${s}</button>`).join("")}</div></div>
-  <div class="col"><div class="colhead">Bonus actions <span class="chip ${C.bon?"":"ok"}">${C.bon?"used":"ready"}</span></div>${Bo.map(opt).join("")}</div>
-  <div class="col"><div class="colhead">Reactions <span class="chip ${C.rea?"":"ok"}">${C.rea?"used":"ready"}</span></div>${Re.map(opt).join("")}</div>
+  <div class="col"><div class="colhead">Bonus actions <span class="chip ${C.bon?"":"ok"}">${C.mine?(C.bon?"used":"ready"):"plan"}</span></div>${col(Bo)}</div>
+  <div class="col"><div class="colhead">Reactions <span class="chip ${C.rea?"":"ok"}">${C.rea?"used":"ready"}</span></div>${col(Re)}</div>
  </div>
  ${S.loadout.length?"":`<div class="warnbox" style="margin-top:10px">No gadgets in your load-out, so none show here. Build them on the Gadgets tab.</div>`}
  ${combatRef()}`;
@@ -773,7 +817,7 @@ function renderGadgets(){
    ${n?loadGroups().map(G=>{const b=G.b, many=G.n>1, ready=G.ready.length, dep=G.n-ready; return `<div class="gadget ${b.l&&!ready?"dep":""}">
      <div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="moveK" data-k="${b.k}" data-d="-1" title="Move up" ${G.pos===0?"disabled":""}>▲</button><button class="mini" data-act="moveK" data-k="${b.k}" data-d="1" title="Move down" ${G.pos===G.last?"disabled":""}>▼</button></span><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"Cantrip"}</span><b style="flex:1;min-width:0">${esc(b.c)} ${many?`<span class="mult">×${G.n}</span>`:""}</b>
       ${b.l?`<span class="useddot" title="${ready} ready, ${dep} used">${G.all.map(j=>`<i class="${S.loadout[j].dep?"u":""}"></i>`).join("")}</span>${dep?`<span class="chip ${ready?"":"red"}">${ready?dep+" used":"Used"}</span>`:""}`:""}
-      <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>${b.l&&!ready?"Used":"Deploy"}</button>
+      <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>${b.l&&!ready?"Used":S.combat.on?(S.combat.mine||b.t==="r"?"Deploy · "+TIME[b.t]:"Plan · "+TIME[b.t]):"Deploy"}</button>
       <button class="btn sm" data-act="build" data-k="${b.k}" title="Build another">+1</button>
       <button class="btn sm" data-act="unloadK" data-k="${b.k}" title="Dismantle one">−1</button></div>
      <div class="small muted">${b.n}${b.conc?" · concentration":""}</div>
@@ -920,21 +964,33 @@ function renderFeatures(){
  </div></div></div>`;
 }
 
-/* ======================= RENDER: NOTES ======================= */
-function renderNotes(){
+/* ======================= RENDER: BACKGROUND ======================= */
+function renderBackground(){
  const ta=(k,l,h)=>`<div class="panel"><h2>${l}</h2><textarea id="n-${k}" data-bind-text="notes.${k}" style="min-height:${h||90}px">${esc(S.notes[k])}</textarea></div>`;
- return `<div class="grid g2">
-  ${ta("session","Session notes",220)}
-  <div class="panel"><h2>Event log <span class="cnt">${S.log.length}</span></h2>
-   <div class="list" style="max-height:260px;overflow:auto">${S.log.map(l=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(l.t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="grow">${esc(l.txt)}</span></div>`).join("")||'<p class="muted">Changes you make (damage, rests, energy, stress, builds) show up here.</p>'}</div></div>
-  ${ta("traits","Personality traits")}${ta("ideals","Ideals")}${ta("bonds","Bonds")}${ta("flaws","Flaws")}
-  ${ta("appearance","Appearance")}${ta("backstory","Backstory",160)}
-  <div class="panel"><h2>Backup</h2>
-   <p class="small muted">Copy the whole sheet as text to keep somewhere safe, or paste one back in.</p>
-   <p class="small muted">Everything lives on this tablet only. Save a backup file now and then (and before clearing browser data or switching devices).</p>
-   <div class="btns" style="margin-bottom:6px"><button class="btn pri" data-act="exportFile">Save backup file</button><label class="btn" for="bk-file" style="cursor:pointer">Load backup file</label><input type="file" id="bk-file" accept=".json,application/json" hidden></div>
-   <div class="btns"><button class="btn" data-act="exportJson">Copy backup</button><button class="btn" data-act="importModal">Restore from backup</button><button class="btn red" data-act="resetModal">Reset to sheet defaults</button></div>
-   <p class="status" id="storemsg" style="margin-top:8px">${storeMsg}</p>
+ return `<div class="grid gside">
+  <div class="grid" style="margin-top:0">
+   <div class="panel">
+    <h2>Flint Cogsworth</h2>
+    ${S.portrait?`<img class="pimg" src="${S.portrait}" alt="Portrait of Flint Cogsworth">`:`<div class="pempty">No portrait yet.<br>Add one from your tablet's photos or files.</div>`}
+    <div class="btns" style="margin-top:8px"><label class="btn" for="portrait-file" style="cursor:pointer">${S.portrait?"Change image":"Add image"}</label><input type="file" id="portrait-file" accept="image/*" hidden>${S.portrait?`<button class="btn sm" data-act="portraitDel">Remove</button>`:""}</div>
+    <dl class="kv" style="margin-top:10px">
+     <dt>Race</dt><dd>Amber-Veined Gnome (formerly Rock Gnome)</dd>
+     <dt>Class</dt><dd>Artificer ${B().level} · Spirit Engine</dd>
+     <dt>Background</dt><dd>Investigator (VRGtR)</dd>
+     <dt>Alignment</dt><dd>Neutral Good</dd>
+     <dt>Gender · Age</dt><dd>Male · 30</dd>
+     <dt>Size</dt><dd>Small · 3 ft · 40 lb</dd>
+     <dt>Languages</dt><dd>Common, Gnomish, Undercommon, Elvish</dd>
+    </dl>
+   </div>
+   ${ta("appearance","Appearance",110)}
+   <div class="panel"><h2>Background feature · Official Inquiry</h2>
+    <p class="small">Through a combination of fast-talking, determination, and official-looking documentation, you can gain access to a place or an individual related to a crime you're investigating. Those who aren't involved in your investigation avoid impeding you or pass along your requests. Local law enforcement has firm opinions, viewing you as either a nuisance or one of their own.</p>
+   </div>
+  </div>
+  <div class="grid" style="margin-top:0">
+   ${ta("traits","Personality traits")}${ta("ideals","Ideals")}${ta("bonds","Bonds")}${ta("flaws","Flaws")}
+   ${ta("backstory","Backstory",220)}
   </div>
  </div>`;
 }
@@ -953,7 +1009,8 @@ function render(){
  applySettings();
  renderTop();
  const m=document.getElementById("main");
- const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,features:renderFeatures,notes:renderNotes}[UI.tab]||renderSheet;
+ if(!TABS.some(t=>t[0]===UI.tab)){ UI.tab="sheet"; renderTop(); }
+ const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,background:renderBackground}[UI.tab]||renderSheet;
  const keep = UI.lastTab===UI.tab ? {main:m.scrollTop, boxes:[...m.querySelectorAll(".scrollbox")].map(x=>x.scrollTop)} : null;
  m.classList.toggle("fill", UI.tab==="gadgets");
  m.innerHTML=f();
@@ -1049,6 +1106,9 @@ function resolveSave(label,dc,save,dmgExpr,dt,ocB,extra){
 }
 function useOption(id){
  const o=OPTS[id]; if(!o) return;
+ const C=S.combat;
+ if(C.on && !C.mine && (o.slot==="act"||o.slot==="bon")){ C.plan=C.plan||{act:null,bon:null,oc:false,note:""}; C.plan[o.slot]=id; pushRoll("Planned",``,`<b>${esc(o.n)}</b> for your next ${o.slot==="act"?"action":"bonus action"}`); save(); render(); return; }
+ if(C.on && C.plan){ if(C.plan.act===id) C.plan.act=null; if(C.plan.bon===id) C.plan.bon=null; }
  if(o.dis){ toastModal(o.n, `<p class="muted">${esc(o.dis===true?"Not available right now.":o.dis)}</p>`); return; }
  const costly = ["discharge","rshield","spark","fuel","axeblind","mind","pipes"].includes(o.kind) || o.id==="gbolt" || (o.kind==="gadget" && BPK[S.loadout[o.gi].key].l>0);
  if(S.settings.confirmSpend && costly && UI.confirmed!==id){ modal(`<h2>Use ${esc(o.n)}?</h2><p class="muted">${o.cost?esc(o.cost)+" · ":""}${o.meta}</p><div class="btns" style="margin-top:10px"><button class="btn pri" data-act="useConfirm" data-k="${id}">Use it</button><button class="btn" data-act="close">Cancel</button></div>`); return; }
@@ -1165,9 +1225,12 @@ function settingsModal(){
    ${tog("showLocked","Future features","Show level 9 and 15 Spirit Engine features, greyed out.")}
    ${window.AndroidBridge?tog("keepAwake","Keep screen on","Stops the tablet sleeping while the app is open."):""}
   </div>
+  <h3>History</h3>
+  <div class="btns"><button class="btn" data-act="eventLog">Event log</button><button class="btn" data-act="history">Roll log</button></div>
   <h3>Backup</h3>
-  <div class="btns"><button class="btn" data-act="exportFile">Save backup file</button><label class="btn" for="bk-file2" style="cursor:pointer">Load backup file</label><input type="file" id="bk-file2" accept=".json,application/json" hidden></div>
-  <p class="status" style="margin-top:8px">${storeMsg}</p>
+  <p class="small muted">Everything lives on this device only. Save a backup file now and then, and before uninstalling or switching devices.</p>
+  <div class="btns"><button class="btn" data-act="exportFile">Save backup file</button><label class="btn" for="bk-file2" style="cursor:pointer">Load backup file</label><input type="file" id="bk-file2" accept=".json,application/json" hidden><button class="btn" data-act="exportJson">Copy backup</button><button class="btn" data-act="importModal">Paste a backup</button><button class="btn red" data-act="resetModal">Reset to sheet defaults</button></div>
+  <p class="status" id="storemsg" style="margin-top:8px">${storeMsg}</p>
   <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="close">Done</button></div>`);
  document.querySelector("#modal .modal")?.classList.add("wide");
 }
@@ -1189,13 +1252,19 @@ function insightModal(){
 /* ======================= EVENTS ======================= */
 const ACT = {
  tab:d=>{UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); document.getElementById("main").scrollTop=0;},
- combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
+ combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false,mine:false,plan:{act:null,bon:null,oc:false,note:""}}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
+ startTurn:()=>{ const c=S.combat; Object.assign(c,{mine:true,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); if(c.plan&&c.plan.oc&&S.stress<5){ c.oc=true; c.plan.oc=false; } logEv(`Round ${c.round}: my turn`); save(); render(); },
+ endTurn:()=>{ const c=S.combat; Object.assign(c,{mine:false,oc:false,ocUsed:false,sts:false}); c.round++; save(); render(); },
+ planGo:d=>{ const P=S.combat.plan; const id=P[d.k]; if(!id) return; if(id.startsWith("std:")){ P[d.k]=null; ACT.stdAct({k:id.slice(4)}); return; } useOption(id); },
+ planDel:d=>{ S.combat.plan[d.k]=null; save(); render(); },
+ planClear:()=>{ S.combat.plan={act:null,bon:null,oc:false,note:""}; save(); render(); },
+ planOc:()=>{ S.combat.plan.oc=!S.combat.plan.oc; save(); render(); },
  nextTurn:()=>{ const c=S.combat; c.round++; Object.assign(c,{act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); save(); render(); },
  eco:d=>{ S.combat[d.k]=!S.combat[d.k]; save(); render(); },
  overclock:()=>{ const c=S.combat; if(c.oc){c.oc=false;} else if(!c.ocUsed && S.stress<5){c.oc=true;} save(); render(); },
  sts:()=>{ S.combat.sts=true; if(PERSON()){ pushRoll("Soul-Targeted Strike","",`Roll <b>${B().level>=15?"3d6":B().level>=9?"2d6":"1d6"}</b> force and add it to the damage`); save(); render(); return; } const r=roll(B().level>=15?"3d6":B().level>=9?"2d6":"1d6"); pushRoll("Soul-Targeted Strike",`<div class="rollcard"><div class="big ecto">+${r.total}</div><div class="small dim">force · ${showParts(r)}</div></div>`,`<b>+${r.total}</b> force`); save(); render(); },
  use:d=>useOption(d.k),
- stdAct:d=>{ spendEco("act"); pushRoll(d.k,"",{Dash:`+${speed()} ft movement`,Disengage:"no opportunity attacks this turn",Dodge:"attacks vs you have disadvantage, advantage on Dex saves",Help:"ally gets advantage",Hide:`Stealth ${sg(skillBonus(["Stealth","dex"]))}`,Ready:"set a trigger, use your reaction",Search:`Perception ${sg(skillBonus(["Perception","wis"]))} / Investigation ${sg(skillBonus(["Investigation","int"]))}`,"Use an object":"interact with an object"}[d.k]); save(); render(); },
+ stdAct:d=>{ if(S.combat.on && !S.combat.mine){ S.combat.plan.act="std:"+d.k; save(); render(); return; } if(S.combat.plan&&S.combat.plan.act==="std:"+d.k) S.combat.plan.act=null; spendEco("act"); pushRoll(d.k,"",{Dash:`+${speed()} ft movement`,Disengage:"no opportunity attacks this turn",Dodge:"attacks vs you have disadvantage, advantage on Dex saves",Help:"ally gets advantage",Hide:`Stealth ${sg(skillBonus(["Stealth","dex"]))}`,Ready:"set a trigger, use your reaction",Search:`Perception ${sg(skillBonus(["Perception","wis"]))} / Investigation ${sg(skillBonus(["Investigation","int"]))}`,"Use an object":"interact with an object"}[d.k]); save(); render(); },
  hpModal:()=>{ KP={v:"",type:KP.type||"",res:false}; hpModal(); },
  armorModal:()=>armorModal(),
  armor:()=>{ S.armor=!S.armor; logEv(S.armor?"Donned breastplate":"Doffed breastplate"); save(); render(); armorModal(); },
@@ -1271,7 +1340,7 @@ const ACT = {
  moveK:d=>{ const G=loadGroups(); const i=G.findIndex(x=>x.b.k===d.k), j=i+(+d.d); if(i<0||j<0||j>=G.length) return; [G[i],G[j]]=[G[j],G[i]]; S.loadout=G.flatMap(x=>x.all.map(k=>S.loadout[k])); save(); render(); },
  undoUse:d=>{ const g=S.loadout[+d.i]; if(g && g.dep){ g.dep=false; logEv(`Undid use of ${BPK[g.key].c}`); save(); render(); } closeModal(); },
  deploy:d=>{ const i=+d.i, b=BPK[S.loadout[i].key]; const ocB=S.combat.on?ocApply():0; const h=deployGadget(i,ocB); spendEco(SLOT(b.t)); save(); render(); if(h) toastModal(b.c,h); },
- deployK:d=>{ const i=S.loadout.findIndex(g=>g.key===d.k && (!g.dep||BPK[g.key].l===0)); if(i<0) return; ACT.deploy({i:String(i)}); },
+ deployK:d=>{ const bk=BPK[d.k]; if(S.combat.on && !S.combat.mine && bk.t!=="r" && bk.t!=="1m"){ const slot=bk.t==="b"?"bon":"act"; S.combat.plan[slot]="g:"+d.k; pushRoll("Planned","",`<b>${esc(bk.c)}</b> for your next ${slot==="act"?"action":"bonus action"}`); save(); render(); return; } const i=S.loadout.findIndex(g=>g.key===d.k && (!g.dep||BPK[g.key].l===0)); if(i<0) return; ACT.deploy({i:String(i)}); },
  unloadK:d=>{ let i=-1; S.loadout.forEach((g,j)=>{ if(g.key===d.k && (i<0 || (g.dep && !S.loadout[i].dep))) i=j; }); if(i<0) return; S.loadout.splice(i,1); logEv(`Dismantled one ${BPK[d.k].c}`); save(); render(); },
  healMe:d=>{ heal(+d.n); save(); render(); closeModal(); },
  // tinkering
@@ -1319,6 +1388,8 @@ const ACT = {
  setVal:d=>{ S.settings[d.k]=d.v; save(); render(); settingsModal(); },
  rollMode:()=>{ S.settings.rollMode=PERSON()?"app":"person"; save(); render(); },
  useConfirm:d=>{ UI.confirmed=d.k; closeModal(); useOption(d.k); },
+ portraitDel:()=>{ S.portrait=""; save(); render(); },
+ eventLog:()=>modal(`<h2>Event log</h2><div class="list">${S.log.map(l=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(l.t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="grow">${esc(l.txt)}</span></div>`).join("")||'<p class="muted">Nothing yet.</p>'}</div><div class="btns" style="margin-top:10px"><button class="btn" data-act="settings">Back to settings</button><button class="btn pri" data-act="close">Done</button></div>`),
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
@@ -1329,6 +1400,12 @@ document.addEventListener("change",e=>{
  if(t.dataset.actChange){ if(t.dataset.actChange==="wbTier"){ UI.wbTier=+t.value; } else ACT[t.dataset.actChange]?.(t.dataset,t,e); }
 });
 document.addEventListener("change",e=>{ if(!/^bk-file/.test(e.target.id)||!e.target.files[0]) return; const r=new FileReader(); r.onload=()=>{ try{ S=merge(DEF(),migrate(JSON.parse(r.result))); logEv("Loaded backup file"); save(); render(); toastModal("Backup loaded","<p>Flint is restored from the file.</p>"); }catch(err){ toastModal("Couldn't read that file","<p>Pick a backup saved from this app (flint-backup-….json).</p>"); } }; r.readAsText(e.target.files[0]); });
+document.addEventListener("change",e=>{
+ if(e.target.id!=="portrait-file"||!e.target.files[0]) return;
+ const r=new FileReader();
+ r.onload=()=>{ const img=new Image(); img.onload=()=>{ const max=720, k=Math.min(1,max/Math.max(img.width,img.height)); const c=document.createElement("canvas"); c.width=Math.round(img.width*k); c.height=Math.round(img.height*k); c.getContext("2d").drawImage(img,0,0,c.width,c.height); S.portrait=c.toDataURL("image/jpeg",0.85); logEv("Portrait updated"); save(); render(); }; img.onerror=()=>toastModal("Couldn't open that image","<p>Pick a JPG or PNG photo.</p>"); img.src=r.result; };
+ r.readAsDataURL(e.target.files[0]);
+});
 document.addEventListener("focusout",()=>{ setTimeout(()=>{ if(pendingRemote && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName||"")){ S=pendingRemote; pendingRemote=null; render(); } },50); });
 document.addEventListener("input",e=>{
  const t=e.target;
