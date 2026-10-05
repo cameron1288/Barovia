@@ -688,7 +688,7 @@ function renderTop(){
  const combat=S.combat.on;
  document.getElementById("top").innerHTML=`
  <div class="row1">
-  <div class="ident" data-act="tab" data-k="sheet" role="button" tabindex="0" title="Open the Character tab" style="cursor:pointer"><h1>Flint <span>Cogsworth</span></h1>${(()=>{ const b=statusBadges(); return b.length?`<div class="status" data-act="statusPop" role="button" title="Conditions and concentration">${b.join("")}</div>`:`<small>Lv ${B().level} Artificer · Spirit Engine</small>`; })()}</div>
+  <div class="ident" data-act="tab" data-k="sheet" role="button" tabindex="0" title="Open the Character tab" style="cursor:pointer"><h1>Flint <span>Cogsworth</span></h1>${(()=>{ const b=statusBadges(); return b.length?`<div class="status" data-act="statusPop" role="button" title="Conditions and concentration">${b.join("")}</div>`:`<small>Lv ${B().level} Artificer · Spirit Engine</small><div class="status" data-act="statusPop" role="button" title="Conditions and concentration"><span class="sb exh" style="opacity:.55">+ status</span></div>`; })()}</div>
   <div class="gauge hp" data-act="hpModal">
     <div class="lab">Hit points${S.hp.cur===0?' · <span style="color:var(--blood)">DOWN</span>':""}</div>
     <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>${S.hp.bonus?`<div class="hpx" title="Ends at your next long rest">incl. +${S.hp.bonus} max HP</div>`:""}
@@ -1525,12 +1525,16 @@ function infoPop(title, html){
 const calcTable = rows => `<table class="t" style="margin-top:6px">${rows.map(r=>`<tr><td>${r[0]}</td><td class="num" style="text-align:right">${typeof r[1]==="number"?sg(r[1]).replace(/^\+(?=\d)/, r[2]?"":"+"):r[1]}</td></tr>`).join("")}</table>`;
 function statusModal(){
  const c=S.cond||{}, act=Object.keys(COND_CODE).filter(k=>c[k]);
- if(!S.conc && !act.length && !S.exh){ closeModal(); return; }
  modal(`<h2>Status</h2>
+  ${!S.conc && !act.length && !S.exh?'<p class="muted">No conditions, concentration or exhaustion right now.</p>':""}
   ${S.conc?`<div class="li"><span class="grow"><span class="sb conc">◎</span> <b>Concentrating on ${esc(S.conc)}</b><div class="small muted">Taking damage: Con save ${sg(saveBonus("con"))}, DC 10 or half the damage, whichever is higher.${fxOn("mind")&&S.ch.mind>0?" Mind Sharpener can make you succeed.":""}</div></span><button class="btn sm" data-act="statusConcEnd">End</button></div>`:""}
   ${act.map(k=>`<div class="li"><span class="grow"><span class="sb ${k==="Invisible"?"good":"bad"}">${COND_CODE[k]}</span> <b>${k}</b><div class="small muted">${CONDITIONS[k]}</div></span><button class="btn sm" data-act="statusCond" data-k="${k}">Remove</button></div>`).join("")}
   ${S.exh?`<div class="li"><span class="grow"><span class="sb exh">EXH ${S.exh}</span> <b>Exhaustion ${S.exh}</b><div class="small muted">${EXH.slice(1,S.exh+1).join(" · ")}</div></span><button class="btn sm" data-act="statusExh">−1</button></div>`:""}
-  <div class="btns" style="margin-top:10px"><button class="btn" data-act="tab" data-k="sheet">All conditions</button><button class="btn pri" data-act="close">Done</button></div>`);
+  <h3>Add a condition</h3>
+  <div class="chips">${Object.keys(COND_CODE).filter(k=>!c[k]).map(k=>`<button class="tog" data-act="statusAdd" data-k="${k}"><span class="box"></span>${k}</button>`).join("")}</div>
+  <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Exhaustion</span><button class="mini" data-act="statusExh">−</button><b class="num">${S.exh}</b><button class="mini" data-act="statusExhUp">+</button>${S.exh?`<span class="small muted">${EXH[S.exh]}</span>`:""}</div>
+  <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="close">Done</button></div>`);
+ document.querySelector("#modal .modal")?.classList.add("wide");
 }
 function toastModal(title,html){ modal(`<h2>${esc(title)}</h2>${html}<div class="btns" style="margin-top:10px"><button class="btn pri" data-act="close">Done</button></div>`); }
 function fuelModal(){
@@ -1740,6 +1744,8 @@ const ACT = {
  statusPop:()=>statusModal(),
  statusConcEnd:()=>{ logEv(`Ended concentration on ${S.conc}`); S.conc=""; save(); render(); statusModal(); },
  statusCond:d=>{ S.cond[d.k]=false; logEv(`${d.k} off`); save(); render(); statusModal(); },
+ statusAdd:d=>{ S.cond[d.k]=true; logEv(`${d.k} on`); save(); render(); statusModal(); },
+ statusExhUp:()=>{ S.exh=Math.min(6,S.exh+1); logEv(`Exhaustion ${S.exh}`); save(); render(); statusModal(); },
  statusExh:()=>{ S.exh=Math.max(0,S.exh-1); logEv(`Exhaustion ${S.exh}`); save(); render(); statusModal(); },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
