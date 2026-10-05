@@ -381,6 +381,28 @@ const IDEAS = [
  [3,"The Foot-Snapper","Speed-reducing mechanical trap"],[3,"The Caustic Siphon","Ambient energy drain device"],[3,"The Volt-Cage","Electrostatic restraint field"],[3,"The Phosphor Charge","Blinding sulfur detonator"],[3,"The Amber-Core Bomb","Entity-powered resonance bomb"],[3,"The Dead-Man Switch","Triggered retaliatory payload"],[3,"The Null-Scent Canister","Olfactory suppression device"],[3,"The Clockwork Decoy","Animated distraction unit"]
 ];
 /* Magic-item effects (only work while the item has a Mechanical Modification) */
+/* The six Mechanical Modifications Flint knows (reflavoured infusions) */
+const INF = [
+ {k:"axe",n:"Radiant Weapon",src:"E:RLW 62",on:"Simple or martial weapon · requires attunement",item:"Radiant Battleaxe",w:4,worn:true,
+  fl:"Flint installs an amber-crystal charge emitter along the weapon's spine. The crystal charges from ambient light and the bearer's kinetic energy during combat, releasing a portion of the stored energy with each hit as a radiant discharge.",
+  fx:"+1 to attack and damage rolls. 4 charges, regains 1d4 at dawn. Bonus action: shed bright light in 30 ft and dim light for 30 ft more, or stop. Reaction when hit by an attack: spend 1 charge to blind the attacker until the end of its next turn unless it passes a Con save against your spell DC."},
+ {k:"rshield",n:"Repulsion Shield",src:"E:RLW 63",on:"Shield · requires attunement",item:"Repulsion Shield",w:6,worn:true,
+  fl:"Flint mounts a spring-loaded piston assembly to the shield's inner face. Each melee hit cocks the piston, loading the spring with the strike's kinetic energy; when the next blow lands, the bearer releases it.",
+  fx:"+1 AC on top of the shield's +2. 4 charges, regains 1d4 at dawn. Reaction immediately after being hit by a melee attack: spend 1 charge to push the attacker up to 15 ft away."},
+ {k:"pipes",n:"Pipes of Haunting",src:"DMG 185 · Replicate Magic Item",on:"Set of pipes",item:"Pipes of Haunting",w:2,worn:false,
+  fl:"Flint retrofits a mundane set of pipes by boring precision micro-vents into the internal chambers and installing ultra-tension copper reeds. Instead of musical chords, the instrument becomes a mechanical frequency emitter.",
+  fx:"3 charges, regains 1d3 at dawn. Action, 1 charge: each creature (or only hostile ones) within 30 ft that can hear it makes a DC 15 Wis save or is frightened of the user for 1 minute, repeating the save at the end of each of its turns."},
+ {k:"mind",n:"Mind Sharpener",src:"TCoE 22",on:"Suit of armour or robes",item:"Mind Sharpener (Robes)",w:0,worn:true,
+  fl:"Flint sews a neural-pulse emitter array into the fabric: tiny copper needles wired to a charge magazine at the collar. When pain breaks the wearer's focus, a needle fires a brief high-voltage pulse that forces a moment of sharp alertness.",
+  fx:"4 charges, regains 1d4 at dawn. Reaction when the wearer fails a Con save to maintain concentration: spend 1 charge to succeed instead."},
+ {k:"boots",n:"Boots of the Winding Path",src:"E:RLW 62",on:"Pair of boots · requires attunement",item:"Boots of the Winding Path",w:0,worn:true,
+  fl:"Flint installs a phase-shift crystal and spring mechanism in the boots. The crystal keeps a short log of the wearer's recent positions; pressing the heel-plate fires the spring drive and relocates the wearer to one of them.",
+  fx:"Bonus action: teleport up to 15 ft to an unoccupied space you can see, as long as you occupied that space at some point during the current turn."},
+ {k:"ring",n:"Spell-Refueling Ring",src:"TCoE 23",on:"Ring · requires attunement",item:"Spell-Refueling Ring",w:0,worn:true,
+  fl:"Flint wraps a dense copper filament around an iron band to form a high-frequency induction coil soldered to tiny capacitor plates. Flicking the switch on its side creates a magnetic vacuum that pulls in drifting arcane particles and feeds them back to the wearer.",
+  fx:"Action: recover one expended spell slot of 3rd level or lower. Once used, it can't be used again until the next dawn."}
+];
+const INFK = Object.fromEntries(INF.map(x=>[x.k,x]));
 const FX = {
  rshield:{n:"Repulsion Shield",max:4,regain:"1d4",rec:"Dawn"},
  pipes:{n:"Pipes of Haunting",max:3,regain:"1d3",rec:"Dawn"},
@@ -394,9 +416,9 @@ let uid=1; const nid=()=> "i"+Date.now().toString(36)+(uid++);
 function DEF(){
  const it=(n,q,w,o={})=>({id:nid(),n,q,w,worn:false,mod:false,att:false,note:"",...o});
  return {
-  v:3, _t:0, portrait:"",
-  settings:{rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
-  allyMods:[{item:"",ally:""},{item:"",ally:""}],
+  v:4, _t:0,
+  settings:{loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
+  mods:{axe:{built:false,holder:"flint",ally:""},rshield:{built:true,holder:"flint",ally:""},pipes:{built:false,holder:"flint",ally:""},mind:{built:false,holder:"flint",ally:""},boots:{built:false,holder:"flint",ally:""},ring:{built:false,holder:"flint",ally:""}},
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
   hp:{cur:45,temp:0,bonus:5}, ds:{s:0,f:0}, hdUsed:0,
   stress:0, exh:0, energy:0, insp:false,
@@ -448,7 +470,9 @@ let UI = {tab:"sheet", edit:false, bpFilter:"", bpLvl:"all", openBp:{}};
 const LKEY = "flint-cogsworth-v1";
 function merge(d,s){ if(!s||typeof s!=="object") return d; for(const k in d){ if(s[k]===undefined) continue; if(d[k]&&typeof d[k]==="object"&&!Array.isArray(d[k])&&typeof s[k]==="object"&&!Array.isArray(s[k])) d[k]=merge(d[k],s[k]); else d[k]=s[k]; } return d; }
 function migrate(o){ if(!o||typeof o!=="object") return o; if(!o.v||o.v<2){ if(Array.isArray(o.items)) o.items=o.items.filter(i=>!["mind","boots","ring","axe","pipes"].includes(i.fx)); if(!o.allyMods) o.allyMods=[{item:"",ally:""},{item:"",ally:""}]; o.v=2; }
+ if(o.v<3){ /* see below */ }
  if(o.v<3){ o.hp=o.hp||{}; if(o.hp.bonus===undefined){ if(o.hp.temp===5){ o.hp.bonus=5; o.hp.temp=0; o.hp.cur=(o.hp.cur||0)+5; } else o.hp.bonus=0; } o.v=3; }
+ if(o.v<4){ const m={}; ["axe","rshield","pipes","mind","boots","ring"].forEach(k=>{ const it=(o.items||[]).find(i=>i.fx===k); m[k]={built:!!(it&&it.mod),holder:"flint",ally:""}; }); o.mods=m; delete o.allyMods; delete o.portrait; o.v=4; }
  return o; }
 function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DEF(),migrate(JSON.parse(r))); } }catch(e){} try{ UI.tab=localStorage.getItem(LKEY+"-tab")||UI.tab }catch(e){} }
 function save(){
@@ -481,7 +505,7 @@ const modCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:B().level>=
 const attCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:3;
 const carryCap = () => B().str;
 const itemFx = fx => S.items.find(i=>i.fx===fx);
-const fxOn = fx => { const i=itemFx(fx); return !!(i && i.mod); };
+const fxOn = fx => { const m=S.mods&&S.mods[fx]; return !!(m && m.built && m.holder==="flint"); };
 function maxHp(){ let m=B().maxHp+(S.hp.bonus||0); if(S.exh>=4) m=Math.floor(m/2); return m; }
 function speed(){ let s=B().speed; if(S.exh>=5) return 0; if(S.exh>=2) s=Math.floor(s/2); return s; }
 function ac(){
@@ -490,7 +514,8 @@ function ac(){
  if(S.shield){ a+=2; if(fxOn("rshield")) a+=1; }
  return a + (B().acMisc||0);
 }
-const modsUsed = () => S.items.filter(i=>i.mod).length + (S.allyMods||[]).length;
+const modsUsed = () => Object.values(S.mods||{}).filter(m=>m.built).length;
+function ensureInfItem(k){ const f=INFK[k]; if(!f||itemFx(k)) return; S.items.push({id:nid(),n:f.item,q:1,w:f.w,worn:f.worn,fx:k,mod:false,att:false,note:f.fx}); logEv(`${f.item} added to your gear`); }
 const carried = () => S.items.filter(i=>!i.worn).reduce((t,i)=>t+(+i.q||0),0);
 const weight = () => S.items.reduce((t,i)=>t+(+i.q||0)*(+i.w||0),0) + Object.values(S.coins).reduce((a,b)=>a+(+b||0),0)/50;
 
@@ -565,8 +590,8 @@ function renderTop(){
   <div class="gauge"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
   <div class="gauge energy"><div class="lab">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
   <div class="gauge stress"><div class="lab">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
-  <button class="gauge tap setbtn" data-act="settings" aria-label="Settings"><div class="lab">Settings</div><div class="val">⚙</div></button>
   <button class="combatsw ${combat?"on":""}" data-act="combatToggle" aria-pressed="${combat}"><span class="lab">${combat?"In combat":"Combat"}</span><span class="sw"></span></button>
+  <button class="gauge tap setbtn" data-act="settings" aria-label="Settings"><div class="lab">Settings</div><div class="val">⚙</div></button>
  </div>
  <div class="abil">
   ${ABIL.map(([k,K])=>`<div class="ab" data-act="check" data-k="${k}">
@@ -580,7 +605,7 @@ function renderTop(){
  </div>`;
 }
 
-const TABS=[["sheet","Character"],["combat","Combat"],["gadgets","Gadgets"],["tinker","Tinkering"],["gear","Gear"],["background","Background"]];
+const TABS=[["combat","Combat"],["sheet","Character"],["background","Background"],["gadgets","Gadgets"],["mods","Modifications"],["tinker","Tinkering"],["gear","Gear"]];
 /* ======================= RENDER: CHARACTER ======================= */
 function usesBoxes(key,max,cur,kind){ return `<span class="uses">${Array.from({length:max},(_,i)=>`<span class="use ${i<cur?"":"spent"}" data-act="${kind}" data-k="${key}" data-i="${i}" title="Tap to spend or restore"></span>`).join("")}</span>`; }
 function renderSheet(){
@@ -618,7 +643,7 @@ function renderSheet(){
      <dt>Concentrating</dt><dd>${S.conc?`<span class="chip amber">${esc(S.conc)}</span> <button class="btn sm" data-act="concEnd">End</button>`:'<span class="dim small">Nothing. Deploying a concentration gadget sets this.</span>'}</dd>
      <dt>XP</dt><dd class="num">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()} <span class="dim small">(${Math.max(0,B().nextXp-B().xp).toLocaleString()} to level ${B().level+1})</span></dd>
      <dt>Max HP</dt><dd class="num">${maxHp()} <span class="dim small">(${B().maxHp} base${S.hp.bonus?` + ${S.hp.bonus} until long rest`:""}${S.exh>=4?", halved by exhaustion":""})</span></dd>
-     <dt>Modifications</dt><dd>${modsUsed()} / ${modCap()} <span class="small muted">${(()=>{ const named=(S.allyMods||[]).filter(m=>m.item||m.ally), blank=(S.allyMods||[]).length-named.length; return [...S.items.filter(i=>i.mod).map(i=>esc(i.n)),...named.map(m=>esc(m.item||"Ally item")+(m.ally?" ("+esc(m.ally)+")":"")),...(blank?[blank+" on allies' gear (not named yet)"]:[])].join(" · "); })()}</span> <button class="btn sm" data-act="tab" data-k="gear">Manage</button></dd>
+     <dt>Modifications</dt><dd>${modsUsed()} / ${modCap()} built <span class="small muted">${INF.filter(f=>S.mods[f.k]&&S.mods[f.k].built).map(f=>esc(f.n)+(S.mods[f.k].holder==="flint"?" (you)":" ("+(esc(S.mods[f.k].ally)||"an ally")+")")).join(" · ")}</span> <button class="btn sm" data-act="tab" data-k="mods">Manage</button></dd>
      <dt>Hit dice</dt><dd class="num">${B().level-S.hdUsed} of ${B().level} d8 (+${M("con")} each)</dd>
     </div>
     ${e?`<div class="sep"></div><div class="edit">
@@ -649,7 +674,7 @@ function renderSheet(){
      <div class="li"><div class="grow">Guiding Bolt <span class="dim small">Fractured Genius · 1 / long rest</span></div>${usesBoxes("gbolt",1,S.lim.gbolt,"lim")}</div>
      <div class="li"><div class="grow">Guiding Spark <span class="dim small">1 / short rest</span></div>${usesBoxes("spark",1,S.lim.spark,"lim")}</div>
      <div class="li"><div class="grow">Seriach's Fuel <span class="dim small">1 / long rest</span></div>${usesBoxes("fuel",1,S.lim.fuel,"lim")}</div>
-     ${Object.entries(FX).filter(([k,f])=>f.max&&itemFx(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow">${f.n} <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
+     ${Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow">${f.n} <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
     </div>
    </div>
    <div class="panel">
@@ -807,11 +832,12 @@ function loadGroups(){ const out=[], at={}; S.loadout.forEach((g,i)=>{ const b=B
 function renderGadgets(){
  const cap=gadgetCap(), n=S.loadout.length;
  const q=UI.bpFilter.toLowerCase();
- const list=BP.filter(b=>(UI.bpLvl==="all"||String(b.l)===UI.bpLvl) && (!q || (b.n+" "+b.c+" "+b.fx).toLowerCase().includes(q)));
+ const ST=S.settings;
+ const list=BP.filter(b=>(UI.bpLvl==="all"||String(b.l)===UI.bpLvl) && (!ST.bpResOnly||S.researched[b.k]) && (!q || (b.n+" "+b.c+" "+b.fx).toLowerCase().includes(q))).sort((a,b)=>(S.researched[b.k]?1:0)-(S.researched[a.k]?1:0) || a.l-b.l);
  const depN=S.loadout.filter(g=>g.dep).length;
  return `<div class="grid gside">
   <div class="panel">
-   <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<span class="chip red">${depN} used until a rest</span>`:""}</h2>
+   <h2>Load-out <span class="cnt ${n>cap?"over":n===cap?"full":""}">${n} / ${cap}</span><span class="sp"></span>${depN?`<span class="chip red">${depN} used until a rest</span>`:""}<button class="tog ${ST.loadDetails?"on":""}" data-act="setTogQ" data-k="loadDetails"><span class="box"></span>Details</button></h2>
    <p class="small dim">Carry limit: Artificer level + INT mod. A levelled gadget stays used once deployed until your next short or long rest; cantrips never run out. Long rest lets you swap the load-out. Use the arrows to put your favourites first; Combat follows this order.</p>
    <div class="col scrollbox" style="margin-top:8px">
    ${n?loadGroups().map(G=>{const b=G.b, many=G.n>1, ready=G.ready.length, dep=G.n-ready; return `<div class="gadget ${b.l&&!ready?"dep":""}">
@@ -820,21 +846,21 @@ function renderGadgets(){
       <button class="btn sm pri" data-act="deployK" data-k="${b.k}" ${b.l&&!ready?"disabled":""}>${b.l&&!ready?"Used":S.combat.on?(S.combat.mine||b.t==="r"?"Deploy · "+TIME[b.t]:"Plan · "+TIME[b.t]):"Deploy"}</button>
       <button class="btn sm" data-act="build" data-k="${b.k}" title="Build another">+1</button>
       <button class="btn sm" data-act="unloadK" data-k="${b.k}" title="Dismantle one">−1</button></div>
-     <div class="small muted">${b.n}${b.conc?" · concentration":""}</div>
-     ${bpCard(b,true)}</div>`}).join(""):`<div class="warnbox">Empty. Add the gadgets you built at your last long rest from the catalogue.</div>`}
+     <div class="small muted">${b.n} · ${TIME[b.t]} · ${b.r}${b.s?" · DC "+DC()+" "+b.s:""}${b.atk?" · "+sg(ATK())+" to hit":""}${b.dmg?" · "+b.dmg.replace("@int",M("int"))+" "+b.dt:""}${b.conc?" · concentration":""}</div>
+     ${ST.loadDetails?bpCard(b,true):""}</div>`}).join(""):`<div class="warnbox">Empty. Add the gadgets you built at your last long rest from the catalogue.</div>`}
    </div>
   </div>
   <div class="panel">
-   <h2>Blueprint catalogue <span class="cnt">${BP.filter(b=>S.researched[b.k]).length} researched</span></h2>
+   <h2>Blueprint catalogue <span class="cnt">${BP.filter(b=>S.researched[b.k]).length} researched</span><span class="sp"></span><button class="tog ${ST.catDetails?"on":""}" data-act="setTogQ" data-k="catDetails"><span class="box"></span>Details</button></h2>
    <input class="search" id="bpsearch" type="search" placeholder="Search by spell, contraption or effect" value="${esc(UI.bpFilter)}" data-act-input="bpFilter">
-   <div class="chips" style="margin-bottom:8px">${[["all","All"],["0","Cantrips"],["1","Level 1"],["2","Level 2"]].map(([k,l])=>`<button class="tog ${UI.bpLvl===k?"on":""}" data-act="bpLvl" data-k="${k}"><span class="box"></span>${l}</button>`).join("")}</div>
+   <div class="chips" style="margin-bottom:8px">${[["all","All"],["0","Cantrips"],["1","Level 1"],["2","Level 2"]].map(([k,l])=>`<button class="tog ${UI.bpLvl===k?"on":""}" data-act="bpLvl" data-k="${k}"><span class="box"></span>${l}</button>`).join("")}<span style="flex:1"></span><button class="tog ${ST.bpResOnly?"on":""}" data-act="setTogQ" data-k="bpResOnly"><span class="box"></span>Researched only</button></div>
    <div class="col scrollbox">
    ${list.map(b=>{const r=S.researched[b.k]; return `<div class="gadget">
      <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"C"}</span><b style="flex:1;min-width:0">${esc(b.n)}</b>
       <button class="tog ${r?"on":""}" data-act="research" data-k="${b.k}" title="Researched (in master catalogue)"><span class="box"></span>${r?"Researched":`R&amp;D ${Math.max(1,b.l)} h`}</button>
       <button class="btn sm pri" data-act="build" data-k="${b.k}" ${r?"":"disabled"}>Build</button></div>
-     <div class="small" style="color:var(--amber)">${esc(b.c)}</div>
-     ${bpCard(b)}</div>`}).join("")}
+     <div class="small" style="color:var(--amber)">${esc(b.c)}${ST.catDetails?"":` <span class="dim">· ${TIME[b.t]} · ${b.r}${b.s?" · "+b.s+" save":""}${b.atk?" · attack":""}${b.dmg?" · "+b.dmg.replace("@int",M("int"))+" "+b.dt:""}</span>`}</div>
+     ${ST.catDetails?bpCard(b):""}</div>`}).join("")||`<p class="muted">${ST.bpResOnly?"No researched blueprints match. Turn off Researched only to see the rest.":"No blueprints match."}</p>`}
    </div>
   </div></div>`;
 }
@@ -876,12 +902,14 @@ function renderTinker(){
 }
 
 /* ======================= RENDER: GEAR ======================= */
+function coinBlock(){ return `<div class="btns" style="margin-top:6px">${["cp","sp","ep","gp","pp"].map(k=>`<label class="small">${k.toUpperCase()} <input type="number" id="coin-${k}" data-bind="coins.${k}" value="${S.coins[k]}"></label>`).join("")}<label class="small">Scrap (gp) <input type="number" id="coin-scrap" data-bind="scrap" value="${S.scrap}"></label></div><p class="small dim" style="margin-top:4px">Coins count 50 to the pound. Total gear weight ${weight().toFixed(1)} of ${B().str*15} lb.</p>`; }
 function itemRow(it,i){
  const fx=it.fx&&FX[it.fx];
  return `<div class="itemrow">
-  <div class="nm"><b>${esc(it.n)}</b> ${it.mod?'<span class="chip amber">Modified</span>':""} ${it.att?'<span class="chip ecto">Attuned</span>':""}
+  <div class="nm"><b>${esc(it.n)}</b> ${it.fx&&fxOn(it.fx)?'<span class="chip amber">Modified</span>':""} ${it.att?'<span class="chip ecto">Attuned</span>':""}
    ${it.note?`<div class="small muted">${esc(it.note)}</div>`:""}
-   ${fx?`<div class="btns" style="margin-top:4px"><button class="tog ${it.mod?"on":""}" data-act="imod" data-i="${i}"><span class="box"></span>Mechanical Modification</button><button class="tog ${it.att?"on":""}" data-act="iatt" data-i="${i}"><span class="box"></span>Attuned</button></div>`:""}
+   ${fx?`<div class="btns" style="margin-top:4px"><button class="tog ${it.att?"on":""}" data-act="iatt" data-i="${i}"><span class="box"></span>Attuned</button><button class="btn sm" data-act="tab" data-k="mods">Modification…</button></div>`:""}
+   ${/belt pouch/i.test(it.n)?coinBlock():""}
   </div>
   <div class="qty"><button class="mini" data-act="iq" data-i="${i}" data-d="-1">−</button><span class="num">${it.q}</span><button class="mini" data-act="iq" data-i="${i}" data-d="1">+</button></div>
   <span class="num small dim">${(+it.w||0)*(+it.q||0)} lb</span>
@@ -903,27 +931,13 @@ const mods=modsUsed(), atts=S.items.filter(i=>i.att).length;
    <input id="ni-note" type="text" placeholder="Notes (optional)" style="width:100%;margin-top:6px">
   </div>
   <div class="grid" style="margin-top:0">
-   <div class="panel" id="mods-panel">
-    <h2>Mechanical Modifications <span class="cnt ${mods>modCap()?"over":mods===modCap()?"full":""}">${mods} / ${modCap()}</span></h2>
-    <p class="small dim">Clockwork rigs you maintain at level ${B().level}. Each one, on your gear or an ally's, uses a slot. Re-rig them on a long rest.</p>
-    ${mods>modCap()?`<div class="redbox">Too many modifications for level ${B().level}. Remove one at your next long rest.</div>`:""}
-    <h3>On your gear</h3>
-    ${S.items.filter(i=>i.mod).map(i=>`<div class="li"><span class="grow"><b>${esc(i.n)}</b></span><span class="chip amber">Modified</span></div>`).join("")||'<p class="small muted">None. Tick "Mechanical Modification" on an item below.</p>'}
-    <h3>On allies' gear</h3>
-    ${(S.allyMods||[]).map((m,i)=>`<div class="btns" style="margin-top:6px"><input type="text" id="am-item-${i}" data-bind="allyMods.${i}.item" value="${esc(m.item)}" placeholder="Item and modification (e.g. Radiant Weapon on a longsword)" style="flex:2;min-width:150px"><input type="text" id="am-ally-${i}" data-bind="allyMods.${i}.ally" value="${esc(m.ally)}" placeholder="Character" style="flex:1;min-width:100px"><button class="btn sm" data-act="amDel" data-i="${i}" title="Reclaim this slot">✕</button></div>`).join("")||'<p class="small muted">None.</p>'}
-    <div class="btns" style="margin-top:8px"><button class="btn sm" data-act="amAdd">Add ally modification</button></div>
-   </div>
    <div class="panel">
     <h2>Worn &amp; equipped</h2>
     <div class="chips" style="margin-bottom:6px"><span class="chip ${atts>attCap()?"red":"ecto"}">Attuned ${atts}/${attCap()}</span></div>
     ${atts>attCap()?`<div class="redbox">Too many attuned items.</div>`:""}
     ${worn.map(([it,i])=>itemRow(it,i)).join("")}
    </div>
-   <div class="panel">
-    <h2>Coins &amp; materials</h2>
-    <div class="btns">${["cp","sp","ep","gp","pp"].map(k=>`<label class="small">${k.toUpperCase()} <input type="number" id="coin-${k}" data-bind="coins.${k}" value="${S.coins[k]}"></label>`).join("")}<label class="small">Scrap (gp) <input type="number" id="coin-scrap" data-bind="scrap" value="${S.scrap}"></label></div>
-    <p class="small dim" style="margin-top:6px">Total weight ${weight().toFixed(1)} lb of ${B().str*15} lb capacity. Coins count 50 to the pound.</p>
-   </div>
+   ${S.items.some(i=>/belt pouch/i.test(i.n))?"":`<div class="panel"><h2>Coins &amp; materials</h2>${coinBlock()}</div>`}
   </div></div>`;
 }
 
@@ -964,6 +978,32 @@ function renderFeatures(){
  </div></div></div>`;
 }
 
+/* ======================= RENDER: MODIFICATIONS ======================= */
+function renderMods(){
+ const used=modsUsed(), cap=modCap();
+ const card=f=>{ const m=S.mods[f.k]||(S.mods[f.k]={built:false,holder:"flint",ally:""}); const fx=FX[f.k];
+  return `<div class="gadget" style="${m.built?"border-color:var(--amber)":""}">
+   <div class="hd"><b style="flex:1;min-width:0;font-size:16px">${esc(f.n)}</b><span class="lvl">${esc(f.src)}</span>
+    <button class="tog ${m.built?"on":""}" data-act="modBuild" data-k="${f.k}"><span class="box"></span>${m.built?"Built":"Not built"}</button></div>
+   <div class="small muted">${esc(f.on)}</div>
+   ${m.built?`<div class="btns" style="margin-top:6px;align-items:center">
+     <button class="tog ${m.holder==="flint"?"on":""}" data-act="modHolder" data-k="${f.k}" data-v="flint"><span class="box"></span>Flint has it</button>
+     <button class="tog ${m.holder==="ally"?"on":""}" data-act="modHolder" data-k="${f.k}" data-v="ally"><span class="box"></span>An ally carries it</button>
+     ${m.holder==="ally"?`<input type="text" id="mod-ally-${f.k}" data-bind="mods.${f.k}.ally" value="${esc(m.ally)}" placeholder="Who has it?" style="flex:1;min-width:120px">`:""}
+    </div>
+    ${m.holder==="flint"&&fx&&fx.max?`<div class="btns" style="margin-top:6px;align-items:center"><span class="small muted">Charges</span>${usesBoxes(f.k,fx.max,S.ch[f.k],"chg")}<span class="small dim">regains ${fx.regain} at dawn</span></div>`:""}
+    ${m.holder==="ally"?`<div class="small" style="margin-top:4px;color:var(--ecto)">Carried by ${esc(m.ally)||"an ally"}. Its effects aren't in your combat options.</div>`:""}`:""}
+   ${showFl()?`<div class="flav">${esc(f.fl)}</div>`:""}
+   <div class="fx"><b class="small" style="color:var(--ash2);letter-spacing:1px">IN PLAY</b> ${esc(f.fx)}</div>
+  </div>`; };
+ return `<div class="panel" style="margin-top:12px">
+   <h2>Mechanical Modifications <span class="cnt ${used>cap?"over":used===cap?"full":""}">${used} / ${cap} built</span></h2>
+   <p class="small dim">The six modifications you know. At level ${B().level} you can keep ${cap} built at once, whether Flint has them or an ally carries them. Re-rig them on a long rest with your tools. Ones Flint has show up in Combat and Limited features.</p>
+   ${used>cap?`<div class="redbox">${used} built but you can only maintain ${cap}. Unbuild one.</div>`:""}
+  </div>
+  <div class="grid g2">${INF.map(card).join("")}</div>`;
+}
+
 /* ======================= RENDER: BACKGROUND ======================= */
 function renderBackground(){
  const ta=(k,l,h)=>`<div class="panel"><h2>${l}</h2><textarea id="n-${k}" data-bind-text="notes.${k}" style="min-height:${h||90}px">${esc(S.notes[k])}</textarea></div>`;
@@ -971,9 +1011,7 @@ function renderBackground(){
   <div class="grid" style="margin-top:0">
    <div class="panel">
     <h2>Flint Cogsworth</h2>
-    ${S.portrait?`<img class="pimg" src="${S.portrait}" alt="Portrait of Flint Cogsworth">`:`<div class="pempty">No portrait yet.<br>Add one from your tablet's photos or files.</div>`}
-    <div class="btns" style="margin-top:8px"><label class="btn" for="portrait-file" style="cursor:pointer">${S.portrait?"Change image":"Add image"}</label><input type="file" id="portrait-file" accept="image/*" hidden>${S.portrait?`<button class="btn sm" data-act="portraitDel">Remove</button>`:""}</div>
-    <dl class="kv" style="margin-top:10px">
+    <dl class="kv">
      <dt>Race</dt><dd>Amber-Veined Gnome (formerly Rock Gnome)</dd>
      <dt>Class</dt><dd>Artificer ${B().level} · Spirit Engine</dd>
      <dt>Background</dt><dd>Investigator (VRGtR)</dd>
@@ -1010,7 +1048,7 @@ function render(){
  renderTop();
  const m=document.getElementById("main");
  if(!TABS.some(t=>t[0]===UI.tab)){ UI.tab="sheet"; renderTop(); }
- const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,background:renderBackground}[UI.tab]||renderSheet;
+ const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,background:renderBackground,mods:renderMods}[UI.tab]||renderSheet;
  const keep = UI.lastTab===UI.tab ? {main:m.scrollTop, boxes:[...m.querySelectorAll(".scrollbox")].map(x=>x.scrollTop)} : null;
  m.classList.toggle("fill", UI.tab==="gadgets");
  m.innerHTML=f();
@@ -1066,7 +1104,7 @@ function restModal(kind){
    <button class="tog ${S.settings.lrStress==="keep"?"":"on"}" id="lr-stress" data-act="lrTog"><span class="box"></span>Clear Stress (${S.stress} → 0)</button>
    <button class="tog ${S.energy?"":"locked"}" id="lr-keep" data-act="lrTog"><span class="box"></span>Take 1 Stress to keep all ${S.energy} energy</button>
    <button class="tog on" id="lr-dawn" data-act="lrTog"><span class="box"></span>Dawn passes: item charges recover</button>
-   ${PERSON()?Object.entries(FX).filter(([k,f])=>f.max&&itemFx(k)&&f.regain!=="all").map(([k,f])=>`<label class="askrow"><span>${f.n}: roll <b>${f.regain}</b></span><input type="number" inputmode="numeric" id="dawn-${k}" placeholder="roll"></label>`).join(""):""}
+   ${PERSON()?Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k)&&f.regain!=="all").map(([k,f])=>`<label class="askrow"><span>${f.n}: roll <b>${f.regain}</b></span><input type="number" inputmode="numeric" id="dawn-${k}" placeholder="roll"></label>`).join(""):""}
    <button class="tog ${S.hp.temp?"on":""}" id="lr-temp" data-act="lrTog"><span class="box"></span>Clear temp HP (${S.hp.temp})</button>
   </div>
   <div class="btns" style="margin-top:10px"><button class="btn pri" data-act="doRest" data-k="long">Finish long rest</button><button class="btn" data-act="close">Cancel</button></div>`);
@@ -1183,6 +1221,7 @@ function vacApply(row,total,rs,breach){
  if(excess>0) h+=`<div class="redbox"><b>Backlash: ${excess} necrotic.</b> It burns through you or an adjacent creature. <button class="btn sm red" data-act="backlash" data-n="${excess}">I take it</button></div>`;
  if(breach){ if(PERSON()){ h+=`<div class="redbox"><b>Containment Breach!</b> A die showed 4. Roll <b>d100</b> on the wild table.</div>`; logEv("Containment Breach"); } else { const w=R(100); h+=`<div class="redbox"><b>Containment Breach!</b> A die showed 4. Wild table d100: <b class="num">${w}</b></div>`; logEv(`Containment Breach, d100 ${w}`); } }
  pushRoll("Soul Vacuum",h,`+${cap} energy${excess?`, ${excess} backlash`:""}${breach?", BREACH":""}`); save(); render(); soulModal(h);
+ if(breach && PERSON()){ askRolls("Containment Breach!",`<div class="redbox">A capture die showed a 4. The escaping spirit rebounds through the machinery.</div><div class="tell">Roll <b>d100</b> on the wild table.</div>${excess>0?`<p class="small muted">Backlash: ${excess} necrotic to you or an adjacent creature. Apply it from the HP panel if it's you.</p>`:""}`,[{k:"w",label:"Your d100 roll"}],v=>{ const w=Math.max(1,Math.min(100,v.w)); logEv(`Containment Breach, wild table d100 ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); return `<div class="redbox">Wild table result <b class="num">${w}</b>. Tell the DM what it is.</div>${excess>0?`<div class="btns"><button class="btn sm red" data-act="backlash" data-n="${excess}">I take the ${excess} necrotic backlash</button></div>`:""}`; }); }
 }
 function finishInv(cost,r,fIn){
   const name=(UI.wbName||"").trim()||"Unnamed device", tier=+(UI.wbTier||0), dc=TIERS[tier][1];
@@ -1324,7 +1363,7 @@ const ACT = {
    S.lim.gbolt=1; S.lim.fuel=1;
    if(clr) setStress(0,"long rest");
    if(S.energy){ if(keep && S.stress<5){ setStress(S.stress+1,"kept pack energy"); sum.push(`kept ${S.energy} energy for 1 Stress`); } else { const l=Math.ceil(S.energy/2); setEnergy(S.energy-l,"long rest bleed-off"); sum.push(`pack lost ${l} energy`); } }
-   if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!itemFx(k)) continue; const din=document.getElementById("dawn-"+k); const g=f.regain==="all"?f.max:(din&&din.value!==""?Math.max(0,+din.value):(PERSON()?0:roll(f.regain).total)); const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
+   if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!fxOn(k)) continue; const din=document.getElementById("dawn-"+k); const g=f.regain==="all"?f.max:(din&&din.value!==""?Math.max(0,+din.value):(PERSON()?0:roll(f.regain).total)); const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
    S.conc="";
    sum.unshift("HP full");
   }
@@ -1357,7 +1396,6 @@ const ACT = {
  idel:d=>{ UI.confirmDel=S.items[+d.i].id; render(); },
  idelNo:()=>{ UI.confirmDel=null; render(); },
  idelGo:d=>{ const it=S.items.splice(+d.i,1)[0]; UI.confirmDel=null; logEv(`Removed ${it.n}`); save(); render(); },
- imod:d=>{ const it=S.items[+d.i]; if(!it.mod && modsUsed()>=modCap()){ toastModal("Modification limit",`<p>You can maintain ${modCap()} Mechanical Modifications at level ${B().level}. Remove one first.</p>`); return; } it.mod=!it.mod; logEv(`${it.n}: modification ${it.mod?"installed":"removed"}`); save(); render(); },
  iatt:d=>{ const it=S.items[+d.i]; if(!it.att && S.items.filter(i=>i.att).length>=attCap()){ toastModal("Attunement limit",`<p>You can attune to ${attCap()} items.</p>`); return; } it.att=!it.att; save(); render(); },
  niWorn:(d,el)=>el.classList.toggle("on"),
  addItem:()=>{ const n=document.getElementById("ni-name").value.trim(); if(!n) return; const worn=document.getElementById("ni-worn").classList.contains("on"); const q=+document.getElementById("ni-q").value||1;
@@ -1374,8 +1412,6 @@ const ACT = {
  importGo:()=>{ try{ const o=JSON.parse(document.getElementById("bk-in").value); S=merge(DEF(),migrate(o)); logEv("Restored from backup"); save(); render(); closeModal(); }catch(e){ document.getElementById("bk-err").innerHTML=`<div class="redbox">That isn't a valid backup. Copy the full text from "Copy backup".</div>`; } },
  resetModal:()=>modal(`<h2>Reset Flint?</h2><p class="muted">This puts everything back to the character sheet as of level 6 and erases your changes, notes and log.</p><div class="btns"><button class="btn red" data-act="resetGo">Reset everything</button><button class="btn" data-act="close">Cancel</button></div>`),
  resetGo:()=>{ S=DEF(); save(); render(); closeModal(); },
- amAdd:()=>{ if(modsUsed()>=modCap()){ toastModal("Modification limit",`<p>All ${modCap()} modification slots are in use.</p>`); return; } (S.allyMods=S.allyMods||[]).push({item:"",ally:""}); save(); render(); },
- amDel:d=>{ const m=S.allyMods.splice(+d.i,1)[0]; logEv(`Reclaimed modification${m.item?": "+m.item:""}${m.ally?" from "+m.ally:""}`); save(); render(); },
  exportFile:()=>{ const fname="flint-backup-"+new Date().toISOString().slice(0,10)+".json";
   if(window.AndroidBridge){ const r=AndroidBridge.saveFile(fname, JSON.stringify(S,null,1)); logEv("Saved backup file"); save(); toastModal(r==="ok"?"Backup saved":"Couldn't save backup", r==="ok"?"<p>Saved to your tablet's <b>Downloads</b> folder as "+fname+".</p>":"<p>"+esc(r)+"</p>"); return; }
   const blob=new Blob([JSON.stringify(S,null,1)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="flint-backup-"+new Date().toISOString().slice(0,10)+".json"; document.body.appendChild(a); a.click(); setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},1000); logEv("Saved backup file"); save(); },
@@ -1384,12 +1420,15 @@ const ACT = {
    const n=el.value===""?null:Math.round(+el.value); if(n===null && !f.opt){ document.getElementById("askerr").innerHTML=`<div class="warnbox">Enter: ${f.label.replace(/<[^>]+>/g,"")}</div>`; el.focus(); return; } v[f.k]=n; }
   UI.ask=null; const html=A.apply(v); save(); render(); if(html===false) return; if(html) toastModal(A.title,html); else closeModal(); },
  settings:()=>settingsModal(),
+ setTogQ:d=>{ S.settings[d.k]=!S.settings[d.k]; save(); render(); },
  setTog:d=>{ S.settings[d.k]=!S.settings[d.k]; save(); render(); settingsModal(); },
  setVal:d=>{ S.settings[d.k]=d.v; save(); render(); settingsModal(); },
  rollMode:()=>{ S.settings.rollMode=PERSON()?"app":"person"; save(); render(); },
  useConfirm:d=>{ UI.confirmed=d.k; closeModal(); useOption(d.k); },
  portraitDel:()=>{ S.portrait=""; save(); render(); },
  eventLog:()=>modal(`<h2>Event log</h2><div class="list">${S.log.map(l=>`<div class="li small"><span class="dim num" style="white-space:nowrap">${new Date(l.t).toLocaleString([], {month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"})}</span><span class="grow">${esc(l.txt)}</span></div>`).join("")||'<p class="muted">Nothing yet.</p>'}</div><div class="btns" style="margin-top:10px"><button class="btn" data-act="settings">Back to settings</button><button class="btn pri" data-act="close">Done</button></div>`),
+ modBuild:d=>{ const m=S.mods[d.k]; if(!m.built && modsUsed()>=modCap()){ toastModal("All slots used",`<p>You can keep ${modCap()} modifications built at level ${B().level}. Unbuild one first.</p>`); return; } m.built=!m.built; logEv(`${INFK[d.k].n} ${m.built?"built":"dismantled"}`); if(m.built&&m.holder==="flint") ensureInfItem(d.k); save(); render(); },
+ modHolder:d=>{ const m=S.mods[d.k]; if(m.holder===d.v) return; m.holder=d.v; if(d.v==="ally"){ const i=S.items.findIndex(x=>x.fx===d.k); if(i>=0){ logEv(`${S.items[i].n} handed to an ally`); S.items.splice(i,1); } } else ensureInfItem(d.k); save(); render(); },
  close:()=>closeModal(),
  closeBg:(d,el,e)=>{ if(e.target===el) closeModal(); }
 };
