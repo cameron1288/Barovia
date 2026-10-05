@@ -572,7 +572,6 @@ function rollFactors(kind, abil, skill){
   if(c.Prone) dis.push("Prone"); if(c.Restrained) dis.push("Restrained"); if(c.Blinded) dis.push("Blinded");
   if(c.Invisible) adv.push("Invisible (attackers can't see you)");
  }
- if(kind==="check" && (skill==="History"||skill==="Investigation")) notes.push(`Relic Scholar: if it's about magic items, cursed relics, undead anatomy, Castle Ravenloft or the Amber Temple, add your proficiency again (+${PB()}).`);
  if(S.insp) notes.push("You have Inspiration: you can spend it for advantage.");
  const mode = auto.length?"fail" : adv.length&&dis.length?"cancel" : adv.length?"adv" : dis.length?"dis" : "";
  return {adv,dis,notes,auto,mode};
@@ -600,7 +599,7 @@ function rollPrompt(label, kind, abil, skill, parts){
 }
 const checkParts = k => [[k==="san"?"Sanity":k.toUpperCase(), M(k)]];
 const saveParts = k => { const p=[[k==="san"?"Sanity":k.toUpperCase(), M(k)]]; if(SAVEPROF[k]) p.push(["Proficiency",PB()]); return p; };
-const skillParts = sk => { const p=[[sk[1].toUpperCase(), M(sk[1])]], lv=SKPROF[sk[0]]||0; if(lv===1) p.push(["Proficiency",PB()]); if(lv===2) p.push(["Expertise (2 × proficiency)",2*PB()]); return p; };
+const skillParts = (sk,relic) => { const p=[[sk[1].toUpperCase(), M(sk[1])]], lv=relic?2:(SKPROF[sk[0]]||0); if(lv===1) p.push(["Proficiency",PB()]); if(lv===2) p.push([relic?"Relic Scholar expertise (2 × proficiency)":"Expertise (2 × proficiency)",2*PB()]); return p; };
 function d20(label,bonus,opts={}){
  if(PERSON()){ const how=opts.adv?" with advantage (roll 2, keep the higher)":opts.dis?" with disadvantage (roll 2, keep the lower)":""; pushRoll(label,"",`Roll <b>d20 ${sg(bonus)}</b>${how}`); save(); return null; }
  const a=R(20), b=R(20);
@@ -681,9 +680,9 @@ function renderSheet(){
    <div class="panel">
     <h2>Skills <span class="cnt">Prof ${sg(PB())}</span></h2>
     <div class="list">
-     ${SKILLS.map(s=>{const p=SKPROF[s[0]]||0;return `<div class="li tap" data-act="skill" data-k="${s[0]}"><span class="prof">${p===2?"◆◆":p?"◆":""}</span><span class="grow">${s[0]} <span class="dim small">${s[1].toUpperCase()}</span></span><span class="bonus">${sg(skillBonus(s))}</span></div>`}).join("")}
+     ${SKILLS.map(s=>{const p=SKPROF[s[0]]||0;return `<div class="li tap" data-act="skill" data-k="${s[0]}"><span class="prof">${p===2?"◆◆":p?"◆":""}</span><span class="grow">${s[0]} <span class="dim small">${s[1].toUpperCase()}</span></span><span class="bonus">${sg(skillBonus(s))}${s[0]==="Investigation"?`<span class="dim small"> / ${sg(M("int")+2*PB())}</span>`:""}</span></div>`}).join("")}
     </div>
-    <p class="small dim" style="margin-top:6px">◆ proficient · ◆◆ expertise. Relic Scholar: double proficiency on History or Investigation about magic items, cursed relics, undead anatomy, Castle Ravenloft and the Amber Temple.</p>
+    <p class="small dim" style="margin-top:6px">◆ proficient · ◆◆ expertise. Investigation is ◆◆ (second number) when it's about magic items, cursed relics, undead anatomy, Castle Ravenloft or the Amber Temple; you'll be asked when you tap it.</p>
    </div>
   </div>
   <div class="grid">
@@ -1416,7 +1415,10 @@ const ACT = {
  editToggle:()=>{ UI.edit=!UI.edit; render(); },
  check:(d,el,e)=>{ if(e.target.closest("[data-act=save]")) return; const k=d.k; const lbl=k==="san"?"Sanity check":ABIL.find(a=>a[0]===k)[2]+" check"; rollPrompt(lbl,"check",k,null,checkParts(k)); },
  save:d=>{ const k=d.k; rollPrompt(k==="san"?"Sanity save":(ABIL.find(a=>a[0]===k)[2])+" save","save",k,null,saveParts(k)); },
- skill:d=>{ const s=SKILLS.find(x=>x[0]===d.k); rollPrompt(s[0]+" check","check",s[1],s[0],skillParts(s)); },
+ skill:d=>{ const s=SKILLS.find(x=>x[0]===d.k);
+  if(s[0]==="Investigation"){ modal(`<h2>Investigation check</h2><p>Is it about <b>magic items, cursed relics, undead anatomy, Castle Ravenloft or the Amber Temple</b>?</p><div class="col" style="margin-top:10px"><button class="btn pri" data-act="invRoll" data-r="1" style="padding:12px">Yes: Relic Scholar expertise · d20 ${sg(M("int")+2*PB())}</button><button class="btn" data-act="invRoll" data-r="0" style="padding:12px">No, something else · d20 ${sg(skillBonus(s))}</button></div>`); return; }
+  rollPrompt(s[0]+" check","check",s[1],s[0],skillParts(s)); },
+ invRoll:d=>{ const s=SKILLS.find(x=>x[0]==="Investigation"); const relic=d.r==="1"; rollPrompt("Investigation check"+(relic?" (Relic Scholar)":""),"check","int","Investigation",skillParts(s,relic)); },
  init:()=>{ rollPrompt("Initiative","init","dex",null,[["DEX",M("dex")]]); },
  sanFail:()=>{ logEv("Failed a Sanity check"); save(); toastModal("Whispers of the Mad",`<p>You failed a Sanity check. Ask the DM one yes/no question about your current situation.</p>`); },
  xpModal:()=>modal(`<h2>Add XP</h2><div class="btns"><input type="number" id="xp-add" value="0" style="width:120px"><button class="btn pri" data-act="xpGo">Add</button><button class="btn" data-act="close">Cancel</button></div><p class="small muted" style="margin-top:6px">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()}</p>`),
