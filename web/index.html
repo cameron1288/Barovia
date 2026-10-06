@@ -619,6 +619,7 @@ function DEF(){
  return {
   v:4, _t:0, lastAutoBackup:0,
   lr:{kind:"long",active:false,hours:8,used:0,done:{},research:[],tinker:0,opts:{stress:true,keep:false,dawn:true,temp:false}},
+  rplan:{items:[]},
   settings:{autoBackup:true,loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
   mods:{axe:{built:false,holder:"flint",ally:""},rshield:{built:true,holder:"flint",ally:""},pipes:{built:false,holder:"flint",ally:""},mind:{built:false,holder:"flint",ally:""},boots:{built:false,holder:"flint",ally:""},ring:{built:false,holder:"flint",ally:""}},
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
@@ -1190,12 +1191,13 @@ function renderGadgets(){
    <div class="col scrollbox">
    ${list.map(b=>{const r=S.researched[b.k]; return `<div class="gadget">
      <div class="hd"><span class="lvl ${b.l?"":"c"}">${b.l?"L"+b.l:"C"}</span><b style="flex:1;min-width:0"><span class="info" data-act="bpInfo" data-k="${b.k}">${esc(b.n)}</span></b>
+      ${r?"":(()=>{ const pi=planItems().findIndex(x=>x.t==="bp"&&x.k===b.k); return `<button class="tog ${pi>=0?"on":""}" data-act="planAdd" data-k="${b.k}" title="Add to the long rest plan"><span class="box"></span>${pi>=0?"Planned #"+(pi+1):"Plan"}</button>`; })()}
       <button class="tog ${r?"on":""}" data-act="research" data-k="${b.k}" title="Researched (in master catalogue)"><span class="box"></span>${r?"Researched":`R&amp;D ${Math.max(1,b.l)} h`}</button>
       <button class="btn sm pri" data-act="build" data-k="${b.k}" ${r?"":"disabled"}>Build</button></div>
      <div class="small" style="color:var(--amber)">${esc(b.c)}${ST.catDetails?"":` <span class="dim">· ${TIME[b.t]} · ${b.r}${b.s?" · "+b.s+" save":""}${b.atk?" · attack":""}${b.dmg?" · "+b.dmg.replace("@int",M("int"))+" "+b.dt:""}</span>`}</div>
      ${ST.catDetails?bpCard(b):""}</div>`}).join("")||`<p class="muted">${ST.bpResOnly?"No researched blueprints match. Turn off Researched only to see the rest.":"No blueprints match."}</p>`}
    </div>
-  </div></div>`;
+  </div></div>${planPanel("gadgets")}`;
 }
 
 /* ======================= RENDER: TINKERING ======================= */
@@ -1225,13 +1227,13 @@ function renderTinker(){
    <div class="btns"><input id="wb-name" type="text" placeholder="Invention name" style="flex:1;min-width:180px" value="${esc(UI.wbName||"")}" data-act-input="wbName">
     <select id="wb-tier" data-act-change="wbTier">${TIERS.map(([t,dc,l])=>`<option value="${t}" ${(UI.wbTier||0)==t?"selected":""}>Tier ${t} · ${l} (${dc}+)</option>`).join("")}</select></div>
    <textarea id="wb-note" placeholder="Describe exactly what it should do" style="margin-top:6px;min-height:60px" data-act-input="wbNote">${esc(UI.wbNote||"")}</textarea>
-   <div class="btns" style="margin-top:6px"><button class="btn pri" data-act="buildInv">Spend 1 hour &amp; roll d100</button><button class="btn sm" data-act="scrapAdj" data-d="-1">−1 gp</button><button class="btn sm" data-act="scrapAdj" data-d="1">+1 gp</button><button class="btn sm" data-act="scrapAdj" data-d="10">+10 gp</button></div>
+   <div class="btns" style="margin-top:6px"><button class="btn pri" data-act="buildInvM">Spend 1 hour &amp; roll d100</button><button class="btn" data-act="planAddTk">Add to rest plan</button><button class="btn sm" data-act="scrapAdj" data-d="-1">−1 gp</button><button class="btn sm" data-act="scrapAdj" data-d="1">+1 gp</button><button class="btn sm" data-act="scrapAdj" data-d="10">+10 gp</button></div>
    ${UI.wbResult||""}
   </div>
   <div class="panel"><h2>Idea book</h2>
    <p class="small dim">Tap to load it onto the workbench.</p>
    ${TIERS.map(([t,dc,l])=>`<h3>Tier ${t} · ${l} · ${dc}+</h3><div class="chips">${IDEAS.filter(x=>x[0]===t).map(x=>`<button class="chip" data-act="idea" data-n="${esc(x[1])}" data-t="${t}" data-d="${esc(x[2])}" title="${esc(x[2])}">${esc(x[1].replace(/^The /,""))}</button>`).join("")}</div>`).join("")}
-  </div></div></div>`;
+  </div></div></div>${planPanel("tinker")}`;
 }
 
 /* ======================= RENDER: GEAR ======================= */
@@ -1338,6 +1340,39 @@ function renderMods(){
 }
 
 /* ======================= RENDER: LONG REST ======================= */
+/* ---------- Long rest plan: research and tinkering, in priority order ---------- */
+const bpHrs = k => Math.max(1,BPK[k].l);
+const itemHrs = it => it.t==="bp" ? bpHrs(it.k) : 1;
+const itemName = it => it.t==="bp" ? BPK[it.k].n : (it.n||"Unnamed device");
+function planItems(){ const P=S.rplan, L=S.lr, took=(L.active&&L.plan)?L.plan.take:[];
+ P.items=(P.items||[]).filter(it=> it.t==="tk" ? (!it.built || took.includes(it.id)) : (BPK[it.k] && (!S.researched[it.k] || took.includes(it.id)))); return P.items; }
+// Go down the plan and take each item whose full hours still fit. Nothing is split.
+function planFit(hours){ let left=Math.max(0,hours); const take=[]; planItems().forEach(it=>{ const h=itemHrs(it); if(h<=left){ take.push(it.id); left-=h; } }); return {take,left}; }
+function planPending(){ const L=S.lr; if(!L.active||!L.plan) return 0; return planItems().filter(it=>it.t==="tk" && L.plan.take.includes(it.id) && !L.plan.tkDone[it.id]).length; }
+const lrUsed = () => { const L=S.lr; return (L.used||0)+(+L.other||0)+planPending(); };
+function planTake(id,on){ const L=S.lr, it=planItems().find(x=>x.id===id); if(!it||!L.plan) return; const i=L.plan.take.indexOf(id);
+ if(on && i<0){ L.plan.take.push(id); if(it.t==="bp" && !S.researched[it.k]){ L.research.push(it.k); S.researched[it.k]=true; L.used+=bpHrs(it.k); } }
+ else if(!on && i>=0){ if(it.t==="tk" && L.plan.tkDone[id]) return; L.plan.take.splice(i,1); if(it.t==="bp"){ const j=L.research.indexOf(it.k); if(j>=0){ L.research.splice(j,1); S.researched[it.k]=false; L.used=Math.max(0,L.used-bpHrs(it.k)); } } } }
+const TKLAB = t => { const T=TIERS[t]||TIERS[0]; return `T${T[0]} ${T[2]} (${T[1]}+)`; };
+function planPanel(where){
+ const items=planItems(), hrs=S.lr.hours, fit=planFit(hrs);
+ const todo=BP.filter(b=>!S.researched[b.k] && !items.some(it=>it.t==="bp"&&it.k===b.k));
+ const opts=[0,1,2].map(l=>{ const g=todo.filter(b=>b.l===l); return g.length?`<optgroup label="${l?"Level "+l:"Cantrips"} · ${Math.max(1,l)} h each">${g.map(b=>`<option value="${b.k}">${esc(b.n)} (${Math.max(1,b.l)} h)</option>`).join("")}</optgroup>`:""; }).join("");
+ const tot=items.reduce((a,it)=>a+itemHrs(it),0);
+ return `<div class="panel" style="margin-top:12px">
+  <h2>Long rest plan <span class="cnt ${tot>hrs?"over":""}">${items.length} planned · ${tot} h of ${hrs} h</span></h2>
+  <p class="small dim">Research and tinkering in the order you want them done. When a long rest begins, it takes each item that fits in the hours left. An item that doesn't fit is skipped and waits for a later rest; nothing is split across rests.</p>
+  <div class="col" style="margin-top:8px">${items.length?items.map((it,i)=>{ const h=itemHrs(it), ok=fit.take.includes(it.id);
+    const tag=it.t==="bp"?`<span class="lvl ${BPK[it.k].l?"":"c"}">${BPK[it.k].l?"L"+BPK[it.k].l:"C"}</span>`:`<span class="tier tier${it.tier}">T${it.tier}</span>`;
+    const nm=it.t==="bp"?`<span class="info" data-act="bpInfo" data-k="${it.k}">${esc(BPK[it.k].n)}</span>`:esc(itemName(it));
+    const sub=it.t==="bp"?`Research · ${esc(BPK[it.k].c)} · ${h} h`:`Tinkering · ${TKLAB(it.tier)} · 1 h + 1d10 gp${it.last?` · last try: ${esc(it.last)}`:""}`;
+    return `<div class="gadget"><div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="planMove" data-k="${it.id}" data-d="-1" ${i?"":"disabled"} title="Move up">▲</button><button class="mini" data-act="planMove" data-k="${it.id}" data-d="1" ${i<items.length-1?"":"disabled"} title="Move down">▼</button></span>${tag}<b style="flex:1;min-width:0">${nm}</b>${ok?`<span class="chip ok">Fits next rest</span>`:`<span class="chip dim">Waits</span>`}<button class="mini" data-act="planDel" data-k="${it.id}" title="Remove from plan">✕</button></div>
+     <div class="small muted">${sub}</div>${it.t==="tk"&&it.note?`<div class="small dim">${esc(it.note)}</div>`:""}</div>`; }).join(""):`<p class="small muted">Nothing planned yet.</p>`}</div>
+  ${items.length?`<p class="small muted" style="margin-top:6px">A ${hrs}-hour rest fits ${fit.take.length} of ${items.length}, leaving ${fit.left} h free. Change the length on the rest screen.</p>`:""}
+  ${todo.length?`<div class="btns" style="margin-top:8px"><select id="plan-sel-${where}" style="flex:1;min-width:180px">${opts}</select><button class="btn pri" data-act="planAddSel" data-k="${where}">Plan research</button></div>`:""}
+  <div class="btns" style="margin-top:6px">${where==="tinker"?`<span class="small dim">To plan tinkering, set up the workbench and tap <b>Add to rest plan</b>.</span>`:`<button class="btn" data-act="tab" data-k="tinker">Plan tinkering on the workbench</button>`}</div>
+ </div>`;
+}
 function researchPicker(){
  const L=S.lr, todo=BP.filter(b=>!S.researched[b.k]);
  const opts=[0,1,2].map(l=>{ const g=todo.filter(b=>b.l===l); return g.length?`<optgroup label="${l?"Level "+l:"Cantrips"} · ${Math.max(1,l)} h each">${g.map(b=>`<option value="${b.k}">${esc(b.n)} (${Math.max(1,b.l)} h)</option>`).join("")}</optgroup>`:""; }).join("");
@@ -1385,10 +1420,11 @@ function renderRest(){
    <p class="muted">You don't sleep, but a long rest is still a stretch of light activity. Choose how long this one lasts, then work through the checklist. Research and tinkering use up the hours.</p>
    <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Length</span>${[4,6,8,10,12].map(h=>`<button class="tog ${L.hours===h?"on":""}" data-act="lrLen" data-v="${h}"><span class="box"></span>${h} h</button>`).join("")}<label class="small">Other <input type="number" id="lr-hours" data-bind="lr.hours" value="${L.hours}" min="1" max="24" style="width:64px"></label></div>
    <div class="btns" style="margin-top:12px"><button class="btn pri" data-act="lrBegin">Begin ${L.hours}-hour long rest</button></div>
+   ${planItems().length?(()=>{ const f=planFit(L.hours); const tk=planItems().filter(it=>f.take.includes(it.id)); return `<p class="small" style="margin-top:8px">Your plan fits <b>${tk.length}</b> item${tk.length===1?"":"s"} into ${L.hours} h: ${tk.map(it=>esc(itemName(it))).join(", ")||"none"}.</p>`; })():""}
    <p class="small dim" style="margin-top:8px">A long rest normally takes 8 hours. Anything shorter or interrupted may not count, so check with the DM.</p>
   </div>`;
  }
- const left=L.hours-L.used, pct=Math.min(100,L.used/L.hours*100);
+ const used=lrUsed(), left=L.hours-used, pct=Math.min(100,used/L.hours*100);
  const step=(k,n,title,body)=>`<div class="panel lrstep ${L.done[k]?"done":""}"><h2><span class="stepn">${n}</span> ${title}<span class="sp"></span><button class="tog ${L.done[k]?"on":""}" data-act="lrDone" data-k="${k}"><span class="box"></span>${L.done[k]?"Done":"To do"}</button></h2>${body}</div>`;
  const opt=(k,id,label)=>`<button class="tog ${L.opts[k]?"on":""}" id="${id}" data-act="lrOpt" data-k="${k}"><span class="box"></span>${label}</button>`;
  const unres=BP.filter(b=>!S.researched[b.k] || L.research.includes(b.k));
@@ -1396,14 +1432,19 @@ function renderRest(){
  const built=INF.filter(f=>S.mods[f.k]&&S.mods[f.k].built);
  const regains=Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k));
  return `<div class="panel" style="margin-top:12px">
-   <h2>Long rest · ${L.hours} hours <span class="cnt ${left<0?"over":left===0?"full":""}">${L.used} h used · ${left} h left</span><span class="sp"></span><button class="btn sm" data-act="lrCancel">Cancel rest</button></h2>
+   <h2>Long rest · ${L.hours} hours <span class="cnt ${left<0?"over":left===0?"full":""}">${used} h used · ${left} h left</span><span class="sp"></span><button class="btn sm" data-act="lrCancel">Cancel rest</button></h2>
    <div class="hoursbar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
+   <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Hours spent on anything else (travel, a watch, an interruption)</span><button class="mini" data-act="lrOther" data-d="-1" ${+L.other?"":"disabled"}>−</button><b class="num">${+L.other||0} h</b><button class="mini" data-act="lrOther" data-d="1">+</button></div>
    ${L.autoHeal?`<div class="ectobox" style="margin-top:8px">You used <b>${L.autoHeal.n}</b> of yesterday's hit dice to heal to max (<b>+${L.autoHeal.missing}</b> HP, ${maxHp()-(S.hp.bonus||0)} HP) before your rest. They were going to recover anyway.</div>`:""}
-   ${left<0?`<div class="redbox">You've planned ${-left} more hour${-left>1?"s":""} than the rest lasts. Undo some research or check with the DM.</div>`:""}
+   ${left<0?`<div class="redbox">You've planned ${-left} more hour${-left>1?"s":""} than the rest lasts. Skip something in the plan or check with the DM.</div>`:""}
   </div>
   <div class="grid g2">
-   ${step("research","1","Research blueprints",`<p class="small dim">Each new blueprint takes downtime hours equal to its level (1 hour for a cantrip). Pick one and tap Research; tap a picked one to undo it.</p>
-    ${researchPicker()}`)}
+   ${step("research","1","Your plan: research & tinkering",(()=>{ const items=planItems(), P=L.plan||{take:[],tkDone:{}};
+     return `<p class="small dim">Set up from your rest plan when the rest began. Things changed? Skip an item or add one back. Research included here is researched; tinkering gets rolled from here.</p>
+     ${items.length?`<div class="col" style="margin-top:6px">${items.map(it=>{ const on=P.take.includes(it.id), done=it.t==="tk"&&P.tkDone[it.id];
+      return `<div class="askrow" style="${on?"":"opacity:.6"}"><span style="flex:1;min-width:0"><b>${esc(itemName(it))}</b> <span class="small muted">${it.t==="bp"?"Research":"Tinkering "+TKLAB(it.tier)} · ${itemHrs(it)} h</span>${done?` <span class="chip ok">${esc(P.tkDone[it.id])}</span>`:""}</span>
+       <span class="btns" style="gap:4px;flex-wrap:nowrap">${it.t==="tk"&&on&&!done?`<button class="btn sm pri" data-act="planRoll" data-k="${it.id}">${PERSON()?"Enter roll":"Roll"}</button>`:""}${done?"":`<button class="tog ${on?"on":""}" data-act="planTake" data-k="${it.id}"><span class="box"></span>${on?(it.t==="bp"?"Researched":"Planned"):"Skipped"}</button>`}</span></div>`; }).join("")}</div>`:`<p class="small muted">No rest plan. Plan research on the Gadgets tab and tinkering on the workbench.</p>`}
+     <details style="margin-top:6px"><summary class="small">Research something not in the plan</summary>${researchPicker()}</details>`; })())}
    ${step("tinker","2","Tinkering",`<p class="small">Each attempt takes <b>1 hour</b> and <b>1d10 gp</b> of scrap. You have <b>${S.scrap} gp</b> of scrap and <b>${S.inventions.length}/${invCap()}</b> active inventions${S.inventions.length>=invCap()?"; a new one will snap your oldest":""}.</p>
     <p class="small muted">${L.tinker?`${L.tinker} attempt${L.tinker>1?"s":""} this rest.`:"No attempts yet this rest."} Attempts on the workbench count toward the hours automatically.</p>
     <div class="btns"><button class="btn" data-act="tab" data-k="tinker">Open the workbench</button></div>`)}
@@ -1493,7 +1534,7 @@ function render(){
   ro.innerHTML = UI.restOpen ? `<div class="restsplash" role="dialog" aria-label="Long rest"><div class="wrap" style="padding-block:0">
     <div class="rshead"><h1>${S.lr.kind==="short"?"Short":"Long"} <span>rest</span></h1><span class="small muted" style="flex:1">${S.lr.active?"In progress. Close this to check other tabs; your choices are kept.":`Plan and finish a ${S.lr.kind==="short"?"short":"long"} rest.`}</span><button class="btn" data-act="restClose">${S.lr.active?"Back to sheet":"Close"}</button></div>
     ${renderRest()}</div></div>`
-   : (S.lr && S.lr.active ? `<button class="restpill" data-act="restOpen">Back to ${S.lr.kind==="short"?"short":"long"} rest · ${S.lr.hours-S.lr.used} h left</button>` : "");
+   : (S.lr && S.lr.active ? `<button class="restpill" data-act="restOpen">Back to ${S.lr.kind==="short"?"short":"long"} rest · ${S.lr.hours-lrUsed()} h left</button>` : "");
   const now=ro.querySelector(".restsplash"); if(now && prev) now.scrollTop=st; }
 }
 
@@ -1684,6 +1725,9 @@ function finishInv(cost,r,fIn){
    UI.wbName="";UI.wbNote="";
   }
   logEv(`Tinkered ${name} (T${tier}): d100 ${r}`);
+  if(UI.wbPlanId){ const pid=UI.wbPlanId; UI.wbPlanId=null; const it=(S.rplan.items||[]).find(x=>x.id===pid); const word=r<=5?"Meltdown":r<dc?"Failed":r>=95?"Critical success":"Success";
+   if(S.lr.active && S.lr.plan){ S.lr.plan.tkDone[pid]=word; if(!S.lr.plan.take.includes(pid)) S.lr.plan.take.push(pid); S.lr.used=Math.max(0,S.lr.used); }
+   if(it){ if(r>=dc && r>5){ it.built=true; if(!(S.lr.active&&S.lr.plan)) planItems(); } else it.last=`${word} (d100 ${r})`; } }
   UI.wbResult=`<div class="${cls}">d100 <b class="num">${r}</b> vs ${dc}+ · ${res}</div>`;
   pushRoll("Invention",``,`d100 <b>${r}</b> vs ${dc}+`);
   save(); render(); closeModal(); concPrompt();
@@ -1892,15 +1936,23 @@ const ACT = {
  restClose:()=>{ UI.restOpen=false; render(); },
  lrLen:d=>{ S.lr.hours=Math.max(1,Math.min(24,+d.v)); save(); render(); },
  lrBegin:()=>{ UI.hdLast=""; const h=S.lr.hours, kind=S.lr.kind||"long"; S.lr={kind,active:true,hours:h,used:0,done:{},research:[],tinker:0,hdCur:0,useCur:false,started:Date.now(),opts:{stress:S.settings.lrStress!=="keep",keep:false,dawn:true,temp:S.hp.temp>0}}; logEv(`${kind==="short"?"Short":"Long"} rest started (${h} h)`);
+  if(kind==="long"){ S.lr.plan={take:[],tkDone:{}}; const f=planFit(h); f.take.forEach(id=>planTake(id,true)); if(f.take.length){ S.lr.done.research=true; logEv(`Rest plan: ${planItems().filter(it=>f.take.includes(it.id)).map(it=>itemName(it)).join(", ")}`); } }
   if(kind==="long"){ const per=Math.max(1,1+M("con")), prior=B().level-S.hdUsed, target=maxHp()-(S.hp.bonus||0), missing=target-S.hp.cur;
    if(missing>0 && prior>0 && prior*per>=missing){ const n=Math.ceil(missing/per); S.hdUsed+=n; S.hp.cur=Math.max(S.hp.cur,target); S.lr.autoHeal={missing,n,per}; logEv(`Long rest: used ${n} of yesterday's hit dice to heal to max (${target} HP)`); } } save(); render(); },
- lrCancel:()=>{ UI.restOpen=false; if(S.lr.autoHeal){ S.hp.cur-=S.lr.autoHeal.missing; S.hdUsed=Math.max(0,S.hdUsed-S.lr.autoHeal.n); S.lr.autoHeal=null; } S.lr.research.forEach(k=>{ S.researched[k]=false; }); logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
+ lrCancel:()=>{ UI.restOpen=false; if(S.lr.autoHeal){ S.hp.cur-=S.lr.autoHeal.missing; S.hdUsed=Math.max(0,S.hdUsed-S.lr.autoHeal.n); S.lr.autoHeal=null; } S.lr.research.forEach(k=>{ S.researched[k]=false; }); S.lr.plan=null; logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
  lrDone:d=>{ S.lr.done[d.k]=!S.lr.done[d.k]; save(); render(); },
  lrOpt:d=>{ S.lr.opts[d.k]=!S.lr.opts[d.k]; save(); render(); },
  lrResearch:d=>{ const b=BPK[d.k], h=Math.max(1,b.l), i=S.lr.research.indexOf(d.k);
   if(i>=0){ S.lr.research.splice(i,1); S.researched[d.k]=false; S.lr.used=Math.max(0,S.lr.used-h); logEv(`Undid research: ${b.n}`); }
   else { S.lr.research.push(d.k); S.researched[d.k]=true; S.lr.used+=h; logEv(`Researched ${b.n} (${h} h)`); }
   save(); render(); },
+ planMove:d=>{ const q=planItems(), i=q.findIndex(x=>x.id===d.k), j=i+(+d.d); if(i<0||j<0||j>=q.length) return; [q[i],q[j]]=[q[j],q[i]]; save(); render(); },
+ planDel:d=>{ const q=planItems(), i=q.findIndex(x=>x.id===d.k); if(i>=0) q.splice(i,1); save(); render(); },
+ planAdd:d=>{ const q=planItems(), i=q.findIndex(x=>x.t==="bp"&&x.k===d.k); if(i>=0) q.splice(i,1); else if(!S.researched[d.k]) q.push({id:nid(),t:"bp",k:d.k}); save(); render(); },
+ planAddSel:d=>{ const v=(document.getElementById("plan-sel-"+d.k)||{}).value; if(v) ACT.planAdd({k:v}); },
+ planAddTk:()=>{ const n=(UI.wbName||"").trim(); if(!n){ toastModal("Name it first","<p>Give the invention a name on the workbench (or pick one from the idea book), then add it to the plan.</p>"); return; } planItems().push({id:nid(),t:"tk",n,tier:+(UI.wbTier||0),note:UI.wbNote||""}); logEv(`Planned tinkering: ${n}`); toastModal("Added to the rest plan",`<p><b>${esc(n)}</b> (${TKLAB(+(UI.wbTier||0))}) will be attempted at your next long rest if it fits.</p>`); save(); render(); },
+ planTake:d=>{ const L=S.lr; if(!L.plan) return; planTake(d.k,!L.plan.take.includes(d.k)); save(); render(); },
+ lrOther:d=>{ S.lr.other=Math.max(0,(+S.lr.other||0)+(+d.d)); save(); render(); },
  lrResearchSel:()=>{ const v=document.getElementById("lr-rsel").value; if(v) ACT.lrResearch({k:v}); },
  lrUseCur:()=>{ S.lr.useCur=true; save(); render(); },
  lrHD:d=>{ const pool=d.pool;
@@ -1930,7 +1982,8 @@ const ACT = {
    sum.unshift(S.lr&&S.lr.autoHeal?`healed to max with ${S.lr.autoHeal.n} of yesterday's hit dice before the rest`:`HP ${S.hp.cur}/${maxHp()} (from hit dice; no automatic healing)`, `hit dice ${B().level-S.hdUsed}/${B().level}`);
   }
   UI.restOpen=false;
-  if(S.lr && S.lr.active && (S.lr.kind||"long")===d.k){ sum.push(`${S.lr.used} of ${S.lr.hours} hours used${S.lr.research.length?`, researched ${S.lr.research.map(k=>BPK[k].n).join(", ")}`:""}${S.lr.tinker?`, ${S.lr.tinker} tinkering attempt${S.lr.tinker>1?"s":""}`:""}`); S.lr.active=false; }
+  if(S.lr && S.lr.active && S.lr.plan){ const skipped=planItems().filter(it=>!S.lr.plan.take.includes(it.id) || (it.t==="tk"&&!S.lr.plan.tkDone[it.id])); S.lr.plan=null; planItems(); if(skipped.length) sum.push(`still planned for a later rest: ${skipped.map(it=>itemName(it)).join(", ")}`); }
+  if(S.lr && S.lr.active && (S.lr.kind||"long")===d.k){ sum.push(`${lrUsed()} of ${S.lr.hours} hours used${S.lr.research.length?`, researched ${S.lr.research.map(k=>BPK[k].n).join(", ")}`:""}${S.lr.tinker?`, ${S.lr.tinker} tinkering attempt${S.lr.tinker>1?"s":""}`:""}`); S.lr.active=false; }
   logEv(`${d.k==="long"?"Long":"Short"} rest: ${sum.join(", ")}`); save(); render();
   if(d.k==="long"){ const br=autoBackup("long rest"); if(br==="ok") sum.push("backup saved to Downloads/Flint"); }
   toastModal(d.k==="long"?"Long rest done":"Short rest done",`<ul class="small">${sum.map(s=>`<li>${esc(s)}</li>`).join("")}</ul>${d.k==="long"?'<p class="small muted">Swap your gadget load-out and Mechanical Modifications now if you want.</p>':""}`);
@@ -1950,6 +2003,8 @@ const ACT = {
  // tinkering
  idea:d=>{ UI.wbName=d.n; UI.wbTier=+d.t; UI.wbNote=d.d; UI.wbResult=""; render(); },
  scrapAdj:d=>{ S.scrap=Math.max(0,S.scrap+(+d.d)); save(); render(); },
+ buildInvM:()=>{ UI.wbPlanId=null; ACT.buildInv(); },
+ planRoll:d=>{ const it=planItems().find(x=>x.id===d.k); if(!it) return; UI.wbName=it.n; UI.wbTier=it.tier; UI.wbNote=it.note||""; UI.wbPlanId=it.id; ACT.buildInv(); },
  buildInv:()=>{
   const tier=+(UI.wbTier||0), dc=TIERS[tier][1];
   if(PERSON()){ askRolls("Build an invention",`<div class="tell">Roll <b>1d10</b> for the gp of components, and <b>d100</b> for the blueprint. You need <b>${dc}+</b> (Tier ${tier}).</div><div class="tell small muted">If the d100 is 1–5 it melts down: also roll <b>1d6</b> fire.</div>`,[{k:"c",label:"1d10 (gp cost)"},{k:"r",label:"d100"},{k:"f",label:"1d6 fire (meltdown only)",opt:true}],v=>{ finishInv(Math.max(1,Math.min(10,v.c)),Math.max(1,Math.min(100,v.r)),v.f); return false; }); return; }
