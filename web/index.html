@@ -178,6 +178,8 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .opt:active{background:var(--iron3)}
 .opt .on1{display:flex;gap:8px;align-items:baseline}
 .opt .nm{font-weight:700;flex:1;min-width:0}
+.opt .look{text-decoration:underline dotted;text-decoration-color:var(--ash2);text-underline-offset:3px;cursor:help;padding:2px 0}
+.chip.lookchip{border-style:dashed;color:var(--ash2)}
 .opt .cost{font-family:var(--f-mono);font-size:12.5px;color:var(--ecto);white-space:nowrap}
 .opt .meta{font-size:12.5px;color:var(--ash2)}
 .opt.dis{opacity:.4}
@@ -392,7 +394,33 @@ const FLAV_EXTRA = {
  rshield:"The incoming blow cocked the spring-loaded piston on the shield's inner face. You release it and the stored kinetic energy slams the attacker away.",
  spark:"The pack's targeting apparatus locks onto the thread between the creature's body and soul and plucks it, throwing off its resistance.",
  fuel:"With the tank empty, Seriach turns your body into the containment chamber. You overload yourself and bleed raw ectoplasm into the pack.",
- insight:"Your hyper-focused, calculated understanding of monsters picks the creature apart. Sometimes you see something you weren't ready for."
+ insight:"Your hyper-focused, calculated understanding of monsters picks the creature apart. Sometimes you see something you weren't ready for.",
+ axe:"The battleaxe hums in your grip and its edge glows with a soft radiant light. You put your weight behind the swing and the blade leaves a fading arc of light behind it.",
+ dagger:"You flick the dagger out of its wrist sheath. It's a plain blade, but you've balanced it, so it flies or stabs exactly where you aim it.",
+ hammer:"You unhook the light hammer from your belt. It's a tinker's tool first and a weapon second, and it still hits like one.",
+ pipes:"You put the haunted pipes to your lips. The tune that comes out isn't one you're playing. It's thin, wrong and far too close, and the hair on everyone's neck stands up.",
+ boots:"You click your heels. The boots remember the path you took this turn, and in a blink you're standing back on a step you already made.",
+ axelight:"You twist the grip and the battleaxe's glow swells into a steady lantern light, or fades back to a dull shine.",
+ axeblind:"The instant the blow lands, the battleaxe flares like a struck magnesium strip. The attacker takes the full flash point-blank.",
+ mind:"Your focus starts to slip. The Mind Sharpener at your temple ticks, a cold pulse runs behind your eyes and the thread you were holding snaps back into place.",
+ oa:"They try to slip past you and you don't let them. One quick, practised strike as they leave your reach."
+};
+const LOOK_MORE = {
+ vacuum:"<p><b>When it goes over capacity:</b> the tank can't hold it all. The extra essence crackles out of the vents as black, freezing static, burning you or someone right next to you (1 necrotic per point).</p><p><b>Containment breach (any die shows a 4):</b> the green light flickers red. Something in the tank pushes back, and what happens next is on the d100 wild table.</p>",
+ fuel:"<p>Your veins glow faintly green and every breath tastes of ozone. It hurts, and it shows. Each point of Stress you take becomes a point of energy in the tank.</p>",
+ overload:"<p>The pack goes silent for a heartbeat afterwards and the gauges sit on empty. Everyone nearby knows exactly where that sound came from.</p>",
+ scorch:"<p>If the Con save fails, the heat runs back up your arm and the seams glow long after the rays are gone.</p>",
+ insight:"<p>On a failed check you see more than you wanted to about what the creature really is. Take 1 Stress.</p>"
+};
+const STD_LOOK = {
+ Dash:"You hike up your coat, tuck the wand against the pack and run, tools clanking at every step.",
+ Disengage:"You back away carefully, keeping the wand pointed at them, never giving anyone an opening.",
+ Dodge:"You crouch behind the pack's frame and start reading their moves like a schematic, shifting just before each blow lands.",
+ Help:"You call out the weak point, steady an ally's aim or hand over exactly the right tool at exactly the right moment.",
+ Hide:"You kill the pack's indicator lights, muffle the hum with your coat and go still in the shadows.",
+ Ready:"You hold your finger just off the trigger, waiting for the moment you've already planned for.",
+ Search:"You flip down a lens, sweep the area and work through it piece by piece, the way you'd strip down a broken machine.",
+ "Use an object":"You dig through your belt pouches and pull out what you need, already working it with your other hand."
 };
 const flavOf = b => (FLAVOR[b.n.replace(" (UA)","")]||{}).d || FLAV_EXTRA[b.n] || "";
 const firstSentence = t => (t.match(/^.*?[.!?](\s|$)/)||[t])[0].trim();
@@ -821,7 +849,7 @@ function renderSheet(){
 function opt(o,isPlanned){
  const dis = o.dis ? "dis" : "";
  return `<button class="opt ${o.cls||""} ${dis} ${isPlanned?"planned":""}" data-act="use" data-k="${o.id}" ${o.dis?`title="${esc(o.dis)}"`:""}>
-  <div class="on1"><span class="nm">${esc(o.n)}</span>${o.cost?`<span class="cost">${o.cost}</span>`:""}</div>
+  <div class="on1"><span class="nm"><span class="look" data-act="look" data-k="${o.id}">${esc(o.n)}</span></span>${o.cost?`<span class="cost">${o.cost}</span>`:""}</div>
   ${o.fl&&showFl()?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
 }
 function combatOptions(){
@@ -862,7 +890,7 @@ function combatOptions(){
  if(fxOn("axe")) Re.push({id:"axeblind",n:"Battleaxe flare",cost:`${S.ch.axe}/4 ch`,meta:`When hit by an attack · attacker Con save DC ${dc} or blinded to end of its next turn`,kind:"axeblind",dis:S.ch.axe?0:"No charges"});
  if(fxOn("mind")) Re.push({id:"mind",n:"Mind Sharpener",cost:`${S.ch.mind}/4 ch`,meta:"Failed Con save to keep concentration · succeed instead",kind:"mind",dis:S.ch.mind?0:"No charges"});
  Re.push({id:"oa",n:"Opportunity attack",meta:"Enemy leaves your reach · one melee attack",kind:"simple"});
- [...A,...Bo,...Re].forEach(o=>{ if(o.fl) return; const m={"firebolt-arm":"arm_firebolt",scorch:"arm_scorch",gbolt:"gbolt",pbolt:"pbolt",pstream:"pstream",cburst:"cburst",overload:"overload",vacuum:"vacuum",rshield:"rshield",spark:"spark",fuel:"fuel",insight:"insight",insightB:"insight"}[o.id]; if(m) o.fl=FLAV_EXTRA[m]; if(o.kind==="gadget"){ const b=BPK[S.loadout[o.gi].key]; o.fl=flavOf(b); } });
+ [...A,...Bo,...Re].forEach(o=>{ if(o.fl) return; const m={"firebolt-arm":"arm_firebolt",scorch:"arm_scorch",gbolt:"gbolt",pbolt:"pbolt",pstream:"pstream",cburst:"cburst",overload:"overload",vacuum:"vacuum",rshield:"rshield",spark:"spark",fuel:"fuel",insight:"insight",insightB:"insight",axe:"axe",dagger:"dagger",hammer:"hammer",pipes:"pipes",boots:"boots",axelight:"axelight",axeblind:"axeblind",mind:"mind",oa:"oa"}[o.id]; if(m) o.fl=FLAV_EXTRA[m]; if(o.kind==="gadget"){ const b=BPK[S.loadout[o.gi].key]; o.fl=flavOf(b); } });
  A.forEach(o=>o.slot="act"); Bo.forEach(o=>o.slot="bon"); Re.forEach(o=>o.slot="rea");
  return {A,Bo,Re};
 }
@@ -917,7 +945,7 @@ function renderCombat(){
  ${S.conc?`<div class="warnbox">Concentrating on <b>${esc(S.conc)}</b>. Damage forces a Con save (${sg(saveBonus("con"))}), DC 10 or half the damage. <button class="btn sm" data-act="concEnd">End it</button></div>`:""}
  <div class="grid g3">
   <div class="col"><div class="colhead">Actions <span class="chip ${C.act?"":"ok"}">${C.mine?(C.act?"used":"ready"):"plan"}</span></div>${col(A)}
-   <div class="chips" style="margin-top:4px">${std.map(s=>{ const pl=P.act==="std:"+s, us=C.mine&&C.stdUsed===s; return `<button class="chip ${pl?"sel":""} ${us?"usedc":""}" data-act="stdAct" data-k="${s}" aria-pressed="${pl||us}">${us?"✓ ":""}${s}${pl?" · planned":""}</button>`; }).join("")}</div></div>
+   <div class="chips" style="margin-top:4px">${std.map(s=>{ const pl=P.act==="std:"+s, us=C.mine&&C.stdUsed===s; return `<button class="chip ${pl?"sel":""} ${us?"usedc":""}" data-act="stdAct" data-k="${s}" aria-pressed="${pl||us}">${us?"✓ ":""}${s}${pl?" · planned":""}</button>`; }).join("")}<button class="chip lookchip" data-act="lookStd">What these look like</button></div></div>
   <div class="col"><div class="colhead">Bonus actions <span class="chip ${C.bon?"":"ok"}">${C.mine?(C.bon?"used":"ready"):"plan"}</span></div>${col(Bo)}</div>
   <div class="col"><div class="colhead">Reactions <span class="chip ${C.rea?"":"ok"}">${C.rea?"used":"ready"}</span></div>${col(Re)}</div>
  </div>
@@ -1524,6 +1552,15 @@ function diceModal(){
   <div style="margin-top:8px">${UI.dtLast||""}</div>`);
 }
 function afterHD(html){ if(UI.restOpen){ UI.hdLast=html; closeModal(); render(); } else { restModal("short"); document.getElementById("hdres").innerHTML=html; } }
+function lookHtml(o){
+ const fl=o.fl||"";
+ return (fl?`<div class="flav" style="font-size:15px">${esc(fl)}</div>`:`<p class="muted">No description written for this one yet.</p>`)
+  + (LOOK_MORE[o.id]||(o.id==="insightB"?LOOK_MORE.insight:"")||"")
+  + `<p class="small" style="margin-top:8px"><b>In play:</b> ${o.meta}</p>`
+  + (o.kind==="gadget"&&o.gi!=null&&BPK[S.loadout[o.gi].key]?`<p class="small muted">${esc(BPK[S.loadout[o.gi].key].fx||"")}</p>`:"")
+  + (o.dis&&o.dis!==true?`<p class="small" style="color:var(--blood)">${esc(o.dis)}</p>`:"")
+  + `<p class="small muted" style="margin-top:6px">Tap the rest of the card to use or plan it.</p>`;
+}
 function infoPop(title, html){
  document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="close"><div class="modal rollpop" data-act="close" role="dialog">
   <div class="muted small" style="letter-spacing:1px;text-transform:uppercase;font-weight:700">${esc(title)}</div>${html}<div class="tapclose">Tap anywhere to close</div></div></div>`;
@@ -1593,6 +1630,8 @@ const ACT = {
  combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false,mine:false,plan:{act:null,bon:null,oc:false,note:""}}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
  startTurn:()=>{ const c=S.combat; Object.assign(c,{stdUsed:null,mine:true,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); if(c.plan&&c.plan.oc&&S.stress<5){ c.oc=true; c.plan.oc=false; } logEv(`Round ${c.round}: my turn`); save(); render(); },
  endTurn:()=>{ const c=S.combat; if(c.oc && !c.ocUsed){ setStress(S.stress+1,"Overclock armed this turn"); pushRoll("Overclock","",`+1 Stress for the armed Overclock (now ${S.stress}/5)`); } Object.assign(c,{mine:false,oc:false,ocUsed:false,sts:false}); c.round++; save(); render(); },
+ look:(d,t,e)=>{ if(e) e.stopPropagation(); const o=OPTS[d.k]; if(!o) return; infoPop(o.n+" · what it looks like", lookHtml(o)); },
+ lookStd:()=>infoPop("Standard actions · what they look like", Object.keys(STD_LOOK).map(k=>`<p style="margin-top:6px"><b>${esc(k)}:</b> ${esc(STD_LOOK[k])}</p>`).join("")),
  planGo:d=>{ const P=S.combat.plan; const id=P[d.k]; if(!id) return; if(id.startsWith("std:")){ P[d.k]=null; ACT.stdAct({k:id.slice(4)}); return; } useOption(id); },
  planDel:d=>{ S.combat.plan[d.k]=null; save(); render(); },
  planClear:()=>{ S.combat.plan={act:null,bon:null,oc:false,note:""}; save(); render(); },
