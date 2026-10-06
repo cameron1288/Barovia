@@ -681,6 +681,9 @@ function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DE
 /* ---------- device-to-device sync via a private GitHub Gist ---------- */
 const SKEY=LKEY+"-sync", GH="https://api.github.com", GIST_DESC="Flint Cogsworth sync";
 let SY={token:"",gist:"",device:"",base:0,synced:0,last:0}, SYS={status:"off",msg:""}, syncTimer=null, syncBusy=false;
+let wakeLk=null;
+async function webWake(on){ try{ if(!("wakeLock" in navigator)) return; if(on && !wakeLk && document.visibilityState==="visible"){ wakeLk=await navigator.wakeLock.request("screen"); wakeLk.addEventListener("release",()=>{ wakeLk=null; }); } else if(!on && wakeLk){ await wakeLk.release(); wakeLk=null; } }catch(e){ wakeLk=null; } }
+document.addEventListener("visibilitychange",()=>{ if(!window.AndroidBridge && document.visibilityState==="visible" && S && S.settings && S.settings.keepAwake) webWake(true); });
 function loadSync(){ try{ Object.assign(SY, JSON.parse(localStorage.getItem(SKEY)||"{}")); }catch(e){} if(!SY.device){ SY.device=Math.random().toString(36).slice(2,10); saveSync(); } SYS.status=SY.gist?"ok":"off"; }
 function saveSync(){ try{ localStorage.setItem(SKEY, JSON.stringify(SY)); }catch(e){} }
 function syncStatus(st,msg){ if(st==="err" && /failed to fetch|networkerror|load failed/i.test(msg||"")){ st="pending"; msg="No internet. Changes will upload when you're back online."; } SYS.status=st; SYS.msg=msg||""; const b=document.querySelector(".setbtn2"); if(b){ if(SY.gist) b.setAttribute("data-sync",st); else b.removeAttribute("data-sync"); b.title="Settings"+(SY.gist?" · Sync: "+(msg||st):""); } const el=document.getElementById("syncmsg"); if(el) el.textContent=syncLine(); }
@@ -1514,7 +1517,7 @@ function applySettings(){
  const z={normal:"",large:"1.15",xl:"1.3"}[S.settings.textSize]||"";
  if(document.body.style.zoom!==z) document.body.style.zoom=z;
  { const ew=window.innerWidth/(+z||1); document.body.classList.toggle("tight", ew < 1240); document.body.classList.toggle("tighter", ew < 1090); }
- try{ if(window.AndroidBridge && AndroidBridge.setKeepAwake) AndroidBridge.setKeepAwake(!!S.settings.keepAwake); }catch(e){}
+ try{ if(window.AndroidBridge && AndroidBridge.setKeepAwake) AndroidBridge.setKeepAwake(!!S.settings.keepAwake); else webWake(!!S.settings.keepAwake); }catch(e){}
  const b=document.getElementById("rmode"); if(b) b.textContent=PERSON()?"Rolling: in person":"Rolling: in app";
  const h=document.getElementById("rollhint"); if(h) h.textContent=PERSON()?"In-person rolling: tap anything and the app tells you what to roll.":"Tap any attack, skill, ability or gadget to roll.";
 }
@@ -1753,7 +1756,7 @@ function settingsModal(){
    ${seg("textSize","Text size","",[["normal","Normal"],["large","Large"],["xl","Extra large"]])}
    ${tog("showFlavour","Device descriptions","How each gadget works mechanically, on cards and when you use them.")}
    ${tog("showLocked","Future features","Show level 9 and 15 Spirit Engine features, greyed out.")}
-   ${window.AndroidBridge?tog("keepAwake","Keep screen on","Stops the tablet sleeping while the app is open."):""}
+   ${window.AndroidBridge||("wakeLock" in navigator)?tog("keepAwake","Keep screen on","Stops the screen sleeping while the app is open."):""}
   </div>
   <h3>Sync between devices</h3>
   ${SY.gist?`<p class="small">Connected to a private note on your GitHub account. Changes upload about 10 seconds after you make them, and each device checks for the newest Flint when it opens.</p>

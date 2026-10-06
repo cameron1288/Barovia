@@ -19,6 +19,25 @@ jobs:
           mkdir -p android/app/src/main/assets
           python3 scripts/bundle_fonts.py web/index.html android/app/src/main/assets/index.html
           cp web/icon-192.png web/icon-512.png android/app/src/main/assets/
+      - name: Publish the web app (its own flint/ folder on the GitHub Pages site)
+        run: |
+          python3 scripts/bundle_fonts.py web/index.html "$RUNNER_TEMP/flint-index.html"
+          git fetch --depth=1 origin main
+          git worktree add "$RUNNER_TEMP/site" FETCH_HEAD
+          mkdir -p "$RUNNER_TEMP/site/flint"
+          cp "$RUNNER_TEMP/flint-index.html" "$RUNNER_TEMP/site/flint/index.html"
+          cp web/sw.js web/manifest.webmanifest web/icon-192.png web/icon-512.png "$RUNNER_TEMP/site/flint/"
+          cd "$RUNNER_TEMP/site"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add flint
+          if git diff --cached --quiet; then echo "Web app unchanged"; exit 0; fi
+          git commit -m "Flint web app v1.${{ github.run_number }} (flint/ folder only)"
+          for i in 1 2 3; do
+            git push origin HEAD:main && exit 0
+            git fetch --depth=20 origin main && git rebase FETCH_HEAD
+          done
+          exit 1
       - name: Build signed APK
         working-directory: android
         run: gradle assembleRelease --no-daemon
