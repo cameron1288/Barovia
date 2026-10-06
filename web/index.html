@@ -185,6 +185,8 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .useblk p{margin:3px 0 0}
 .useblk.now{border-color:var(--amber)}
 .useblk.now .uselab{color:var(--amber)}
+.useblk.ocblk{border-left:3px solid var(--blood)}
+.useblk.ocblk .uselab{color:var(--blood)}
 .opt .fxl{color:var(--ash)}
 .chip.lookchip{border-style:dashed;color:var(--ash2)}
 .opt .cost{font-family:var(--f-mono);font-size:12.5px;color:var(--ecto);white-space:nowrap}
@@ -501,6 +503,38 @@ const USE = {
  "o:axeblind":["The blow lands and I squeeze the axe grip. It flares in their face like a magnesium strip.","I squeeze the grip and the axe flares bright."],
  "o:mind":["My focus slips and the sharpener at my temple ticks. A cold pulse runs behind my eyes and I've got it again.","The sharpener ticks at my temple and my focus comes back."],
  "o:oa":["They try to slip past and I take my swing as they go.","Only in a fight."]
+};
+const USE_OC = {
+ acid:"I wrench the valve past the stop. The amber in my chest burns, and the mist that comes out of the atomizer is darker and thicker, eating through them faster.",
+ booming:"I strike the fork twice and hold it against the amber in my chest until the hum turns into a grinding roar. The blade shakes in my hand as I swing.",
+ bonfire:"I over-wind the fuse until the spring groans. When the capsule ruptures, the fire comes up white and roaring, with a red glow at its heart.",
+ firebolt:"I let Seriach feed the coils. They glow red, the rail screams, and the slug leaves so hot the air around it warps.",
+ frostbite:"I crank the release wheel all the way. The tube frosts over in my hand, and the vapour comes out thick enough to freeze them where they stand.",
+ gfb:"I pump the grip until the oil drips off the edge. The fire it throws is a deep, sickly green and doesn't want to go out.",
+ llure:"I let the amber run into the coil. The magnet hits with a crack, and the cable drags them in hard enough to tear them off their feet.",
+ mstone:"I crank the loader past the red line. The stones come out glowing faintly and humming loud enough to hear across the room.",
+ pspray:"I open the diffuser all the way and let the heat from my chest into the canister. The cloud comes out dark yellow and boiling.",
+ rfrost:"I hold the trigger and let the amber push. The beam goes from pale blue to white, and frost cracks across the floor between us.",
+ sgrasp:"The amber floods the gauntlet. The coils glow red, and when I hit them the lightning arcs off them into the walls.",
+ sburst:"I let the ring spin past its limit. The blades shriek, throwing sparks, a blur of red-hot steel around me.",
+ twhip:"I let Seriach into the winch motor. The cable fires like a harpoon and the hooks bite deep.",
+ tclap:"I hit the plate with the amber burning in my chest. The boom comes out deeper and heavier, and the floor shakes under us.",
+ catapult:"I over-pressurise the rail-sling until the gauge redlines. It fires with a crack loud enough to hurt.",
+ ffire:"The flareshot comes out of the barrel burning red at the core. The dust it throws glows brighter and clings harder.",
+ grease:"I let the canister heat in my hand until it's almost too hot to hold. The spray comes out in a thick, steaming slick.",
+ sanct:"I tune the scrambler with the amber's pulse. The hum around you turns into a pressure in the head, and anyone looking at you has to fight to keep their eyes on you.",
+ snare:"I wind the winch past its rating. The cable sits taut and singing, and when it springs it snaps hard.",
+ tcb:"I let the heat from my chest into the tank. The acid boils as it leaves the hose and keeps steaming wherever it lands.",
+ enlarge:"I let Seriach into the modulator. The beam pulses red, and the change hits harder and faster than it should.",
+ heatm:"I hold the trigger and let the amber run into the projector. The metal goes from red to white-hot almost instantly.",
+ levitate:"I feed the null-field from the amber. The field locks on with a heavy thrum, and they're lifted like they weigh nothing.",
+ pyro:"The conversion unit glows red as it pulls the flame in. What comes out is brighter and thicker than any normal fire could make.",
+ vwarp:"I let the amber drive the projector. The air tears with a sharp crack and they're yanked through.",
+ web:"I over-pressurise the canisters until the launcher shakes. The filament comes out darker and sets almost instantly, hard as wire.",
+ "o:pbolt":"I stomp the pedal and let Seriach push through the box. The bolt comes out of the exhaust violet with a red core, and the gauges spike.",
+ "o:pstream":"I hold the pedal down and let the amber feed it. The stream thickens and turns violet-red, and the box shakes against my hip.",
+ "o:cburst":"I stamp twice and let Seriach pack the slug. It ruptures in a red-violet shockwave far heavier than it should be.",
+ "o:overload":"I open every valve and let Seriach take hold. Everything in the tank pours out red and violet, and the chains it throws around them burn."
 };
 const STD_USE = {
  Dash:"I tuck everything in tight and run, the gear rattling on my back.",
@@ -1642,16 +1676,17 @@ function diceModal(){
   <div style="margin-top:8px">${UI.dtLast||""}</div>`);
 }
 function afterHD(html){ if(UI.restOpen){ UI.hdLast=html; closeModal(); render(); } else { restModal("short"); document.getElementById("hdres").innerHTML=html; } }
-function usePanel(u){
+function usePanel(u,ocTxt){
  if(!u) return `<p class="muted">No description written for this one yet.</p>`;
- const inC=S.combat.on;
- const blk=(lab,txt,now)=>`<div class="useblk ${now?"now":""}"><div class="uselab">${lab}${now?" · now":""}</div><p class="flav" style="font-size:15px;margin:3px 0 0">${esc(txt)}</p></div>`;
- const c=blk("In combat",u[0],inC), o=blk("Out of combat",u[1],!inC);
- return `<div class="usewrap">${inC?c+o:o+c}</div>`;
+ const inC=S.combat.on, armed=inC&&(S.combat.oc||(S.combat.plan&&S.combat.plan.oc));
+ const blk=(lab,txt,now,cls)=>`<div class="useblk ${now?"now":""} ${cls||""}"><div class="uselab">${lab}${now?" · now":""}</div><p class="flav" style="font-size:15px;margin:3px 0 0">${esc(txt)}</p></div>`;
+ const c=blk("In combat",u[0],inC&&!armed), o=blk("Out of combat",u[1],!inC);
+ const x=ocTxt?blk("Overclocked",ocTxt,armed,"ocblk"):"";
+ return `<div class="usewrap">${inC?(armed?x+c:c+x)+o:o+c+x}</div>`;
 }
 function lookHtml(o){
  const b=o.kind==="gadget"&&o.gi!=null?BPK[S.loadout[o.gi].key]:null;
- return usePanel(b?USE[b.k]:USE["o:"+(o.id==="insightB"?"insight":o.id)]);
+ return usePanel(b?USE[b.k]:USE["o:"+(o.id==="insightB"?"insight":o.id)], b?USE_OC[b.k]:USE_OC["o:"+o.id]);
 }
 function infoPop(title, html){
  document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="close"><div class="modal rollpop" data-act="close" role="dialog">
@@ -1936,7 +1971,7 @@ const ACT = {
   <p>Stress comes from pushing the machine and the entity inside you. You can't go above 5.</p>
   <ul><li><b>+1</b> Overclock (once per turn, +3 to a gadget or discharge)</li><li><b>+1</b> keeping all your energy through a long rest</li><li><b>+1 to +5</b> Seriach's Fuel</li><li><b>+1</b> invention meltdown (d100 roll of 1–5)</li><li><b>+1</b> failed Occult Insight</li></ul>
   <p class="small muted">Long rest: the app clears Stress by default (change it in Settings or on the rest screen). What happens at high Stress is up to the DM.</p>`),
- bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`, usePanel(USE[b.k])); },
+ bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`, usePanel(USE[b.k],USE_OC[b.k])); },
  undo:()=>{ const u=UNDO.pop(); if(!u){ updateUndo(); return; } const rolls=S.rolls; S=merge(DEF(),JSON.parse(u.s)); S.rolls=rolls; logEv(`Undid: ${u.label}`); save(); closeModal(); render(); updateUndo(); pushRoll("Undo","",`Undid <b>${esc(u.label)}</b>`); },
  concHeld:d=>{ logEv(`Kept concentration on ${S.conc} (DC ${d.dc})`); save(); render(); closeModal(); },
  concLost:()=>{ logEv(`Lost concentration on ${S.conc}`); S.conc=""; save(); render(); closeModal(); },
