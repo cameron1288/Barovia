@@ -185,6 +185,7 @@ table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:up
 .useblk p{margin:3px 0 0}
 .useblk.now{border-color:var(--amber)}
 .useblk.now .uselab{color:var(--amber)}
+.opt .fxl{color:var(--ash)}
 .chip.lookchip{border-style:dashed;color:var(--ash2)}
 .opt .cost{font-family:var(--f-mono);font-size:12.5px;color:var(--ecto);white-space:nowrap}
 .opt .meta{font-size:12.5px;color:var(--ash2)}
@@ -396,7 +397,7 @@ const FLAV_EXTRA = {
  pstream:"You lock the trigger down. The wand pours out a continuous jet of ectoplasm in a straight line while the tank gauges drop fast.",
  cburst:"You fire a pressurised slug of captured spirit at a point. It ruptures into a violent sphere of ectoplasmic force that hurls everything outward.",
  overload:"You open every valve. The pack screams as its whole charge pours through the wand into one target, coiling around it in binding spectral chains.",
- vacuum:"The pedal slams down. The pack starts screaming, the tank glows violet and loose objects slide toward you. The dying creature's essence is torn through the air into the tank. The gauges spin wildly, then CLICK. A tiny green light: CONTAINED. Usually.",
+ vacuum:"The pedal slams down. The pack starts screaming, the tank glows violet and loose objects slide toward you. The dying creature's essence is torn through the air into the tank. The gauges spin wildly, then CLICK. A tiny green light: CONTAINED.",
  rshield:"The incoming blow cocked the spring-loaded piston on the shield's inner face. You release it and the stored kinetic energy slams the attacker away.",
  spark:"The pack's targeting apparatus locks onto the thread between the creature's body and soul and plucks it, throwing off its resistance.",
  fuel:"With the tank empty, Seriach turns your body into the containment chamber. You overload yourself and bleed raw ectoplasm into the pack.",
@@ -411,114 +412,105 @@ const FLAV_EXTRA = {
  mind:"Your focus starts to slip. The Mind Sharpener at your temple ticks, a cold pulse runs behind your eyes and the thread you were holding snaps back into place.",
  oa:"They try to slip past you and you don't let them. One quick, practised strike as they leave your reach."
 };
-const LOOK_MORE = {
- vacuum:"<p><b>When it goes over capacity:</b> the tank can't hold it all. The extra essence crackles out of the vents as black, freezing static, burning you or someone right next to you (1 necrotic per point).</p><p><b>Containment breach (any die shows a 4):</b> the green light flickers red. Something in the tank pushes back, and what happens next is on the d100 wild table.</p>",
- fuel:"<p>Your veins glow faintly green and every breath tastes of ozone. It hurts, and it shows. Each point of Stress you take becomes a point of energy in the tank.</p>",
- overload:"<p>The pack goes silent for a heartbeat afterwards and the gauges sit on empty. Everyone nearby knows exactly where that sound came from.</p>",
- scorch:"<p>If the Con save fails, the heat runs back up your arm and the seams glow long after the rays are gone.</p>",
- insight:"<p>On a failed check you see more than you wanted to about what the creature really is. Take 1 Stress.</p>"
-};
 const USE = {
- // ===== blueprints: [in combat, out of combat]
- acid:["Snap the atomizer onto your wrist gauntlet, open the pressure valve all the way and squeeze. Aim at one enemy, or sweep the cone across two standing within 5 ft of each other. Their Dex save decides it.","Set the valve low and give a careful squirt. Acid only affects creatures, though, so outside a fight it's mostly a warning shot or a show of what you could do."],
- booming:["Strike the tuning fork against the hilt as you step in, then swing in the same motion. If they hit, warn them: if they walk away, the pressure pocket goes off.","It only goes off on someone you hit, so it's a fight tool. Holding a humming blade a few inches from someone does make the point, though."],
- bonfire:["Wind the spring fuse, count one and lob the capsule into a 5-ft square you can see. Keep your focus on it to keep it burning. Enemies who start their turn there or walk into it get burned.","Drop a capsule in a fire pit or on a pile of wet wood and it lights up and burns without fuel while you concentrate (up to a minute). It sets any flammable object in the square alight."],
- dlights:["Flip the hatch on the pack and spin the dial. Up to four fireflies lift off. Use a bonus action to fly them up to 60 ft to light up a target or a doorway, or to make an enemy think torches are coming.","Send the drones down a corridor, stairwell or well shaft ahead of the party, steering them with the dial. They have to stay within 20 ft of each other and within 120 ft of you."],
- firebolt:["Slot a magnesium slug into the forearm rail, close the circuit and sight along your arm. It's a ranged spell attack, and anything flammable that nobody is carrying ignites.","Fire it into a cold hearth, a pile of kindling or a fuse to start a fire from across the room."],
- frostbite:["Point the condenser tube at them and crank the release wheel. On a failed Con save the cold seizes their muscles: damage, plus disadvantage on their next weapon attack.","It only works on a creature, so it's almost always a fight tool."],
- gfb:["Pump the grip so the oil coats the edge, then swing. On a hit, flick the blade toward a second enemy within 5 ft so the green fire leaps to them.","Outside a fight it's just a frightening sight: a weapon edge burning green in a dark room."],
- guidance:["Clip the wire lead to an ally's temple; it takes your action. While you keep your focus, they add a d4 to one ability check, which helps with grapples, shoves or escaping a hold.","Your best everyday gadget. Clip it on whoever is about to pick the lock, talk to the guard, climb the wall or search the room, before they try."],
- light:["Clip the radium clasp to something, or flick it onto an enemy's shield or helmet (they get a Dex save if they're holding it). Now everyone can see them, or the room.","Clip it to your hat, a staff or the pack frame for an hour of hands-free light, 20 ft bright plus 20 ft dim. Cover it to hide the light."],
- llure:["Fire the harpoon magnet at a creature within 15 ft. On a failed Str save it's yanked up to 10 ft toward you, and shocked if it ends right next to you. Use it to pull a caster away from cover or into your ally's reach.","It only pulls creatures, so it's not for hauling gear. It could pull a willing friend back toward you across a gap."],
- magehand:["Launch the grapple rotor so it hovers within 30 ft. Each action works it: snatch a dropped key, open a door, pull a lever or pour a vial on something. It can't attack.","Open chests and doors from a safe distance, flip switches, fetch something you don't want to touch, or poke a suspicious object. It can carry up to 10 lb."],
- mstone:["As a bonus action, load up to three pebbles into the impact loader. You or anyone you give them to can throw or sling them, using your attack bonus.","Charge the stones before you open a door and hand them out, so allies without a ranged attack have one ready."],
- mending:["It takes a full minute with the arc-welder, so not during a fight.","Spend a minute with the blowtorch to fix one break or tear up to 1 ft: a chain link, a torn cloak, a cracked key or a leaking waterskin. It can physically repair a magic item, but won't restore its magic."],
- message:["Point the antenna at an ally within 120 ft and whisper. Only they hear it, and they can whisper back. Use it for silent orders: hold, flank, pull back.","Coordinate a split party or a sneaky approach. It bends around corners if you know where they are, but 1 ft of stone, 1 inch of metal, thin lead or 3 ft of wood blocks it."],
- pspray:["Get within 10 ft, aim the diffuser at their face and open the nozzle. Con save or they choke on the cloud.","It only affects a creature you can see, so it's a fight tool."],
- presti:["Mostly for distractions: a sudden bang, a puff of smoke or a burst of sparks behind an enemy.","The everyday multitool: clean muddy boots, warm a cold meal, light or snuff a candle, flavour bad rations, leave a small mark, or make a harmless trick."],
- rfrost:["Aim the cryo-beam and pull the trigger. On a hit their speed drops by 10 ft, which is useful against something chasing you or an ally.","It only works on a creature, so it's a fight tool."],
- resist:["Clip the regulator to an ally (it takes your action) before they have to resist something. They add a d4 to one saving throw while you keep focus.","Fit it before walking into a trap, a haunted room or anything you know will force a save."],
- sgrasp:["Clench the gauntlet and slap them. You get advantage if they're in metal armour, and on a hit they can't take reactions, so you can walk away without an opportunity attack.","No real use outside a fight, apart from a crackling gauntlet as a threat."],
- spare:["Charge the paddles, kneel and press them to a downed ally's chest (touch). They become stable at 0 HP, with no more death saves.","Same thing, used after the fight on anyone still dying."],
- sburst:["Spin up the blade ring at your waist when you're surrounded. Every other creature within 5 ft makes a Dex save, and friends standing that close get hit too.","No real use outside a fight."],
- twhip:["Fire the winch cable at a creature within 30 ft. It's a melee spell attack, and on a hit anything Large or smaller is reeled up to 10 ft toward you.","It only targets creatures, so it's a fight tool."],
- tclap:["Slam the percussion plate. Every creature within 5 ft except you makes a Con save. Everyone within 100 ft hears it.","The boom carries 100 ft, so it can be a loud signal to the party, though anyone nearby hears it too."],
- absorb:["A reaction: the moment acid, cold, fire, lightning or thunder hits you, slap the grid to your chest. You resist that damage, including this hit, until your next turn, and your next melee hit adds 1d6 of it.","It only triggers when you take that damage, so you only use it when a trap or hazard actually hits you."],
- alarm:["It takes a minute to set up, so not during a fight.","String the tripwire and bell sentry across a door, a window or up to a 20-ft cube of camp. For 8 hours, anything Tiny or bigger entering sets it off: a mental ping that wakes you, or a bell heard 60 ft away."],
- catapult:["Load something of 1 to 5 lb (a rock, a flask, a dropped helmet) into the rail-sling and fire it up to 90 ft. The first creature in its path makes a Dex save.","Send something across a gap or chasm. Breaking things is also an option: if it hits a solid surface, the object and the surface both take damage."],
- cure:["Get to an ally, jab the syringe in and press the plunger. It's touch range, so you have to reach them.","Patch someone up after a fight, before deciding whether to spend hit dice on a short rest."],
- detect:["Snap the UV lens over one eye and concentrate. You sense magic within 30 ft. Use your action to see the auras and learn the school, which helps find the illusion, the caster or the enchanted enemy.","Sweep a room, a pile of loot, a doorway or a suspicious person. 1 ft of stone, 1 inch of metal or thin lead blocks it."],
- disguise:["Rarely worth an action in a fight.","Drape the shimmer mesh before walking into a village, past a guard post or into a meeting. It lasts an hour and fools the eye, but not a touch. Anyone suspicious can make an Investigation check against your DC."],
- expret:["Bonus action: lock the knee braces into overclock and Dash right away. While you concentrate, you can Dash as a bonus action every turn. Use it to escape, chase, or reach a downed ally.","Cover ground fast: reach help, outrun a storm, or get somewhere before someone else does."],
- ffire:["Fire the flareshot into a 20-ft cube. Anyone who fails the Dex save glows, can't stay invisible, and every attack against them has advantage. Best on a hiding or invisible enemy.","Light up a 20-ft area to reveal invisible things or hidden objects."],
- flife:["Plug the pump into your arm and squeeze before you take damage. The temporary HP lasts an hour.","Best used just before a fight you can see coming, such as before kicking in the door."],
- ffall:["A reaction: when you, or up to five creatures within 60 ft, start falling, fire the drag-chutes. Everyone drifts down 60 ft per round and lands on their feet.","Same use whenever someone slips off a cliff, a roof or a collapsing floor."],
- grease:["Spray the canister over a 10-ft square. Everyone in it makes a Dex save or falls prone, and it becomes difficult terrain. Put it in a doorway or under charging enemies.","Make a slippery patch behind you on a chase route, or under a door you want guarded."],
- identify:["It takes a minute of touching the item, so not during a fight.","Hook the object into the diagnostic matrix for a minute to learn its properties, how to use it, whether it needs attunement, its charges and any spells on it. Touch a creature to see which spells are affecting it."],
- jump:["Snap the springs onto a creature's boots (touch) and their jump distance triples for a minute. Use it to get someone onto a ledge or across a gap mid-fight.","Clear chasms, rooftops and river crossings."],
- longstr:["Tension the ankle braces on a creature (touch): +10 ft speed for an hour. Better fitted before the fight than during it.","Fit it before a long march or a chase. It lasts an hour."],
- purify:["Not for fights.","Run food or water through the filter. Everything nonmagical in a 5-ft radius is cleared of poison and disease. Use it on any meal in Barovia."],
- sanct:["Bonus action: clip the scrambler to yourself or an ally within 30 ft. Anyone attacking them, or targeting them with a harmful spell, makes a Wis save or has to pick another target. It ends if the warded creature attacks or casts at someone.","Protect the person carrying the injured, or yourself while you work on something."],
- snare:["It takes a minute to set, so not during a fight.","Spend a minute setting the spring winch in a 5-ft circle. It's nearly invisible; Investigation against your DC spots it. Anything stepping in makes a Dex save or gets hoisted upside down and restrained. Lasts 8 hours."],
- tcb:["Brace and swing the firehose along a 30-ft line, 5 ft wide. Anyone who fails the Dex save is coated in acid and burns every turn until they use an action to scrape it off.","No real use outside a fight."],
- aweapon:["Bonus action: jam the injector into a weapon you're holding and pick acid, cold, fire, lightning, poison or thunder. Hits deal an extra 1d6 of it while you concentrate. Use a bonus action on later turns to switch, depending on what the enemy resists.","Prime it before a fight if you know what you'll face."],
- aid:["Jab the triple-dose syringe into up to three allies within 30 ft. Each one's maximum and current HP rise by 5, which can bring someone back from 0.","Usually given at the start of the day or before a fight, since it lasts 8 hours."],
- airbubble:["Seal the respirator dome over a willing creature's head within 60 ft. They breathe normally inside smoke, poison gas or water.","Use it before diving into a lake, crawling through a gas-filled tunnel or entering a crypt full of foul air."],
- alter:["Flip the chassis shell to Natural Weapons (claws or horns, 1d6, magic, +1 to hit) or Aquatic Adaptation if you're in water. Switch modes with an action.","Change Appearance to walk unnoticed, or Aquatic Adaptation to swim and breathe underwater."],
- alock:["Rarely used in a fight, but slamming a door and locking it behind you can end a chase.","Lock a door, window, gate or chest. You and anyone you choose open it freely, and a password suppresses it for a minute. Everyone else faces DC +10 to break or pick it. Uses 25 gp of material."],
- blur:["Throw the scrambler's switch: your outline smears and attacks against you have disadvantage while you concentrate. It doesn't work on things that don't need sight.","No real use outside a fight."],
- cflame:["Not for fights.","Light a flame on an object that gives no heat, needs no air and never goes out, like a lantern for a cellar or a beacon on a shrine. Uses 50 gp of material."],
- dvision:["Strap the goggles onto a willing creature (touch): darkvision 60 ft. Do it before you walk into the dark if you can.","Give it to the party member without darkvision before exploring a cellar, crypt or night road. It lasts 8 hours."],
- enhance:["Touch an ally and pick a stimulant: Bear's (temporary HP), Bull's (strength checks, grapples), Cat's (Dex checks, safe falls) or the mental ones.","Use it before a hard climb (Cat's or Bull's), a long haul (Bull's) or a tricky conversation (Eagle's or Fox's)."],
- enlarge:["Aim the scale modulator at a creature within 30 ft. Enlarge an ally (stronger, +1d4 weapon damage) or shrink an enemy (unwilling ones get a Con save).","Shrink yourself or an ally to slip through a tight space, or enlarge an object to block a doorway."],
- heatm:["Aim the eddy-current projector at an enemy's metal armour or weapon. It glows red-hot and burns them, and they may drop it (Con save). Use a bonus action each later turn to burn them again.","Heat a metal lock, bar or chain. It won't destroy it, but it might make someone let go of it."],
- invis:["Touch an ally (or yourself) to slip them out of sight, perhaps to reposition, rescue someone or escape. It ends when they attack or cast.","Scout ahead, sneak past guards or steal back something important. It lasts up to an hour while you concentrate."],
- kjaunt:["Bonus action: inject the burst-step and, while you concentrate, gain +10 ft speed, provoke no opportunity attacks and pass through other creatures' spaces. Don't end your turn in one.","Quick movement through crowds or tight spots, but it's mostly a fight tool."],
- lrest:["Purge one condition from an ally (touch): blinded, deafened, paralyzed or poisoned. Use it to get a paralyzed friend back into the fight.","Cure a disease, or clear a lingering poisoning after a fight or a bad meal."],
- levitate:["Point the null-field harness at a creature or object within 60 ft. Lift an enemy out of reach (Con save) or lift an ally out of danger. Use your action to raise or lower it 20 ft.","Lift heavy loot (up to 500 lb), raise someone to a window, or hold a friend above a pit."],
- mmouth:["It takes a minute to record, so not during a fight.","Record up to 25 words into an object, played back when a trigger you choose happens within 30 ft. Use it as a warning, a decoy voice, or a greeting for whoever opens the door. Uses 10 gp of material."],
- mweapon:["Bonus action: clamp the charger to an ally's weapon (or yours). For up to an hour it counts as magic with +1 to attack and damage, which matters against things that resist ordinary weapons.","Charge a weapon before facing something that shrugs off ordinary blades."],
- ppoison:["Inject an ally who has been poisoned. It ends one poison, and for an hour they have advantage on saves against poison and resistance to poison damage.","Use it after a poisoned meal, a trap or a bite, or before entering somewhere you expect poison."],
- pyro:["Aim at a nonmagical flame within 60 ft (a torch, a campfire, a burning brazier). It goes out and becomes either fireworks (Con save or blinded) or a 20-ft cloud of thick smoke to escape behind.","Use the smoke to cover a retreat, or a fireworks burst as a signal."],
- rtrick:["Rarely worth it mid-fight. If you need to escape, throw the tether up and climb, then pull the rope in after you.","Throw the tether up the rope to open a hidden pocket space for up to eight people. Spend a short rest in it, or hide there."],
- seeinv:["Snap the monocle on. You see invisible creatures and see into the Ethereal Plane, which helps with ghosts in Barovia.","Look around a haunted house, check for invisible watchers, or find ethereal things hidden on the other side of the veil."],
- sky:["No real use in a fight.","Write up to ten words in cloud across the sky as a signal to allies far away. Strong wind scatters it."],
- sclimb:["Clamp the grip set on an ally (or yourself). They climb walls and ceilings, hands free, at walking speed. Use it to get above the fight or reach an archer on a ledge.","Climb walls, towers and cliffs, or walk along a ceiling to cross a trapped floor."],
- vwarp:["Point the projector at a creature within 90 ft. On a failed Con save they're teleported to a space you choose. Pull a downed ally to safety, or drop an enemy into the hazard. A willing target can choose to fail.","Move a willing friend across a gap, a river or up to a ledge you can see."],
- web:["Fire the launcher into a 20-ft cube anchored between surfaces (walls, trees, a floor). Anyone who fails the Dex save is restrained, and it's difficult terrain. A torch burns it away.","Block a corridor or door behind you, or web up a room you don't want followed through."],
- // ===== combat actions (ids): [in combat, out of combat]
- "o:firebolt-arm":["Raise your iron-and-ash arm and let Isek's amber vent a bolt of fire. There's nothing to load, so you can fire it with both hands full.","Light a fire, a torch or a fuse from a distance, or burn through an unattended flammable object."],
- "o:scorch":["Brace, extend the arm and let it split along its seams. Three rays tear free, and you can aim each one at a different target. Then make the Con save to withstand the energy.","Little use outside a fight, and it hurts to use, so you'd only do it on purpose."],
- "o:gbolt":["Wait for the moment your mind lines up, then throw the lance of light. On a hit the target glows and the next attack against it has advantage.","Little use outside a fight. You get one per long rest, so keep it."],
- "o:axe":["Close the distance, get both hands on the haft if you can (1d10) and swing. It glows as it strikes.","A light source, a tool for chopping wood or doors, and a radiant reminder you're armed."],
- "o:dagger":["Draw from the wrist sheath and stab, or throw it up to 20 ft (60 at a stretch). Remember to pick it up again.","A plain tool for cutting rope, prying things open or eating."],
- "o:hammer":["Unhook it from your belt and swing, or throw it up to 20 ft.","A tinker's hammer first: nails, rivets, tapping walls for hollow spots, knocking pins out of hinges."],
- "o:pipes":["Lift the pipes and play. Everyone within 30 ft that you choose makes a DC 15 Wis save or is frightened for a minute, repeating the save each turn. It uses a charge.","Scare off animals or nervous villagers, or play an eerie tune to make a point. Each use costs a charge."],
- "o:fuel":["Only when the pack is empty: plug yourself in and push. Each point of Stress you take becomes energy in the tank.","Refill an empty pack before you go somewhere dangerous. It costs Stress and you can only do it once per long rest."],
- "o:insight":["Study the creature for a moment (an action or bonus action) and recall what you know: DC 8 + its CR. Failing costs 1 Stress.","Study a creature, a corpse or tracks before you meet it, to learn what you're dealing with."],
- "o:pbolt":["Stamp the foot pedal, aim the wand and squeeze. It costs 1 energy and uses your bonus action.","Not much use outside a fight, and it costs energy you might need later."],
- "o:pstream":["Lock the trigger down and sweep the wand along a 30-ft line. Everyone in it makes a Dex save. It costs 3 energy.","It drains energy fast, so keep it for fights."],
- "o:cburst":["Fire the pressurised slug at a point up to 60 ft away. It bursts in a 10-ft radius, pushing everything 10 ft unless they make the Str save. It costs 4 energy.","Push rubble, debris or a group of creatures out of a doorway. It's expensive."],
- "o:overload":["Open every valve and pour the whole charge into one target: 6d8 force and restrained until the end of your next turn unless they make the Str save. It costs 5 energy.","Only in an emergency, since it empties the pack."],
- "o:boots":["Bonus action: click your heels and teleport up to 15 ft to a space you stood in earlier this turn. Use it to dodge back out of reach after attacking.","Hop back across a gap you just crossed, or out of a trap you just stepped into."],
- "o:axelight":["Bonus action: twist the grip to light or darken the axe. Light a dark room for everyone, or go dark to hide.","A free light source: bright 30 ft, dim 30 ft more."],
- "o:vacuum":["The moment a hostile CR ¼+ creature dies within 30 ft, use your reaction: stamp the pedal, point the wand at the body and pull its essence into the tank. Roll the capture dice, and watch for 4s.","It still only works on a hostile creature dying within 30 ft. Ask the DM before trying to harvest anything already dead."],
- "o:rshield":["When something hits you in melee, use your reaction to release the piston and push it up to 15 ft away. It uses a charge.","It only triggers on a melee hit, so it's a fight tool."],
- "o:spark":["When a creature within 60 ft makes a save against your blueprint or discharge, pluck its soul-thread with your reaction. It subtracts 1d4 from the save. It's back after a short rest.","It only works on a save against your effects, so it's a fight tool."],
- "o:axeblind":["When you're hit by an attack, use your reaction to flare the axe in the attacker's face. Con save or they're blinded until the end of their next turn. It uses a charge.","It only triggers when you're hit, so it's a fight tool."],
- "o:mind":["When you fail a Con save to keep concentration, the sharpener ticks and you succeed instead. It uses a charge.","Same use outside a fight, if something breaks your focus while you're maintaining a gadget."],
- "o:oa":["When an enemy leaves your reach without disengaging, use your reaction to make one melee attack.","Only in combat."]
+ acid:["I snap the Corrosive Atomizer onto my wrist gauntlet, twist the pressure valve open and squeeze. A fine green mist hisses out across them and starts eating through hide and metal.","I seat the atomizer, dial the valve down to a trickle and let a single drop fall. It hisses and smokes where it lands."],
+ booming:["I strike the tuning fork against the hilt and the blade starts to hum, low enough that you feel it in your teeth. I swing with it still ringing.","I tap the fork on the blade and hold it up. The hum fills the room, then fades as I put it away."],
+ bonfire:["I wind the spring fuse on a thermite capsule and throw it. It rattles across the floor, the gears grind, then it splits open into a column of white-hot chemical fire.","I wind a capsule and set it down in the fire pit. It ticks for a second, then catches and burns hot without any wood."],
+ dlights:["I flip the hatch on my pack and spin the dial on my forearm. Four little brass fireflies lift out on copper rotors, glowing a harsh green, and I send them where I need light.","I release the drones one at a time and walk them down the corridor ahead of us with the dial. Their green light bobs along the walls."],
+ firebolt:["I slot a magnesium slug into the rail on my forearm and close the circuit. The coils snap and the slug leaves white-hot, burning through the air.","I load a slug, line it up slowly and fire it into the kindling. It goes up in one bright flash."],
+ frostbite:["I point the condenser tube at them and crank the release wheel. A blast of freezing vapour rolls over them and frost spreads across their skin.","I crack the wheel a quarter turn and a thin plume of frost curls out of the tube, coating everything it touches in white."],
+ gfb:["I pump the grip and the edge of the blade comes away slick with sulfur oil. On impact it sparks, and green fire leaps off the steel to the one standing next to them.","I pump a little oil onto the blade and strike it. Green flame runs along the edge for a moment, then dies."],
+ guidance:["I slap the wire clip on your ear and the goggle flicks down over your eye. It pings, runs a quick calculation and highlights the weak points.","I clip the module to your ear and calibrate it. A high-frequency pulse, a short calculation, and the weak spots light up in the lens."],
+ light:["I pop the cover on the Radium Core Clasp and snap it onto them. A hard, bright glow lights up everything around it.","I clip the radium clasp to my collar and thumb the cover open. A steady glow spreads out around me."],
+ llure:["I aim the harpoon coil and fire. The magnetic head latches on, the coil whines, and the cable drags them toward me crackling with current.","I fire the harpoon into the far wall to test the coil. It reels back in with a heavy clunk."],
+ magehand:["I unfold the Pneumatic Grapple Rotor and send it up. It hovers, rotors humming, and I work the claw with the controls on my forearm.","I launch the rotor and steer it over carefully, the claw opening and closing on my cue. It picks the thing up so I don't have to touch it."],
+ mstone:["I crank the Kinetic Impact Loader and three pebbles drop out humming with stored force. I hand them off or throw one myself.","I load three stones into the chamber, crank it once and pass them out. They're warm and buzz faintly in the hand."],
+ mending:["I spark up the arc-welding blowtorch, hold the break together and run a bead along it. Blue light, a hiss, and it's sealed.","I lay the pieces out, light the arc welder and work the seam slowly. When I lift the torch away, the break is gone."],
+ message:["I pull the transceiver mic to my mouth and point the antenna at you. You hear my voice in your ear through a crackle of static. Nobody else hears it.","I tune the transceiver, aim the antenna down the hall and whisper. A faint crackle answers back."],
+ pspray:["I uncork the Sulfur-Gas Diffuser and open the nozzle in their face. A thick yellow cloud billows out and they choke on it.","I open the diffuser a crack. A thin yellow wisp curls out, and the smell of sulfur fills the room."],
+ presti:["I pop the multi-tool and set off a burst of sparks and a sharp crack right behind them.","I click through the heads on the multi-tool and use it: a puff of air, warmed food, a cleaned boot, a candle lit or snuffed."],
+ rfrost:["I level the Compressed Cryo-Beam and pull the trigger. A pale blue beam lances out and frost locks up their legs.","I fire a short burst from the cryo-beam and a sheet of ice forms where it hits."],
+ resist:["I press the Bio-Static Regulator against your skin and flick the switch. A faint static hum runs over you and settles.","I fit the regulator on you and dial it in. You feel the hum settle over your skin before we go in."],
+ sgrasp:["I clench my fist inside the Tesla gauntlet until the coils whine, then slap them. Arcs of blue lightning crack across their body.","I clench the gauntlet and let it charge. Blue arcs crawl between the coils, then fade when I open my hand."],
+ spare:["I kneel, charge the defibrillator paddles and press them to your chest. There's a hard thump, and you're breathing again.","I charge the paddles and press them to them. A thump, a jolt, and they settle and stay with us."],
+ sburst:["I hit the release on the Centrifugal Blade Ring and it spins out from my waist, blades whirling in a tight circle around me.","I give the blade ring a short spin to check it. It whirs, then folds back with a click."],
+ twhip:["I fire the steel cable from the winch. It wraps around them, the hooks bite, and I hit the reel to haul them in.","I fire the winch cable at the far post and reel myself a little closer, testing the line."],
+ tclap:["I slam my fist into the percussion plate. A shockwave booms out around me and shakes the dust off the walls.","I strike the plate once. The boom echoes across the area."],
+ absorb:["The blast hits me and I slap the Thermal Grid Dissipator against my chest. The grid glows bright, pulls the heat in, and holds it, ready to come back out on my next strike.","I put the grid in its place across my chest and it hums, waiting."],
+ alarm:["Not something I can set mid-fight.","I mount the clockwork bell housing and string the hair-wires across the doorway, almost invisible. I wind the spring tensioner until it clicks. If anything brushes a wire, it goes off."],
+ catapult:["I drop whatever's on hand into the Pneumatic Rail-Sling, aim and pull the release. It cracks out of the rail like a cannonball.","I load the sling, aim across the gap and fire. It sails over and lands on the far side."],
+ cure:["I pull the Pneumatic Stabilizing Syringe, jab it into you and press the plunger. It hisses as it empties and the bleeding slows.","I take my time with the syringe, find a good spot and push it in. The wound closes up as the plunger goes down."],
+ detect:["I snap the Ultraviolet Radiation Lens over my eye and spin the focus wheel. Anything magical starts to glow through it.","I lower the UV lens and slowly calibrate the focus wheel, sweeping the room. The arcane residue shows up as faint, humming light."],
+ disguise:["I throw the Light-Refraction Shimmer Mesh over myself and dial it in. The light bends around me and I look like someone else.","I drape the shimmer mesh, take my time adjusting the dials and check myself in the reflection. It holds."],
+ expret:["I kick the hydraulic braces on my knees into overclock. They hiss and pump, and I'm across the room before anyone can react.","I lock the knee braces into overclock and set off down the road at a speed my legs shouldn't manage."],
+ ffire:["I fire a phosphorus flareshot into the middle of them. It bursts into a cloud of glowing dust, and anything caught in it lights up.","I fire a flareshot into the empty space ahead of us. The glowing dust settles on everything that's there, seen or not."],
+ flife:["I plug the Adrenaline Coagulant Pump into the port on my arm and squeeze the bulb. My veins darken and my body tightens up, ready to take the hit.","I plug in the pump and squeeze it slowly. My veins darken and it settles in."],
+ ffall:["As we fall I yank the release cords. The compressed-air drag-chutes burst open, and everyone caught in them drifts down slowly.","As it happens I yank the cords, the drag-chutes pop open, and we float down."],
+ grease:["I shake the lard-aerosol canister and spray it across the floor in a wide arc. It coats everything in a slick, greasy sheen.","I spray a slick patch of grease across the path behind us."],
+ identify:["Not something I can do mid-fight.","I pull out the heavy brass diagnostic frame wired to my pack, set the item in it and flip the energy current, magnetic field and lens magnification toggles. The needles settle and I read off what it does."],
+ jump:["I snap the Pneumatic Boot Springs onto your boots and crank them tight. They hiss and coil, ready to launch you.","I fit the springs to your boots and test the tension. They hiss when you shift your weight."],
+ longstr:["I clamp the Kinetic Ankle-Tensioners onto you and crank them. Your stride lengthens and the springs push you along.","I fit the tensioners and crank them before we set out. Every step comes back with a little extra push."],
+ purify:["Not something I'd stop to do in a fight.","I set up the Centrifugal Chemical Filter next to the food and water and spin it up. It whirs, the sludge collects in the trap, and what's left is clean."],
+ sanct:["I clip the High-Frequency Sensory Scrambler on you and flip it on. The air around you hums and blurs, and anyone trying to hit you has a hard time keeping you in focus.","I fit the scrambler on you and turn it on. A high, thin hum hangs around you."],
+ snare:["Not something I can set mid-fight.","I anchor the spring-loaded steel winch, lay the cable loop out in a circle and cover it. I set the trigger and step back. Anyone who walks into it gets hoisted upside down."],
+ tcb:["I brace the Vitriol Firehose against my hip and open the valve. A thick stream of acid sprays out in a line and keeps burning wherever it lands.","I open the firehose valve a little and a short burst of acid hisses onto the ground."],
+ aweapon:["I jam the Core Elemental Injector into my weapon and twist the dial. The edge starts to glow with the element I picked.","I fit the injector, twist through the settings and watch the edge shift: fire, frost, crackling lightning."],
+ aid:["I load the Triple-Dose Endurance Syringe and go down the line, one dose each. You feel it hit, a rush of strength and steadiness.","I line everyone up and give each of you a dose. It burns going in, then settles."],
+ airbubble:["I aim the Brass Respirator Dome at you and fire. It snaps shut around your head and seals with a hiss of clean air.","I fit the respirator dome over your head and check the seal before you go in."],
+ alter:["I pull the cords on the Morphic Chassis Shell. Hidden clamps shift under my skin and metal claws slide out of my gauntlet.","I pull the cords and the shell goes to work, stretching and reshaping me. Gill vents open at my neck, or my face changes into someone else's."],
+ alock:["I slam the door and fit the Resonance-Keyed Deadbolt to it. It hums, clicks, and locks hard.","I fit the deadbolt, key it to us and set the password. It hums once and seals."],
+ blur:["I throw the switch on the Silhouette Scrambler. My outline smears and doubles, and you can't tell exactly where I am.","I flick on the scrambler and my outline blurs."],
+ cflame:["Not something I'd stop to do in a fight.","I mount the Self-Sustaining Flameless Burner and light it. A steady flame comes up that gives off no heat and won't go out."],
+ dvision:["I strap the photon goggles onto you and flick them on. The lenses glow faintly and the dark opens up.","I fit the goggles on you and adjust the lenses until you can see in the dark."],
+ enhance:["I load a stimulant vial into the injector and put it in your arm. You feel it kick in right away.","I pick the vial for the job, load it and inject you. It takes a moment, then kicks in."],
+ enlarge:["I level the Arcane Scale Modulator and fire. The beam hits and they swell up, or shrink down, right in front of you.","I set the modulator, aim and fire. It grows or shrinks one size."],
+ heatm:["I aim the eddy-current projector at their armour and squeeze. The metal starts to glow red and hiss.","I aim the projector at the lock and hold the trigger. The metal glows dull red and ticks with heat."],
+ invis:["I snap the transparency shell onto you and flip it on. The light bends around you and you're gone.","I fit the transparency shell and switch it on. You fade out from the edges in."],
+ kjaunt:["I plug the Burst-Step Momentum Injector into my leg. My movements start to blur and I slip straight through the space they're standing in.","I plug in the injector and my steps start to jump forward in short bursts."],
+ lrest:["I load the Systemic Condition Purge, inject it and push it through. Whatever had hold of you drains out.","I take my time, find the vein and push the purge through slowly."],
+ levitate:["I aim the Anti-Gravity Null-Field Harness and fire. The field locks on and they lift off the ground, hanging in the air.","I aim the harness at it and slowly lift. It rises and hangs there, turning gently."],
+ mmouth:["Not something I'd stop to do in a fight.","I mount the Delayed Arcane Playback Unit inside the object, record the message and set the trigger. It clicks shut and waits."],
+ mweapon:["I clamp the Resonant Frequency Weapon Charger onto your weapon and hit the switch. The blade hums with a steady, resonant frequency.","I fit the charger to your weapon and tune it until the hum steadies."],
+ ppoison:["I jab the anti-toxin injection in and push the plunger. The poison starts to burn off.","I take my time with the injection and push it through slowly."],
+ pyro:["I aim the Flame-to-Effect Conversion Unit at the fire. It sucks the flame into the nozzle and spits it back out as a burst of blinding fireworks, or a thick wall of smoke.","I aim the conversion unit at the campfire, pull the flame in and let it out as a cloud of smoke."],
+ rtrick:["I thread the rope through the brass anchor ring and twist the portal key. The rope stiffens and rises, and the top of it opens into somewhere we can hide.","I thread a rope up to sixty foot long through the brass anchor ring fitted with the extradimensional portal key. The rope stiffens and rises, and an invisible entrance opens at the top. It warps the light around it so nobody can see it."],
+ seeinv:["I snap the phase-shift detection monocle into place and spin the ring. Things that weren't there a second ago come into view.","I fit the monocle and slowly spin the ring through the phases, looking for anything that shouldn't be there."],
+ sky:["Not something I'd stop to do in a fight.","I aim the Directed Vapour Trail Projector at the sky and spell out the message in white vapour."],
+ sclimb:["I clamp the surface-grip pads onto your hands and boots. They bite into the wall and you can go straight up.","I fit the grip set and press a pad to the wall to test it. It holds."],
+ vwarp:["I aim the spatial transposition projector at them and fire. They warp out of where they're standing and reappear where I choose.","I aim the projector, line up the spot and fire. You blink across."],
+ web:["I fire two compressed canisters of synthetic adhesive filament at the doorway. They burst open into a sticky lattice that fills the space wall to wall.","I measure the corridor, adjust the canister pressure and fire once. The filament sets with a crackle across the passage."],
+ // actions
+ "o:firebolt-arm":["I raise my arm and the amber flares. Fire vents out of it straight at them.","I raise my arm, let the amber heat up and send a bolt of fire into the kindling."],
+ "o:scorch":["I brace and extend my arm. The seams split, the amber burns bright, and three rays of fire tear loose. The heat runs back through me.","I extend my arm and let the seams split. Three rays tear out. It hurts every time."],
+ "o:gbolt":["The cracks in my mind line up for an instant. I see the angle, and a lance of searing light leaves my hand. Where it hits, they glow.","I focus until the angle comes clear and let the lance of light go."],
+ "o:axe":["I bring the battleaxe around, and it hums and glows as it bites.","I take the battleaxe off my back and work it into the wood."],
+ "o:dagger":["I flick the dagger out of the wrist sheath and stab, or throw it.","I pull the dagger and get to work cutting."],
+ "o:hammer":["I unhook the light hammer from my belt and swing.","I unhook the light hammer and tap along the wall, listening."],
+ "o:pipes":["I lift the pipes and play. The notes come out thin and wrong, and the hair on everyone's neck stands up.","I play the pipes softly. The tune that comes out isn't one I'm playing."],
+ "o:fuel":["The tank reads empty. I plug the feed line into my arm and push. My veins darken as it pulls from me, and the gauges climb.","With the tank empty, I plug the feed line into my arm and let it pull. My veins darken and the gauges climb."],
+ "o:insight":["I study it and start working it out: how it moves, what it is, where it's weak.","I study it closely, the body, the tracks, everything I know about it."],
+ "o:pbolt":["I stamp the pedal, and the offensive exhaust on the box vents a bolt of violet energy at them.","I stamp the pedal and a short burst of violet energy vents out of the box."],
+ "o:pstream":["I hold the pedal down and the exhaust valves open up. A continuous stream of violet energy pours out in a line.","I hold the pedal and a stream of violet energy pours out of the valves."],
+ "o:cburst":["I stamp twice and fire a pressurised slug of captured spirit. It ruptures into a sphere of violet force and throws everything outward.","I stamp twice and the slug bursts against the rubble, pushing it out of the way."],
+ "o:overload":["I open every valve on the box and hold the pedal down. Everything in the tank pours out at once into one target, coiling around them like chains.","I open every valve and empty the tank in one long burst."],
+ "o:boots":["I click my heels and I'm back where I stood a moment ago.","I click my heels and step back to where I just was."],
+ "o:axelight":["I twist the grip and the battleaxe lights up, or goes dark.","I twist the grip and the battleaxe glows like a lantern."],
+ "o:vacuum":["My amber pulses hot as the soul tears loose and starts bouncing off the walls looking for a way out. I stomp the pedal, the box pops open and violet light floods the room. You see something get pulled into it. It glows, clicks, and I sling it back on.","The soul tears loose and starts bouncing around the room, trying every crack for an exit. I stomp the pedal, the box opens, violet light, a hiss from the exhaust valves, then a click. All you see is the light and me watching something you can't."],
+ "o:rshield":["The hit lands and the piston on the inside of my shield cocks. I release it and it slams them back.","I test the piston on my shield. It cocks and fires with a heavy thud."],
+ "o:spark":["I lock the pack's targeting onto the thread between their body and soul and pluck it. They falter.","I lock on and pluck the thread."],
+ "o:axeblind":["The blow lands and I squeeze the axe grip. It flares in their face like a magnesium strip.","I squeeze the grip and the axe flares bright."],
+ "o:mind":["My focus slips and the sharpener at my temple ticks. A cold pulse runs behind my eyes and I've got it again.","The sharpener ticks at my temple and my focus comes back."],
+ "o:oa":["They try to slip past and I take my swing as they go.","Only in a fight."]
 };
-
-const STD_LOOK = {
- Dash:"You hike up your coat, tuck the wand against the pack and run, tools clanking at every step.",
- Disengage:"You back away carefully, keeping the wand pointed at them, never giving anyone an opening.",
- Dodge:"You crouch behind the pack's frame and start reading their moves like a schematic, shifting just before each blow lands.",
- Help:"You call out the weak point, steady an ally's aim or hand over exactly the right tool at exactly the right moment.",
- Hide:"You kill the pack's indicator lights, muffle the hum with your coat and go still in the shadows.",
- Ready:"You hold your finger just off the trigger, waiting for the moment you've already planned for.",
- Search:"You flip down a lens, sweep the area and work through it piece by piece, the way you'd strip down a broken machine.",
- "Use an object":"You dig through your belt pouches and pull out what you need, already working it with your other hand."
+const STD_USE = {
+ Dash:"I tuck everything in tight and run, the gear rattling on my back.",
+ Disengage:"I back off carefully, wand still pointed at them, giving no one an opening.",
+ Dodge:"I duck behind the frame of my pack and watch them, shifting just before each blow lands.",
+ Help:"I call out the weak point and hand over exactly the tool that's needed.",
+ Hide:"I shut off the indicator lights, muffle the hum under my cloak and go still.",
+ Ready:"I keep my foot over the pedal and wait.",
+ Search:"I flip down a lens and go over the area piece by piece.",
+ "Use an object":"I dig through my belt pouches and pull out what I need."
 };
 const flavOf = b => (FLAVOR[b.n.replace(" (UA)","")]||{}).d || FLAV_EXTRA[b.n] || "";
 const firstSentence = t => (t.match(/^.*?[.!?](\s|$)/)||[t])[0].trim();
@@ -948,7 +940,7 @@ function opt(o,isPlanned){
  const dis = o.dis ? "dis" : "";
  return `<button class="opt ${o.cls||""} ${dis} ${isPlanned?"planned":""}" data-act="use" data-k="${o.id}" ${o.dis?`title="${esc(o.dis)}"`:""}>
   <div class="on1"><span class="nm"><span class="look" data-act="look" data-k="${o.id}">${esc(o.n)}</span></span>${o.cost?`<span class="cost">${o.cost}</span>`:""}</div>
-  ${o.fl&&showFl()?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
+  ${o.fl&&showFl()?`<div class="flav" style="margin-top:0">${esc(firstSentence(o.fl))}</div>`:""}<div class="meta">${o.meta}</div>${o.fx?`<div class="meta fxl">${esc(o.fx)}</div>`:""}${o.dis&&o.dis!==true?`<div class="small" style="color:var(--blood)">${esc(o.dis)}</div>`:""}</button>`;
 }
 function combatOptions(){
  const A=[],Bo=[],Re=[];
@@ -973,7 +965,7 @@ function combatOptions(){
   const bits=[b.r]; if(b.atk) bits.push(`${sg(atk)} to hit`); if(b.s) bits.push(`DC ${dc} ${b.s}`); if(b.dmg) bits.push(`${b.dmg.replace("@int",M("int"))} ${b.dt}`); if(b.heal) bits.push(`heal ${b.heal.replace("@int",M("int"))}`); if(b.conc) bits.push("conc");
   const gi=G.ready.length?G.ready[0]:G.all[0];
   const cc=concConflict(b);
-  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · ")+(cc?` · <span style="color:var(--warn)">ends concentration on ${esc(cc)}</span>`:""),cls:"gad",kind:"gadget",gi,dis:b.l>0&&!G.ready.length?"Used. Ready again after a short or long rest.":0});
+  tgt.push({id:"g:"+b.k,n:b.c.replace(/^The /,"")+` (${b.n})`,cost:b.l===0?"cantrip":`${G.ready.length}/${G.n} left`,meta:bits.join(" · ")+(cc?` · <span style="color:var(--warn)">ends concentration on ${esc(cc)}</span>`:""),cls:"gad",kind:"gadget",gi,fx:b.fx,dis:b.l>0&&!G.ready.length?"Used. Ready again after a short or long rest.":0});
  });
  // bonus: discharges
  const DS=[["pbolt","Proton Bolt",1,`60 ft · ${sg(iA)} to hit · 2d8 force`],["pstream","Proton Stream",3,`30-ft line · DC ${iDC} Dex · 2d8 force, half on save`],["cburst","Containment Burst",4,`60 ft, 10-ft radius · DC ${iDC} Str · 2d8 force, push 10 ft; half, no push on save`],["overload","Full Proton Overload",5,`60 ft · DC ${iDC} Str · 6d8 force + restrained to end of your next turn; half on save`]];
@@ -1043,7 +1035,7 @@ function renderCombat(){
  ${S.conc?`<div class="warnbox">Concentrating on <b>${esc(S.conc)}</b>. Damage forces a Con save (${sg(saveBonus("con"))}), DC 10 or half the damage. <button class="btn sm" data-act="concEnd">End it</button></div>`:""}
  <div class="grid g3">
   <div class="col"><div class="colhead">Actions <span class="chip ${C.act?"":"ok"}">${C.mine?(C.act?"used":"ready"):"plan"}</span></div>${col(A)}
-   <div class="chips" style="margin-top:4px">${std.map(s=>{ const pl=P.act==="std:"+s, us=C.mine&&C.stdUsed===s; return `<button class="chip ${pl?"sel":""} ${us?"usedc":""}" data-act="stdAct" data-k="${s}" aria-pressed="${pl||us}">${us?"✓ ":""}${s}${pl?" · planned":""}</button>`; }).join("")}<button class="chip lookchip" data-act="lookStd">What these look like</button></div></div>
+   <div class="chips" style="margin-top:4px">${std.map(s=>{ const pl=P.act==="std:"+s, us=C.mine&&C.stdUsed===s; return `<button class="chip ${pl?"sel":""} ${us?"usedc":""}" data-act="stdAct" data-k="${s}" aria-pressed="${pl||us}">${us?"✓ ":""}${s}${pl?" · planned":""}</button>`; }).join("")}<button class="chip lookchip" data-act="lookStd">How Flint does these</button></div></div>
   <div class="col"><div class="colhead">Bonus actions <span class="chip ${C.bon?"":"ok"}">${C.mine?(C.bon?"used":"ready"):"plan"}</span></div>${col(Bo)}</div>
   <div class="col"><div class="colhead">Reactions <span class="chip ${C.rea?"":"ok"}">${C.rea?"used":"ready"}</span></div>${col(Re)}</div>
  </div>
@@ -1650,34 +1642,16 @@ function diceModal(){
   <div style="margin-top:8px">${UI.dtLast||""}</div>`);
 }
 function afterHD(html){ if(UI.restOpen){ UI.hdLast=html; closeModal(); render(); } else { restModal("short"); document.getElementById("hdres").innerHTML=html; } }
-function usePanel(u, extraC, extraO){
- if(!u) return "";
+function usePanel(u){
+ if(!u) return `<p class="muted">No description written for this one yet.</p>`;
  const inC=S.combat.on;
- const blk=(lab,txt,extra,now)=>`<div class="useblk ${now?"now":""}"><div class="uselab">${lab}${now?" · now":""}</div><p>${esc(txt)}</p>${extra?`<p class="small muted">${extra}</p>`:""}</div>`;
- const c=blk("In combat",u[0],extraC,inC), o=blk("Out of combat",u[1],extraO,!inC);
- return `<div class="usewrap"><div class="uselab" style="margin-bottom:2px">How Flint uses it</div>${inC?c+o:o+c}</div>`;
-}
-function bpUseExtras(b){
- const cc=concConflict(b);
- const C=[b.t==="1m"?"Takes 1 minute, too slow for most fights.":`Takes your ${TIME[b.t].toLowerCase()}${b.t==="b"?" action":""}.`];
- if(b.conc) C.push(cc?`Concentration: this ends ${esc(cc)}.`:"Concentration: one at a time, and damage forces a Con save.");
- C.push(b.l?"Levelled: once deployed it's used until a short or long rest.":"Cantrip: never runs out.");
- const O=[];
- if(b.t==="1m") O.push("Takes 1 minute.");
- if(b.rit) O.push("Can be run as a ritual: 10 extra minutes.");
- if(b.conc) O.push(cc?`Concentration: this ends ${esc(cc)}.`:"Concentration.");
- O.push(`Lasts: ${esc(b.du)}.`);
- return [C.join(" "),O.join(" ")];
+ const blk=(lab,txt,now)=>`<div class="useblk ${now?"now":""}"><div class="uselab">${lab}${now?" · now":""}</div><p class="flav" style="font-size:15px;margin:3px 0 0">${esc(txt)}</p></div>`;
+ const c=blk("In combat",u[0],inC), o=blk("Out of combat",u[1],!inC);
+ return `<div class="usewrap">${inC?c+o:o+c}</div>`;
 }
 function lookHtml(o){
- const fl=o.fl||"";
- return (fl?`<div class="flav" style="font-size:15px">${esc(fl)}</div>`:`<p class="muted">No description written for this one yet.</p>`)
-  + (LOOK_MORE[o.id]||(o.id==="insightB"?LOOK_MORE.insight:"")||"")
-  + (o.kind==="gadget"&&o.gi!=null&&BPK[S.loadout[o.gi].key]?(b=>usePanel(USE[b.k],...bpUseExtras(b)))(BPK[S.loadout[o.gi].key]):usePanel(USE["o:"+(o.id==="insightB"?"insight":o.id)]))
-  + `<p class="small" style="margin-top:8px"><b>In play:</b> ${o.meta}</p>`
-  + (o.kind==="gadget"&&o.gi!=null&&BPK[S.loadout[o.gi].key]?`<p class="small muted">${esc(BPK[S.loadout[o.gi].key].fx||"")}</p>`:"")
-  + (o.dis&&o.dis!==true?`<p class="small" style="color:var(--blood)">${esc(o.dis)}</p>`:"")
-  + `<p class="small muted" style="margin-top:6px">Tap the rest of the card to use or plan it.</p>`;
+ const b=o.kind==="gadget"&&o.gi!=null?BPK[S.loadout[o.gi].key]:null;
+ return usePanel(b?USE[b.k]:USE["o:"+(o.id==="insightB"?"insight":o.id)]);
 }
 function infoPop(title, html){
  document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="close"><div class="modal rollpop" data-act="close" role="dialog">
@@ -1749,7 +1723,7 @@ const ACT = {
  startTurn:()=>{ const c=S.combat; Object.assign(c,{stdUsed:null,mine:true,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); if(c.plan&&c.plan.oc&&S.stress<5){ c.oc=true; c.plan.oc=false; } logEv(`Round ${c.round}: my turn`); save(); render(); },
  endTurn:()=>{ const c=S.combat; if(c.oc && !c.ocUsed){ setStress(S.stress+1,"Overclock armed this turn"); pushRoll("Overclock","",`+1 Stress for the armed Overclock (now ${S.stress}/5)`); } Object.assign(c,{mine:false,oc:false,ocUsed:false,sts:false}); c.round++; save(); render(); },
  look:(d,t,e)=>{ if(e) e.stopPropagation(); const o=OPTS[d.k]; if(!o) return; infoPop(o.n, lookHtml(o)); },
- lookStd:()=>infoPop("Standard actions · what they look like", Object.keys(STD_LOOK).map(k=>`<p style="margin-top:6px"><b>${esc(k)}:</b> ${esc(STD_LOOK[k])}</p>`).join("")),
+ lookStd:()=>infoPop("Standard actions", Object.keys(STD_USE).map(k=>`<p style="margin-top:6px"><b>${esc(k)}:</b> <span class="flav">${esc(STD_USE[k])}</span></p>`).join("")),
  planGo:d=>{ const P=S.combat.plan; const id=P[d.k]; if(!id) return; if(id.startsWith("std:")){ P[d.k]=null; ACT.stdAct({k:id.slice(4)}); return; } useOption(id); },
  planDel:d=>{ S.combat.plan[d.k]=null; save(); render(); },
  planClear:()=>{ S.combat.plan={act:null,bon:null,oc:false,note:""}; save(); render(); },
@@ -1962,7 +1936,7 @@ const ACT = {
   <p>Stress comes from pushing the machine and the entity inside you. You can't go above 5.</p>
   <ul><li><b>+1</b> Overclock (once per turn, +3 to a gadget or discharge)</li><li><b>+1</b> keeping all your energy through a long rest</li><li><b>+1 to +5</b> Seriach's Fuel</li><li><b>+1</b> invention meltdown (d100 roll of 1–5)</li><li><b>+1</b> failed Occult Insight</li></ul>
   <p class="small muted">Long rest: the app clears Stress by default (change it in Settings or on the rest screen). What happens at high Stress is up to the DM.</p>`),
- bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; const fl=flavOf(b); infoPop(`${b.c} · ${b.n}`,`${fl?`<div class="flav" style="font-size:15px">${esc(fl)}</div>`:""}${usePanel(USE[b.k],...bpUseExtras(b))}${bpCard(b,false,true)}<p class="small muted" style="margin-top:6px">${b.l?"Level "+b.l+" blueprint: used once deployed, back after a short or long rest.":"Cantrip blueprint: never runs out."}${S.researched[b.k]?"":" Not researched yet ("+Math.max(1,b.l)+" h of downtime)."}</p>`); },
+ bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`, usePanel(USE[b.k])); },
  undo:()=>{ const u=UNDO.pop(); if(!u){ updateUndo(); return; } const rolls=S.rolls; S=merge(DEF(),JSON.parse(u.s)); S.rolls=rolls; logEv(`Undid: ${u.label}`); save(); closeModal(); render(); updateUndo(); pushRoll("Undo","",`Undid <b>${esc(u.label)}</b>`); },
  concHeld:d=>{ logEv(`Kept concentration on ${S.conc} (DC ${d.dc})`); save(); render(); closeModal(); },
  concLost:()=>{ logEv(`Lost concentration on ${S.conc}`); S.conc=""; save(); render(); closeModal(); },
