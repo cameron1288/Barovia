@@ -756,13 +756,28 @@ const PB = () => Math.ceil(B().level/4)+1;
 const SAVEPROF = {con:1,int:1};
 const SKPROF = {"Arcana":1,"History":2,"Investigation":1,"Perception":1,"Tools (Tinker's)":2};
 const skillBonus = ([n,a]) => M(a) + PB()*(SKPROF[n]||0);
-const saveBonus = k => M(k) + (SAVEPROF[k]?PB():0);
+const saveBonus = k => M(k) + (SAVEPROF[k]?PB():0) + (B().level>=20 ? S.items.filter(i=>i.att&&(+i.q||0)>0).length : 0);
 const DC = () => 8+PB()+M("int")+M("cha");
 const ATK = () => PB()+M("int")+M("cha");
 const eMax = () => 5+M("int");
 const gadgetCap = () => B().level+M("int");
 const invCap = () => Math.max(1,M("int"));
 const modCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:B().level>=6?3:2;
+const fogMax = () => Math.max(1,M("int"));
+const ASI_LV=[4,8,12,16,19];
+// Base Artificer features by level, in plain words, with how they sit in Flint's rework.
+const ART_PROG=[
+ [1,"Tinkering & Spellcasting","Replaced in your rework by <b>Malignant Tinkering</b> and the <b>Blueprint Protocol</b> (see Artificer, reworked)."],
+ [2,"Infuse Item","Replaced by <b>Mechanical Modifications</b>. You can keep more built as you level: 4 at level 10, 5 at 14 and 6 at 18 (the app updates this for you)."],
+ [3,"The Right Tool for the Job","With thieves' tools or artisan's tools in hand, spend 1 hour (it can be during a rest) to make one set of artisan's tools. It lasts until you make another."],
+ [6,"Tool Expertise","Double your proficiency bonus on any ability check that uses a tool you're proficient with."],
+ [7,"Flash of Genius","Reaction when you, or a creature you can see within 30 ft, makes an ability check or saving throw: add your INT modifier to the roll. You can do this a number of times equal to your INT modifier (minimum 1), and get them back on a long rest. <i>Check with the DM that your rework keeps it.</i>"],
+ [10,"Magic Item Adept","Attune to up to 4 magic items at once. Crafting a common or uncommon magic item takes a quarter of the usual time and costs half the gold."],
+ [11,"Spell-Storing Item","After a long rest, store a 1st- or 2nd-level artificer spell that takes an action in a weapon or focus you touch. Whoever holds it can use an action to produce the spell with your spellcasting modifier, a number of times equal to twice your INT modifier (minimum 2), or until you store another. <i>With no spell slots in your rework, how this works with blueprints is the DM's call.</i>"],
+ [14,"Magic Item Savant","Attune to up to 5 magic items, and ignore all class, race, spell and level requirements on attuning to or using a magic item."],
+ [18,"Magic Item Master","Attune to up to 6 magic items at once."],
+ [20,"Soul of Artifice","+1 to all saving throws for each magic item you're attuned to. When you drop to 0 HP and don't die outright, you can use your reaction to end one of your infusions (in your rework, a Mechanical Modification) and drop to 1 HP instead."]
+];
 const attCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:3;
 const carryCap = () => B().str;
 const itemFx = fx => S.items.find(i=>i.fx===fx);
@@ -1007,6 +1022,7 @@ function renderSheet(){
      <div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="gbolt">Guiding Bolt</span> <span class="dim small">Fractured Genius · 1 / long rest</span></div>${usesBoxes("gbolt",1,S.lim.gbolt,"lim")}</div>
      <div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="spark">Guiding Spark</span> <span class="dim small">1 / short rest</span></div>${usesBoxes("spark",1,S.lim.spark,"lim")}</div>
      <div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="fuel">Seriach's Fuel</span> <span class="dim small">1 / long rest</span></div>${usesBoxes("fuel",1,S.lim.fuel,"lim")}</div>
+     ${B().level>=7?`<div class="li"><div class="grow"><span class="info" data-act="featInfo" data-k="fog">Flash of Genius</span> <span class="dim small">${fogMax()} / long rest</span></div>${usesBoxes("fog",fogMax(),Math.min(fogMax(),S.lim.fog??fogMax()),"limN")}</div>`:""}
      ${Object.entries(FX).filter(([k,f])=>f.max&&fxOn(k)).map(([k,f])=>`<div class="li ${fxOn(k)?"":"locked"}"><div class="grow"><span class="info" data-act="featInfo" data-k="${k}">${f.n}</span> <span class="dim small">regains ${f.regain} at dawn${fxOn(k)?"":" · needs a Mechanical Modification"}</span></div>${usesBoxes(k,f.max,S.ch[k],"chg")}</div>`).join("")}
     </div>
    </div>
@@ -1077,6 +1093,7 @@ function combatOptions(){
  Re.push({id:"spark",n:"Guiding Spark",cost:"1/SR",meta:"Creature within 60 ft saves vs your blueprint or discharge · it subtracts 1d4",kind:"spark",dis:S.lim.spark?0:"Used. Back after a short rest."});
  if(fxOn("axe")) Re.push({id:"axeblind",n:"Battleaxe flare",cost:`${S.ch.axe}/4 ch`,meta:`When hit by an attack · attacker Con save DC ${dc} or blinded to end of its next turn`,kind:"axeblind",dis:S.ch.axe?0:"No charges"});
  if(fxOn("mind")) Re.push({id:"mind",n:"Mind Sharpener",cost:`${S.ch.mind}/4 ch`,meta:"Failed Con save to keep concentration · succeed instead",kind:"mind",dis:S.ch.mind?0:"No charges"});
+ if(B().level>=7){ const f=S.lim.fog??fogMax(); Re.push({id:"fog",n:"Flash of Genius",cost:`${f}/${fogMax()} LR`,meta:`You or a creature you can see within 30 ft makes a check or save · add ${sg(M("int"))}`,kind:"fog",dis:f?0:"None left. Back after a long rest."}); }
  Re.push({id:"oa",n:"Opportunity attack",meta:"Enemy leaves your reach · one melee attack",kind:"simple"});
  [...A,...Bo,...Re].forEach(o=>{ if(o.fl) return; const m={"firebolt-arm":"arm_firebolt",scorch:"arm_scorch",gbolt:"gbolt",pbolt:"pbolt",pstream:"pstream",cburst:"cburst",overload:"overload",vacuum:"vacuum",rshield:"rshield",spark:"spark",fuel:"fuel",insight:"insight",insightB:"insight",axe:"axe",dagger:"dagger",hammer:"hammer",pipes:"pipes",boots:"boots",axelight:"axelight",axeblind:"axeblind",mind:"mind",oa:"oa"}[o.id]; if(m) o.fl=FLAV_EXTRA[m]; if(o.kind==="gadget"){ const b=BPK[S.loadout[o.gi].key]; o.fl=flavOf(b); } });
  A.forEach(o=>o.slot="act"); Bo.forEach(o=>o.slot="bon"); Re.forEach(o=>o.slot="rea");
@@ -1295,6 +1312,10 @@ function renderFeatures(){
   ${L>=15||S.settings.showLocked?R_("Level 15 · Master of the Æther",`<ul><li><b>Perfect Containment:</b> Soul Vacuum 60 ft; roll capture twice and choose, INT mod times per long rest.</li><li><b>Ectoplasmic Mastery:</b> Proton Bolt costs 0; once per turn reduce a discharge cost by 1 (minimum 1).</li><li><b>Final Containment:</b> once per long rest at 0 HP, drop to 1 instead, gain 5 Energy, creatures within 15 ft Str save or 4d8 force and pushed 15 ft. Then +2 Stress and no Soul Vacuum until a long rest.</li></ul>`, L>=15?"":"locked"):""}
  </div>
  <div class="grid" style="margin-top:0">
+ <div class="panel"><h2>Artificer by level <span class="sp"></span><button class="btn sm pri" data-act="levelUp">Level up</button></h2>
+  <p class="small dim">Level ${L}. Proficiency bonus ${sg(PB())}${L<17?`, rising to ${sg(PB()+1)} at level ${[5,9,13,17].find(x=>x>L)}`:""}. Ability Score Improvement or feat at levels 4, 8, 12, 16 and 19${ASI_LV.find(x=>x>L)?` (next at ${ASI_LV.find(x=>x>L)})`:""}.${S.settings.showLocked?"":" Turn on <b>Future features</b> in Settings to see what's coming."}</p>
+  ${ART_PROG.filter(([lv])=>lv<=L||S.settings.showLocked).map(([lv,n,t])=>R_(`Level ${lv} · ${n}`,`<p>${t}</p>`, lv<=L?"":"locked")).join("")}
+ </div>
  <div class="panel"><h2>Artificer, reworked</h2>
   ${R_("Blueprint Protocol",`<p>No spell slots and no natural casting. Your spells are physical gadgets.</p><ul><li>Carry up to <b>${gadgetCap()}</b> gadgets (level + INT).</li><li>Deploying one replicates the spell; levelled gadgets are then depleted. Cantrips don't deplete.</li><li>Short or long rest: reset depleted gadgets. Long rest: swap the whole load-out.</li><li>Spell save DC = 8 + prof + INT + CHA = <b>${DC()}</b>. Attack = prof + INT + CHA = <b>${sg(ATK())}</b>.</li><li>R&amp;D: spend downtime hours equal to the spell's level (1 for cantrips) to add a blueprint to your catalogue.</li></ul>`)}
   ${R_("Overclock Protocol",`<p>Once per turn, when you deploy a gadget or attack with a custom creation, take 1 Stress before rolling. Seriach channels through the machine: +3 to that spell attack roll, or +3 to that save DC and damage roll.</p>`)}
@@ -1663,6 +1684,7 @@ function useOption(id){
   case "insight": insightModal(); spendEco(slot); save(); render(); return;
   case "vacuum": spendEco("rea"); save(); render(); soulModal(); return;
   case "rshield": S.ch.rshield--; logEv("Repulsion Shield push"); html=`<div class="rollcard"><div class="big">Pushed</div><div class="small muted">Attacker shoved up to 15 ft away. ${S.ch.rshield} charges left.</div></div>`; pushRoll(o.n,html,"attacker pushed 15 ft"); break;
+  case "fog": S.lim.fog=Math.max(0,(S.lim.fog??fogMax())-1); logEv("Flash of Genius"); html=`<div class="rollcard"><div class="big">${sg(M("int"))}</div><div class="small muted">Add it to that ability check or saving throw. ${S.lim.fog} left until a long rest.</div></div>`; pushRoll(o.n,"",`add <b>${sg(M("int"))}</b> to the roll`); break;
   case "spark": if(PERSON()){ S.lim.spark=0; logEv("Guiding Spark"); html=tellCard("Guiding Spark",0,["Roll <b>1d4</b>. The creature subtracts it from its saving throw."]); pushRoll(o.n,"","Roll <b>1d4</b>, they subtract it"); break; } { S.lim.spark=0; const d=R(4); logEv("Guiding Spark"); html=`<div class="rollcard"><div class="muted small">Guiding Spark</div><div class="big ecto">−${d}</div><div class="small muted">to the creature's saving throw</div></div>`; pushRoll(o.n,html,`<b>−${d}</b> to their save`); break; }
   case "axeblind": S.ch.axe--; logEv("Battleaxe flare"); html=resolveSave(o.n,DC(),"Con",null,"",0,"Fail: blinded until the end of its next turn."); break;
   case "mind": S.ch.mind--; logEv("Mind Sharpener: concentration held"); html=`<div class="rollcard"><div class="big">Held</div><div class="small muted">Concentration save succeeds. ${S.ch.mind} charges left.</div></div>`; pushRoll(o.n,html,"concentration held"); break;
@@ -1911,6 +1933,19 @@ const ACT = {
  cond:d=>{ S.cond[d.k]=!S.cond[d.k]; logEv(`${d.k} ${S.cond[d.k]?"on":"off"}`); save(); render(); },
  concEnd:()=>{ logEv(`Ended concentration on ${S.conc}`); S.conc=""; save(); render(); },
  lim:d=>{ S.lim[d.k]=S.lim[d.k]?0:1; save(); render(); },
+ levelUp:()=>{ const L=B().level; if(L>=20){ toastModal("Level 20","<p>Flint is already at the top level.</p>"); return; } const n=L+1, avg=5+M("con");
+  const unlocks=ART_PROG.filter(([lv])=>lv===n).map(([lv,nm])=>nm); if(n===9) unlocks.push("Spirit Engine: Recalibration & Tactical Vents"); if(n===15) unlocks.push("Spirit Engine: Master of the Æther"); if(ASI_LV.includes(n)) unlocks.push("Ability Score Improvement or feat (edit your stats on the sheet)"); if([5,9,13,17].includes(n)) unlocks.push(`Proficiency bonus becomes ${sg(Math.ceil(n/4)+1)}`);
+  modal(`<h2>Level up to ${n}</h2><p>Hit points: take the average (<b>${avg}</b>) or roll <b>1d8 ${sg(M("con"))}</b>.</p>
+   <div class="col" style="margin-top:8px"><button class="btn pri" data-act="levelGo" data-v="avg" style="padding:10px">Take the average (+${avg} HP)</button><button class="btn" data-act="levelGo" data-v="roll" style="padding:10px">${PERSON()?"Enter my 1d8 roll":"Roll 1d8"+sg(M("con"))}</button></div>
+   ${PERSON()?`<div class="btns" style="margin-top:6px"><input type="number" inputmode="numeric" id="lvl-roll" placeholder="your d8 (1–8)" style="width:140px"></div>`:""}
+   <h3 style="margin-top:12px">New at level ${n}</h3>${unlocks.length?`<ul class="small">${unlocks.map(u=>`<li>${esc(u)}</li>`).join("")}</ul>`:`<p class="small muted">No new class features, just more hit points${n>=7?"":""}. Gadget and Modification limits update automatically.</p>`}
+   <p class="small dim">Also: one more hit die, and your gadget load-out limit rises to ${n+M("int")}.</p>`); },
+ levelGo:d=>{ const L=B().level, n=L+1; let g;
+  if(d.v==="avg") g=5+M("con"); else if(PERSON()){ const v=+((document.getElementById("lvl-roll")||{}).value||0); if(!(v>=1&&v<=8)){ toastModal("Enter your roll","<p>Type the number on your d8 (1 to 8), then tap the roll button again.</p>"); return; } g=Math.max(1,v+M("con")); } else g=Math.max(1,R(8)+M("con"));
+  S.base.level=n; S.base.maxHp=(+S.base.maxHp||0)+g; S.hp.cur=Math.min(maxHp(),S.hp.cur+g); if(n===7) S.lim.fog=fogMax();
+  logEv(`Levelled up to ${n}: +${g} max HP`); save(); render();
+  toastModal(`Level ${n}`,`<p>Max HP +${g} (now ${maxHp()}). Anything new for this level is on the Character tab under <b>Artificer by level</b>.</p>${ASI_LV.includes(n)?'<p class="small">Remember your Ability Score Improvement or feat. Tap the stats panel\'s Edit to change scores.</p>':""}`); },
+ limN:d=>{ const i=+d.i, cur=S.lim[d.k]??fogMax(); S.lim[d.k]= i<cur ? i : i+1; save(); render(); },
  chg:d=>{ const i=+d.i; S.ch[d.k]= S.ch[d.k]>i ? i : i+1; save(); render(); },
  editToggle:()=>{ UI.edit=!UI.edit; render(); },
  check:(d,el,e)=>{ if(e.target.closest("[data-act=save]")) return; const k=d.k; const lbl=k==="san"?"Sanity check":ABIL.find(a=>a[0]===k)[2]+" check"; rollPrompt(lbl,"check",k,null,checkParts(k)); },
@@ -1977,7 +2012,7 @@ const ACT = {
    S.hp.cur=Math.min(S.hp.cur,maxHp()); if(tmp) S.hp.temp=0; S.ds={s:0,f:0};
    S.hdUsed = (S.lr && S.lr.active) ? (S.lr.hdCur||0) : 0;
    if(S.exh>0) S.exh--;
-   S.lim.gbolt=1; S.lim.fuel=1;
+   S.lim.gbolt=1; S.lim.fuel=1; S.lim.fog=fogMax();
    if(clr) setStress(0,"long rest");
    if(S.energy){ if(keep && S.stress<5){ setStress(S.stress+1,"kept pack energy"); sum.push(`kept ${S.energy} energy for 1 Stress`); } else { const l=Math.ceil(S.energy/2); setEnergy(S.energy-l,"long rest bleed-off"); sum.push(`pack lost ${l} energy`); } }
    if(dawn){ for(const [k,f] of Object.entries(FX)){ if(!f.max||!fxOn(k)) continue; const din=document.getElementById("dawn-"+k); const g=f.regain==="all"?f.max:(din&&din.value!==""?Math.max(0,+din.value):(PERSON()?0:roll(f.regain).total)); const b=S.ch[k]; S.ch[k]=Math.min(f.max,S.ch[k]+g); if(S.ch[k]!==b) sum.push(`${f.n} +${S.ch[k]-b}`); } }
@@ -2085,6 +2120,7 @@ const ACT = {
   const T={
    gbolt:["Guiding Bolt · Fractured Genius",`<p>Once per long rest, without using a gadget or any resources. Uses INT.</p><p><b>Ranged spell attack</b>, 120 ft, ${sg(ATK())} to hit. <b>Hit:</b> 4d8 radiant. The next attack roll against the target before the end of your next turn has advantage.</p><p class="small muted">Natural 20: ${critDmg("4d8")} radiant (max + proficiency). Status: ${S.lim.gbolt?"ready":"used until a long rest"}.</p>`],
    spark:["Guiding Spark · Spirit Engine",`<p><b>Reaction</b>, once per short or long rest. When a creature you can see within 60 ft makes a saving throw against one of your Blueprints or Ectoplasmic Discharges, you interfere with the link between its body and soul.</p><p>The creature <b>subtracts 1d4</b> from that saving throw.</p><p class="small muted">Status: ${S.lim.spark?"ready":"used until a rest"}.</p>`],
+   fog:["Flash of Genius · Artificer 7",`<p><b>Reaction</b> when you, or a creature you can see within 30 ft, makes an ability check or saving throw: add your INT modifier (<b>${sg(M("int"))}</b>) to the roll.</p><p>${fogMax()} uses, back on a long rest. ${S.lim.fog??fogMax()} left.</p><p class="small muted">Check with the DM that your rework keeps this feature.</p>`],
    fuel:["Seriach's Fuel · Spirit Engine",`<p><b>Action</b>, once per long rest, only while the Æther-Pack is at <b>0 energy</b>. The entity overloads your body as a backup containment chamber.</p><p>Choose to gain <b>1 to 5 Stress</b> (never above 5). You gain that much energy immediately.</p><p class="small muted">Status: ${S.lim.fuel?"ready":"used until a long rest"} · energy ${S.energy}/${eMax()} · Stress ${S.stress}/5.</p>`]
   };
   if(T[k]) return infoPop(T[k][0],T[k][1]);
