@@ -953,7 +953,7 @@ function renderTop(){
  </div>`;
 }
 
-const TABS=[["combat","Combat"],["sheet","Character"],["background","Background"],["gadgets","Gadgets"],["mods","Modifications"],["tinker","Tinkering"],["gear","Gear"]];
+const TABS=[["combat","Combat"],["sheet","Character"],["background","Background"],["gadgets","Gadgets"],["mods","Modifications"],["tinker","Tinkering"],["plan","Rest plan"],["gear","Gear"]];
 /* ======================= RENDER: CHARACTER ======================= */
 function usesBoxes(key,max,cur,kind){ return `<span class="uses">${Array.from({length:max},(_,i)=>`<span class="use ${i<cur?"":"spent"}" data-act="${kind}" data-k="${key}" data-i="${i}" title="Tap to spend or restore"></span>`).join("")}</span>`; }
 function renderSheet(){
@@ -1217,7 +1217,7 @@ function renderGadgets(){
      <div class="small" style="color:var(--amber)">${esc(b.c)}${ST.catDetails?"":` <span class="dim">· ${TIME[b.t]} · ${b.r}${b.s?" · "+b.s+" save":""}${b.atk?" · attack":""}${b.dmg?" · "+b.dmg.replace("@int",M("int"))+" "+b.dt:""}</span>`}</div>
      ${ST.catDetails?bpCard(b):""}</div>`}).join("")||`<p class="muted">${ST.bpResOnly?"No researched blueprints match. Turn off Researched only to see the rest.":"No blueprints match."}</p>`}
    </div>
-  </div></div>${planPanel("gadgets")}`;
+  </div></div>`;
 }
 
 /* ======================= RENDER: TINKERING ======================= */
@@ -1253,7 +1253,7 @@ function renderTinker(){
   <div class="panel"><h2>Idea book</h2>
    <p class="small dim">Tap to load it onto the workbench.</p>
    ${TIERS.map(([t,dc,l])=>`<h3>Tier ${t} · ${l} · ${dc}+</h3><div class="chips">${IDEAS.filter(x=>x[0]===t).map(x=>`<button class="chip" data-act="idea" data-n="${esc(x[1])}" data-t="${t}" data-d="${esc(x[2])}" title="${esc(x[2])}">${esc(x[1].replace(/^The /,""))}</button>`).join("")}</div>`).join("")}
-  </div></div></div>${planPanel("tinker")}`;
+  </div></div></div>`;
 }
 
 /* ======================= RENDER: GEAR ======================= */
@@ -1377,14 +1377,16 @@ const lrUsed = () => { const L=S.lr; return (L.used||0)+(+L.other||0)+planPendin
 function planTake(id,on){ const L=S.lr, it=planItems().find(x=>x.id===id); if(!it||!L.plan) return; const i=L.plan.take.indexOf(id);
  if(on && i<0){ L.plan.take.push(id); if(it.t==="bp" && !S.researched[it.k]){ L.research.push(it.k); S.researched[it.k]=true; L.used+=bpHrs(it.k); } }
  else if(!on && i>=0){ if(it.t==="tk" && L.plan.tkDone[id]) return; L.plan.take.splice(i,1); if(it.t==="bp"){ const j=L.research.indexOf(it.k); if(j>=0){ L.research.splice(j,1); S.researched[it.k]=false; L.used=Math.max(0,L.used-bpHrs(it.k)); } } } }
+const planHours = () => Math.max(1,Math.min(24,+S.rplan.hours||8));
 const TKLAB = t => { const T=TIERS[t]||TIERS[0]; return `T${T[0]} ${T[2]} (${T[1]}+)`; };
 function planPanel(where){
- const items=planItems(), hrs=S.lr.hours, fit=planFit(hrs);
+ const items=planItems(), hrs=planHours(), fit=planFit(hrs);
  const todo=BP.filter(b=>!S.researched[b.k] && !items.some(it=>it.t==="bp"&&it.k===b.k));
  const opts=[0,1,2].map(l=>{ const g=todo.filter(b=>b.l===l); return g.length?`<optgroup label="${l?"Level "+l:"Cantrips"} · ${Math.max(1,l)} h each">${g.map(b=>`<option value="${b.k}">${esc(b.n)} (${Math.max(1,b.l)} h)</option>`).join("")}</optgroup>`:""; }).join("");
  const tot=items.reduce((a,it)=>a+itemHrs(it),0);
  return `<div class="panel" style="margin-top:12px">
   <h2>Long rest plan <span class="cnt ${tot>hrs?"over":""}">${items.length} planned · ${tot} h of ${hrs} h</span></h2>
+  <div class="btns" style="margin:4px 0 8px;align-items:center"><span class="small muted">Next long rest</span>${[4,6,8,10,12].map(h=>`<button class="tog ${hrs===h?"on":""}" data-act="planLen" data-v="${h}"><span class="box"></span>${h} h</button>`).join("")}<label class="small">Other <input type="number" inputmode="numeric" min="1" max="24" data-bind="rplan.hours" value="${hrs}" style="width:64px"></label></div>
   <p class="small dim">Research and tinkering in the order you want them done. When a long rest begins, it takes each item that fits in the hours left. An item that doesn't fit is skipped and waits for a later rest; nothing is split across rests.</p>
   <div class="col" style="margin-top:8px">${items.length?items.map((it,i)=>{ const h=itemHrs(it), ok=fit.take.includes(it.id);
     const tag=it.t==="bp"?`<span class="lvl ${BPK[it.k].l?"":"c"}">${BPK[it.k].l?"L"+BPK[it.k].l:"C"}</span>`:`<span class="tier tier${it.tier}">T${it.tier}</span>`;
@@ -1392,9 +1394,12 @@ function planPanel(where){
     const sub=it.t==="bp"?`Research · ${esc(BPK[it.k].c)} · ${h} h`:`Tinkering · ${TKLAB(it.tier)} · 1 h + 1d10 gp${it.last?` · last try: ${esc(it.last)}`:""}`;
     return `<div class="gadget"><div class="hd"><span class="btns" style="gap:2px;flex-wrap:nowrap"><button class="mini" data-act="planMove" data-k="${it.id}" data-d="-1" ${i?"":"disabled"} title="Move up">▲</button><button class="mini" data-act="planMove" data-k="${it.id}" data-d="1" ${i<items.length-1?"":"disabled"} title="Move down">▼</button></span>${tag}<b style="flex:1;min-width:0">${nm}</b>${ok?`<span class="chip ok">Fits next rest</span>`:`<span class="chip dim">Waits</span>`}<button class="mini" data-act="planDel" data-k="${it.id}" title="Remove from plan">✕</button></div>
      <div class="small muted">${sub}</div>${it.t==="tk"&&it.note?`<div class="small dim">${esc(it.note)}</div>`:""}</div>`; }).join(""):`<p class="small muted">Nothing planned yet.</p>`}</div>
-  ${items.length?`<p class="small muted" style="margin-top:6px">A ${hrs}-hour rest fits ${fit.take.length} of ${items.length}, leaving ${fit.left} h free. Change the length on the rest screen.</p>`:""}
+  ${items.length?`<p class="small muted" style="margin-top:6px">A ${hrs}-hour rest fits ${fit.take.length} of ${items.length}, leaving ${fit.left} h free.</p>`:""}
   ${todo.length?`<div class="btns" style="margin-top:8px"><select id="plan-sel-${where}" style="flex:1;min-width:180px">${opts}</select><button class="btn pri" data-act="planAddSel" data-k="${where}">Plan research</button></div>`:""}
-  <div class="btns" style="margin-top:6px">${where==="tinker"?`<span class="small dim">To plan tinkering, set up the workbench and tap <b>Add to rest plan</b>.</span>`:`<button class="btn" data-act="tab" data-k="tinker">Plan tinkering on the workbench</button>`}</div>
+  <h3 style="margin-top:12px">Plan tinkering</h3>
+  <div class="btns" style="margin-top:4px"><input type="text" id="plan-tk-name" placeholder="Invention name" value="${esc(UI.ptName||"")}" data-act-input="ptName" style="flex:1;min-width:160px"><select id="plan-tk-tier" data-act-change="ptTier">${TIERS.map(([t,dc,l])=>`<option value="${t}" ${(+UI.ptTier||0)===t?"selected":""}>Tier ${t} · ${l} (${dc}+)</option>`).join("")}</select></div>
+  <textarea id="plan-tk-note" placeholder="What it should do (optional)" style="margin-top:6px;min-height:44px" data-act-input="ptNote">${esc(UI.ptNote||"")}</textarea>
+  <div class="btns" style="margin-top:6px"><button class="btn pri" data-act="planAddTkQuick">Plan tinkering</button><span class="small dim">Or set it up on the Tinkering tab's workbench (with the idea book) and tap <b>Add to rest plan</b>.</span></div>
  </div>`;
 }
 function researchPicker(){
@@ -1547,11 +1552,12 @@ function render(){
  renderTop(); updateUndo(); if(typeof syncStatus==="function" && SY.gist) syncStatus(SYS.status,SYS.msg);
  const m=document.getElementById("main");
  if(!TABS.some(t=>t[0]===UI.tab)){ UI.tab="sheet"; renderTop(); }
- const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,gear:renderGear,background:renderBackground,mods:renderMods}[UI.tab]||renderSheet;
+ const f={sheet:renderSheet,combat:renderCombat,gadgets:renderGadgets,tinker:renderTinker,plan:()=>planPanel("plan"),gear:renderGear,background:renderBackground,mods:renderMods}[UI.tab]||renderSheet;
  const keep = UI.lastTab===UI.tab ? {main:m.scrollTop, boxes:[...m.querySelectorAll(".scrollbox")].map(x=>x.scrollTop)} : null;
  m.classList.toggle("fill", UI.tab==="gadgets");
  m.innerHTML=f();
  if(keep){ m.scrollTop=keep.main; m.querySelectorAll(".scrollbox").forEach((x,i)=>{ if(keep.boxes[i]!=null) x.scrollTop=keep.boxes[i]; }); }
+ if(UI.lastTab!==UI.tab){ const t=document.querySelector('.tab.on'), bar=t&&t.parentElement; if(bar && bar.scrollWidth>bar.clientWidth){ const l=t.offsetLeft-bar.offsetLeft, r=l+t.offsetWidth; if(l<bar.scrollLeft) bar.scrollLeft=l-12; else if(r>bar.scrollLeft+bar.clientWidth) bar.scrollLeft=r-bar.clientWidth+12; } }
  UI.lastTab=UI.tab;
  const ro=document.getElementById("restover");
  if(ro){ const prev=ro.querySelector(".restsplash"), st=prev?prev.scrollTop:0;
@@ -1825,9 +1831,40 @@ function usePanel(u,ocTxt){
  const x=ocTxt?blk("Overclocked",ocTxt,armed,"ocblk"):"";
  return `<div class="usewrap">${inC?(armed?x+c:c+x)+o:o+c+x}</div>`;
 }
+// Rules for each non-gadget action, with current numbers.
+const ACT_FX = {
+ "firebolt-arm":()=>`Ranged spell attack, 120 ft, ${sg(ATK())} to hit. Hit: 2d10 fire. A flammable object it hits ignites if nobody is wearing or carrying it. Uses no gadget.`,
+ scorch:()=>`Three rays, each a ranged spell attack (120 ft, ${sg(ATK())}) at the same or different targets. Each hit deals 2d6 fire. Afterwards make a Con save to withstand the energy.`,
+ gbolt:()=>`Ranged spell attack, 120 ft, ${sg(ATK())} to hit. Hit: 4d8 radiant, and the next attack roll against the target before the end of your next turn has advantage. Once per long rest (Fractured Genius).`,
+ axe:()=>`Melee weapon attack. Hit: 1d8 + STR + 1 slashing (1d10 two-handed). The weapon is +1 and sheds light on command.`,
+ dagger:()=>`Melee, or thrown 20 ft (60 ft with disadvantage). Hit: 1d4 + DEX piercing. Finesse and light.`,
+ hammer:()=>`Melee, or thrown 20 ft (60 ft with disadvantage). Hit: 1d4 + STR bludgeoning. Light.`,
+ pipes:()=>`Uses 1 charge. Creatures you choose within 30 ft that can hear make a DC 15 Wis save or are frightened of you for 1 minute. They repeat the save at the end of each of their turns, ending it on a success.`,
+ fuel:()=>`Action, once per long rest, only while the pack is at 0 energy. Gain 1 to 5 Stress (never above 5) and that much energy straight away.`,
+ insight:()=>`Action or bonus action. Learn something about a creature or what it did. DC 8 + the creature's CR (or the spell's level). On a failure, gain 1 Stress.`,
+ insightB:()=>ACT_FX.insight(),
+ pbolt:()=>`Bonus action, 1 energy. Ranged spell attack, 60 ft, ${sg(PB()+M("int"))} to hit. Hit: 2d8 force. Overclock applies.`,
+ pstream:()=>`Bonus action, 3 energy. A 30-ft line, 5 ft wide. Each creature in it makes a DC ${8+PB()+M("int")} Dex save: 2d8 force, half on a success. Overclock applies.`,
+ cburst:()=>`Bonus action, 4 energy. A 10-ft-radius sphere centred on a point within 60 ft. Each creature in it makes a DC ${8+PB()+M("int")} Str save: 2d8 force and pushed 10 ft away; half damage and no push on a success. Overclock applies.`,
+ overload:()=>`Bonus action, 5 energy. One creature within 60 ft makes a DC ${8+PB()+M("int")} Str save: 6d8 force and restrained until the end of your next turn; half damage and not restrained on a success. Overclock applies.`,
+ boots:()=>`Bonus action. Teleport up to 15 ft to an unoccupied space you occupied earlier this turn.`,
+ axelight:()=>`Bonus action. The battleaxe sheds bright light in 30 ft and dim light for another 30 ft, or goes dark.`,
+ vacuum:()=>`Reaction when a hostile creature of CR ¼ or higher dies within 30 ft. Roll the capture dice for its CR (1d4 up to 6d4) and add that much energy, up to ${eMax()}. Anything over capacity is backlash: 1 necrotic per point to you or an adjacent creature. If any die shows a 4, roll d100 on the wild table.`,
+ rshield:()=>`Reaction after a creature hits you with a melee attack. Uses 1 charge: push the attacker up to 15 ft away. The shield must be on your arm.`,
+ spark:()=>`Reaction when a creature you can see within 60 ft makes a saving throw against one of your blueprints or discharges. It subtracts 1d4 from the save. Once per short or long rest.`,
+ axeblind:()=>`Reaction when an attack hits you. Uses 1 charge: the attacker makes a DC ${DC()} Con save or is blinded until the end of its next turn.`,
+ mind:()=>`Uses 1 charge when you fail a Con save to keep concentration: you succeed instead.`,
+ oa:()=>`Reaction when a hostile creature you can see leaves your reach. Make one melee attack against it.`,
+ fog:()=>`Reaction when you, or a creature you can see within 30 ft, makes an ability check or saving throw. Add ${sg(M("int"))} to the roll. ${fogMax()} uses per long rest.`
+};
+function effectBox(o){
+ const b=o.kind==="gadget"&&o.gi!=null?BPK[S.loadout[o.gi].key]:null;
+ const body = b ? `${bpCard(b,false,true)}` : `<p class="small" style="margin:3px 0 0">${ACT_FX[o.id]?ACT_FX[o.id]():""}</p><p class="small muted" style="margin:4px 0 0">${o.meta}</p>`;
+ return `<div class="useblk" style="margin-bottom:8px"><div class="uselab">What it does${o.cost?` · ${o.cost}`:""}</div>${body}${o.dis&&o.dis!==true?`<p class="small" style="color:var(--blood);margin:4px 0 0">${esc(o.dis)}</p>`:""}</div>`;
+}
 function lookHtml(o){
  const b=o.kind==="gadget"&&o.gi!=null?BPK[S.loadout[o.gi].key]:null;
- return usePanel(b?USE[b.k]:USE["o:"+(o.id==="insightB"?"insight":o.id)], b?USE_OC[b.k]:USE_OC["o:"+o.id]);
+ return effectBox(o)+usePanel(b?USE[b.k]:USE["o:"+(o.id==="insightB"?"insight":o.id)], b?USE_OC[b.k]:USE_OC["o:"+o.id]);
 }
 function infoPop(title, html){
  document.getElementById("modal").innerHTML=`<div class="modalbg" data-act="close"><div class="modal rollpop" data-act="close" role="dialog">
@@ -1968,13 +2005,14 @@ const ACT = {
   const r=roll(row[1]); vacApply(row,r.total,r.parts[0].rs,r.parts[0].rs.includes(4)); },
  backlash:d=>{ const r=damage(+d.n,"necrotic",false); save(); render(); toastModal("Backlash",`<p>You took ${r.amt} necrotic. HP ${S.hp.cur}/${maxHp()}.</p>${r.notes.map(x=>`<div class="warnbox">${x}</div>`).join("")}`); concPrompt(); },
  breach:()=>{ if(PERSON()){ pushRoll("Wild table","","Roll <b>d100</b> on the wild table"); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Roll <b>d100</b> on the wild table and tell the DM.</div>`; return; } const w=R(100); logEv(`Wild table d100: ${w}`); pushRoll("Wild table","",`d100 <b>${w}</b>`); save(); const el=document.getElementById("vacres"); if(el) el.innerHTML+=`<div class="redbox">Wild table d100: <b class="num">${w}</b></div>`; },
- restModal:d=>{ if(d.k==="long"||d.k==="short"){ if(!(S.lr&&S.lr.active)) { S.lr.kind=d.k; S.lr.hours=d.k==="short"?1:8; } UI.restOpen=true; UI.hdLast=""; closeModal(); render(); const o=document.querySelector(".restsplash"); if(o) o.scrollTop=0; return; } restModal(d.k); },
+ restModal:d=>{ if(d.k==="long"||d.k==="short"){ if(!(S.lr&&S.lr.active)) { S.lr.kind=d.k; S.lr.hours=d.k==="short"?1:planHours(); } UI.restOpen=true; UI.hdLast=""; closeModal(); render(); const o=document.querySelector(".restsplash"); if(o) o.scrollTop=0; return; } restModal(d.k); },
  restOpenX:()=>{},
  restOpen:()=>{ UI.restOpen=true; UI.hdLast=""; render(); },
  restClose:()=>{ UI.restOpen=false; render(); },
- lrLen:d=>{ S.lr.hours=Math.max(1,Math.min(24,+d.v)); save(); render(); },
+ lrLen:d=>{ S.lr.hours=Math.max(1,Math.min(24,+d.v)); if((S.lr.kind||"long")==="long") S.rplan.hours=S.lr.hours; save(); render(); },
+ planLen:d=>{ S.rplan.hours=Math.max(1,Math.min(24,+d.v)); if(!S.lr.active && (S.lr.kind||"long")==="long") S.lr.hours=S.rplan.hours; save(); render(); },
  lrBegin:()=>{ UI.hdLast=""; const h=S.lr.hours, kind=S.lr.kind||"long"; S.lr={kind,active:true,hours:h,used:0,done:{},research:[],tinker:0,hdCur:0,useCur:false,started:Date.now(),opts:{stress:S.settings.lrStress!=="keep",keep:false,dawn:true,temp:S.hp.temp>0}}; logEv(`${kind==="short"?"Short":"Long"} rest started (${h} h)`);
-  if(kind==="long"){ S.lr.plan={take:[],tkDone:{}}; const f=planFit(h); f.take.forEach(id=>planTake(id,true)); if(f.take.length){ S.lr.done.research=true; logEv(`Rest plan: ${planItems().filter(it=>f.take.includes(it.id)).map(it=>itemName(it)).join(", ")}`); } }
+  if(kind==="long"){ S.rplan.hours=h; S.lr.plan={take:[],tkDone:{}}; const f=planFit(h); f.take.forEach(id=>planTake(id,true)); if(f.take.length){ S.lr.done.research=true; logEv(`Rest plan: ${planItems().filter(it=>f.take.includes(it.id)).map(it=>itemName(it)).join(", ")}`); } }
   if(kind==="long"){ const per=Math.max(1,1+M("con")), prior=B().level-S.hdUsed, target=maxHp()-(S.hp.bonus||0), missing=target-S.hp.cur;
    if(missing>0 && prior>0 && prior*per>=missing){ const n=Math.ceil(missing/per); S.hdUsed+=n; S.hp.cur=Math.max(S.hp.cur,target); S.lr.autoHeal={missing,n,per}; logEv(`Long rest: used ${n} of yesterday's hit dice to heal to max (${target} HP)`); } } save(); render(); },
  lrCancel:()=>{ UI.restOpen=false; if(S.lr.autoHeal){ S.hp.cur-=S.lr.autoHeal.missing; S.hdUsed=Math.max(0,S.hdUsed-S.lr.autoHeal.n); S.lr.autoHeal=null; } S.lr.research.forEach(k=>{ S.researched[k]=false; }); S.lr.plan=null; logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
@@ -1988,7 +2026,9 @@ const ACT = {
  planDel:d=>{ const q=planItems(), i=q.findIndex(x=>x.id===d.k); if(i>=0) q.splice(i,1); save(); render(); },
  planAdd:d=>{ const q=planItems(), i=q.findIndex(x=>x.t==="bp"&&x.k===d.k); if(i>=0) q.splice(i,1); else if(!S.researched[d.k]) q.push({id:nid(),t:"bp",k:d.k}); save(); render(); },
  planAddSel:d=>{ const v=(document.getElementById("plan-sel-"+d.k)||{}).value; if(v) ACT.planAdd({k:v}); },
- planAddTk:()=>{ const n=(UI.wbName||"").trim(); if(!n){ toastModal("Name it first","<p>Give the invention a name on the workbench (or pick one from the idea book), then add it to the plan.</p>"); return; } planItems().push({id:nid(),t:"tk",n,tier:+(UI.wbTier||0),note:UI.wbNote||""}); logEv(`Planned tinkering: ${n}`); toastModal("Added to the rest plan",`<p><b>${esc(n)}</b> (${TKLAB(+(UI.wbTier||0))}) will be attempted at your next long rest if it fits.</p>`); save(); render(); },
+ planAddTk:()=>{ const n=(UI.wbName||"").trim(); if(!n){ toastModal("Name it first","<p>Give the invention a name on the workbench (or pick one from the idea book), then add it to the plan.</p>"); return; } planItems().push({id:nid(),t:"tk",n,tier:+(UI.wbTier||0),note:UI.wbNote||""}); logEv(`Planned tinkering: ${n}`); toastModal("Added to the rest plan",`<p><b>${esc(n)}</b> (${TKLAB(+(UI.wbTier||0))}) will be attempted at your next long rest if it fits. See the <b>Rest plan</b> tab.</p>`); save(); render(); },
+ ptTier:(d,t)=>{ UI.ptTier=+t.value; },
+ planAddTkQuick:()=>{ const n=(UI.ptName||"").trim(); if(!n){ toastModal("Name it first","<p>Type a name for the invention, then tap Plan tinkering.</p>"); return; } planItems().push({id:nid(),t:"tk",n,tier:+(UI.ptTier||0),note:UI.ptNote||""}); logEv(`Planned tinkering: ${n}`); UI.ptName="";UI.ptNote=""; save(); render(); },
  planTake:d=>{ const L=S.lr; if(!L.plan) return; planTake(d.k,!L.plan.take.includes(d.k)); save(); render(); },
  lrOther:d=>{ S.lr.other=Math.max(0,(+S.lr.other||0)+(+d.d)); save(); render(); },
  lrResearchSel:()=>{ const v=document.getElementById("lr-rsel").value; if(v) ACT.lrResearch({k:v}); },
@@ -2137,7 +2177,7 @@ const ACT = {
   <p>Stress comes from pushing the machine and the entity inside you. You can't go above 5.</p>
   <ul><li><b>+1</b> Overclock (once per turn, +3 to a gadget or discharge)</li><li><b>+1</b> keeping all your energy through a long rest</li><li><b>+1 to +5</b> Seriach's Fuel</li><li><b>+1</b> invention meltdown (d100 roll of 1–5)</li><li><b>+1</b> failed Occult Insight</li></ul>
   <p class="small muted">Long rest: the app clears Stress by default (change it in Settings or on the rest screen). What happens at high Stress is up to the DM.</p>`),
- bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`, usePanel(USE[b.k],USE_OC[b.k])); },
+ bpInfo:d=>{ const b=BPK[d.k]; if(!b) return; infoPop(`${b.c} · ${b.n}`, `<div class="useblk" style="margin-bottom:8px"><div class="uselab">What it does · ${b.l?"Level "+b.l+", used until a rest":"Cantrip, never runs out"}</div>${bpCard(b,false,true)}</div>`+usePanel(USE[b.k],USE_OC[b.k])); },
  undo:()=>{ const u=UNDO.pop(); if(!u){ updateUndo(); return; } const rolls=S.rolls; S=merge(DEF(),JSON.parse(u.s)); S.rolls=rolls; logEv(`Undid: ${u.label}`); save(); closeModal(); render(); updateUndo(); pushRoll("Undo","",`Undid <b>${esc(u.label)}</b>`); },
  concHeld:d=>{ logEv(`Kept concentration on ${S.conc} (DC ${d.dc})`); save(); render(); closeModal(); },
  concLost:()=>{ logEv(`Lost concentration on ${S.conc}`); S.conc=""; save(); render(); closeModal(); },
