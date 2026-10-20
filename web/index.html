@@ -166,6 +166,9 @@ table.t td,table.t th{padding:4px 6px;border-bottom:1px solid var(--iron3);text-
 table.t th{color:var(--ash2);font-size:11px;letter-spacing:1px;text-transform:uppercase}
 
 /* ---------- combat ---------- */
+.stsbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-top:10px;padding:12px 14px;border-radius:var(--r);border:2px solid var(--ecto);background:rgba(120,80,200,.12)}
+.stsbar.used{opacity:.55;border-style:dashed}
+.stsbar>div{min-width:0;flex:1 1 220px}
 .turnbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:rgba(232,96,79,.08);border:1px solid #6a342d;border-radius:var(--r);padding:8px 12px;margin-top:12px}
 .econ{display:flex;gap:6px;flex-wrap:wrap}
 .eco{border:1.5px solid var(--heal);color:var(--heal);border-radius:16px;padding:3px 12px;font-weight:700;font-size:13px;letter-spacing:.5px;text-transform:uppercase;background:transparent}
@@ -1007,11 +1010,11 @@ function renderCombat(){
   </div>`:`<div class="econ"><button class="eco ${C.rea?"used":""}" data-act="eco" data-k="rea">Reaction</button></div>`}
   <span style="flex:1"></span>
   ${C.mine?`<button class="oc ${C.oc?"on":""} ${ocAvail||C.oc?"":"spent"}" data-act="overclock" ${ocAvail||C.oc?"":"disabled"}>${C.oc?"Overclock ARMED · +3, +1 Stress":C.ocUsed?"Overclock used this turn":S.stress>=5?"Overclock (Stress full)":"Overclock"}</button>
-  <button class="btn ${C.sts?"":"ecto"}" data-act="sts" ${C.sts?"disabled":""}>Soul-Targeted +1d6</button>
   <button class="btn pri" data-act="endTurn">End my turn</button>`:`<button class="oc ${P.oc?"on":""}" data-act="planOc">${P.oc?"Overclock planned":"Plan Overclock"}</button>
   <button class="btn pri" data-act="startTurn">Start my turn</button>`}
   <button class="btn" data-act="combatToggle">End combat</button>
  </div>
+ ${C.mine?`<div class="stsbar ${C.sts?"used":""}"><div><b>Soul-Sight: Soul-Targeted Strike</b><div class="small">Once per turn. A spell attack that beats the target's AC by 5 or more adds <b>${B().level>=15?"3d6":B().level>=9?"2d6":"1d6"}</b> force.</div></div><button class="btn ${C.sts?"":"ecto"}" data-act="sts" ${C.sts?"disabled":""}>${C.sts?"Used this turn":"Add +"+(B().level>=15?"3d6":B().level>=9?"2d6":"1d6")}</button></div>`:""}
  <div class="panel planpanel">
   <h2>${C.mine?"This turn's plan":"Next turn"} <span class="sp"></span>${P.act||P.bon||P.note||P.oc?`<button class="btn sm" data-act="planClear">Clear plan</button>`:""}</h2>
   <div class="plangrid">
@@ -1820,7 +1823,12 @@ const ACT = {
  tab:d=>{UI.restOpen=false; if(document.querySelector("#modal .modalbg")) closeModal(); UI.tab=d.k; try{localStorage.setItem(LKEY+"-tab",d.k)}catch(e){} render(); document.getElementById("main").scrollTop=0;},
  combatToggle:()=>{ const c=S.combat; if(c.on){ c.on=false; logEv(`Combat ended after ${c.round} round${c.round>1?"s":""}`); } else { Object.assign(c,{on:true,round:1,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false,mine:false,plan:{act:null,bon:null,oc:false,note:""}}); logEv("Combat started"); if(S.settings.autoCombatTab) UI.tab="combat"; } save(); render(); },
  startTurn:()=>{ const c=S.combat; Object.assign(c,{stdUsed:null,mine:true,act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); if(c.plan&&c.plan.oc&&S.stress<5){ c.oc=true; c.plan.oc=false; } logEv(`Round ${c.round}: my turn`); save(); render(); },
- endTurn:()=>{ const c=S.combat; if(c.oc && !c.ocUsed){ setStress(S.stress+1,"Overclock armed this turn"); pushRoll("Overclock","",`+1 Stress for the armed Overclock (now ${S.stress}/5)`); } Object.assign(c,{mine:false,oc:false,ocUsed:false,sts:false}); c.round++; save(); render(); },
+ endTurn:()=>{ const c=S.combat, P=c.plan||{}, left=[["act",P.act],["bon",P.bon]].filter(x=>x[1]&&!x[1].startsWith("std:")&&!c[x[0]]);
+  if(left.length){ modal(`<h2>Still planned</h2><p class="muted small">You haven't used ${left.length>1?"these":"this"} yet. Energy and charges are only spent when you use it.</p>${left.map(([k,id])=>{ const o=OPTS[id]; return o?`<div class="slot full"><span class="lab">${k==="act"?"Action":"Bonus action"}</span><b>${esc(o.n)}</b>${o.cost?`<span class="small muted">${esc(o.cost)}</span>`:""}<div class="btns"><button class="btn sm pri" data-act="endUse" data-k="${k}">Use it now</button></div></div>`:""; }).join("")}<div class="btns" style="margin-top:10px"><button class="btn" data-act="endAnyway">End turn without it</button><button class="btn" data-act="close">Cancel</button></div>`); return; }
+  ACT.endGo(); },
+ endUse:d=>{ closeModal(); ACT.planGo({k:d.k}); },
+ endAnyway:()=>{ closeModal(); const P=S.combat.plan; if(P){ if(!S.combat.act) P.act=null; if(!S.combat.bon) P.bon=null; } ACT.endGo(); },
+ endGo:()=>{ const c=S.combat; if(c.oc && !c.ocUsed){ setStress(S.stress+1,"Overclock armed this turn"); pushRoll("Overclock","",`+1 Stress for the armed Overclock (now ${S.stress}/5)`); } Object.assign(c,{mine:false,oc:false,ocUsed:false,sts:false}); c.round++; save(); render(); },
  look:(d,t,e)=>{ if(e) e.stopPropagation(); const o=OPTS[d.k]; if(!o) return; infoPop(o.n, lookHtml(o)); },
  lookStd:()=>infoPop("Standard actions", Object.keys(STD_USE).map(k=>`<p style="margin-top:6px"><b>${esc(k)}:</b> <span class="flav">${esc(pick(STD_USE[k],"std:"+k))}</span></p>`).join("")),
  planGo:d=>{ const P=S.combat.plan; const id=P[d.k]; if(!id) return; if(id.startsWith("std:")){ P[d.k]=null; ACT.stdAct({k:id.slice(4)}); return; } useOption(id); },
