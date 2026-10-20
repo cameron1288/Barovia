@@ -1836,7 +1836,7 @@ const ACT = {
  planClear:()=>{ S.combat.plan={act:null,bon:null,oc:false,note:""}; save(); render(); },
  planOc:()=>{ S.combat.plan.oc=!S.combat.plan.oc; save(); render(); },
  nextTurn:()=>{ const c=S.combat; c.round++; Object.assign(c,{act:false,bon:false,rea:false,oc:false,ocUsed:false,sts:false}); save(); render(); },
- eco:d=>{ S.combat[d.k]=!S.combat[d.k]; save(); render(); },
+ eco:d=>{ const c=S.combat, P=c.plan; if(c.on && c.mine && !c[d.k] && P && (d.k==="act"||d.k==="bon") && P[d.k]){ ACT.planGo({k:d.k}); return; } c[d.k]=!c[d.k]; save(); render(); },
  overclock:()=>{ const c=S.combat; if(c.oc){c.oc=false;} else if(!c.ocUsed && S.stress<5){c.oc=true;} save(); render(); },
  sts:()=>{ S.combat.sts=true; if(PERSON()){ pushRoll("Soul-Targeted Strike","",`Roll <b>${B().level>=15?"3d6":B().level>=9?"2d6":"1d6"}</b> force and add it to the damage`); save(); render(); return; } const r=roll(B().level>=15?"3d6":B().level>=9?"2d6":"1d6"); pushRoll("Soul-Targeted Strike",`<div class="rollcard"><div class="big ecto">+${r.total}</div><div class="small dim">force · ${showParts(r)}</div></div>`,`<b>+${r.total}</b> force`); save(); render(); },
  use:d=>useOption(d.k),
