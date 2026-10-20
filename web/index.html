@@ -657,7 +657,7 @@ const attCap = () => B().level>=18?6:B().level>=14?5:B().level>=10?4:3;
 const carryCap = () => B().str;
 const itemFx = fx => S.items.find(i=>i.fx===fx);
 const fxOn = fx => { const m=S.mods&&S.mods[fx]; return !!(m && m.built && m.holder==="flint"); };
-function maxHp(){ let m=B().maxHp+(S.hp.bonus||0); if(S.exh>=4) m=Math.floor(m/2); return m; }
+function maxHp(){ let m=Math.max(1,B().maxHp+(S.hp.bonus||0)-(S.hp.red||0)-(S.hp.redDay||0)); if(S.exh>=4) m=Math.floor(m/2); return m; }
 const COND_CODE={Blinded:"BLD",Charmed:"CHM",Deafened:"DEF",Frightened:"FRT",Grappled:"GRP",Incapacitated:"INC",Invisible:"INV",Paralyzed:"PAR",Petrified:"PET",Poisoned:"PSN",Prone:"PRN",Restrained:"RST",Stunned:"STN",Unconscious:"UNC"};
 function statusBadges(){ const out=[]; const c=S.cond||{};
  if(S.conc) out.push(`<span class="sb conc" title="Concentrating on ${esc(S.conc)}">◎ ${esc(S.conc)}</span>`);
@@ -802,7 +802,7 @@ function renderTop(){
   <div class="ident" data-act="tab" data-k="sheet" role="button" tabindex="0" title="Open the Character tab" style="cursor:pointer"><h1>Flint <span>Cogsworth</span></h1>${(()=>{ const b=statusBadges(); return b.length?`<div class="status" data-act="statusPop" role="button" title="Conditions and concentration">${b.join("")}</div>`:`<small>Lv ${B().level} Artificer · Spirit Engine</small><div class="status" data-act="statusPop" role="button" title="Conditions and concentration"><span class="sb exh" style="opacity:.55">+ status</span></div>`; })()}</div>
   <div class="gauge hp" data-act="hpModal">
     <div class="lab">Hit points${S.hp.cur===0?' · <span style="color:var(--blood)">DOWN</span>':""}</div>
-    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>${S.hp.bonus?`<div class="hpx" title="Ends at your next long rest">incl. +${S.hp.bonus} max HP</div>`:""}
+    <div class="hpline"><span class="val num">${S.hp.cur}</span><span class="max">/ ${maxHp()}</span>${S.hp.temp?`<span class="tmp">+${S.hp.temp} temp</span>`:""}</div>${S.hp.bonus?`<div class="hpx" title="Ends at your next long rest">incl. +${S.hp.bonus} max HP</div>`:""}${S.hp.red?`<div class="hpx" style="color:var(--blood)" title="Stays until it is lifted (Greater Restoration or similar)">max HP reduced by ${S.hp.red}</div>`:""}${S.hp.redDay?`<div class="hpx" style="color:var(--blood)" title="Ends at your next long rest">max HP −${S.hp.redDay} until long rest</div>`:""}
     <div class="bar"><i class="${cls}" style="width:${hpPct}%"></i></div>
   </div>
   <div class="gauge ac tap" data-act="armorModal"><div class="lab">AC</div><div class="val num">${ac()}</div><div class="sub">${S.armor?"Armour on":"No armour"}${S.shield?" · Shield":""}</div></div>
@@ -865,7 +865,7 @@ function renderSheet(){
      <dt>Exhaustion</dt><dd><button class="mini" data-act="exh" data-d="-1">−</button> <b class="num">${S.exh}</b> <button class="mini" data-act="exh" data-d="1">+</button> <span class="muted small">${EXH[S.exh]}${S.exh>1?" (and all above)":""}</span></dd>
      <dt>Concentrating</dt><dd>${S.conc?`<span class="chip amber">${esc(S.conc)}</span> <button class="btn sm" data-act="concEnd">End</button>`:'<span class="dim small">Nothing. Deploying a concentration gadget sets this.</span>'}</dd>
      <dt>XP</dt><dd class="num">${B().xp.toLocaleString()} / ${B().nextXp.toLocaleString()} <span class="dim small">(${Math.max(0,B().nextXp-B().xp).toLocaleString()} to level ${B().level+1})</span></dd>
-     <dt>Max HP</dt><dd class="num">${maxHp()} <span class="dim small">(${B().maxHp} base${S.hp.bonus?` + ${S.hp.bonus} until long rest`:""}${S.exh>=4?", halved by exhaustion":""})</span></dd>
+     <dt>Max HP</dt><dd class="num">${maxHp()} <span class="dim small">(${B().maxHp} base${S.hp.bonus?` + ${S.hp.bonus} until long rest`:""}${S.hp.red?` − ${S.hp.red} drained`:""}${S.hp.redDay?` − ${S.hp.redDay} until long rest`:""}${S.exh>=4?", halved by exhaustion":""})</span></dd>
      <dt>Modifications</dt><dd>${modsUsed()} / ${modCap()} built <span class="small muted">${INF.filter(f=>S.mods[f.k]&&S.mods[f.k].built).map(f=>esc(f.n)+(S.mods[f.k].holder==="flint"?" (you)":" ("+(esc(S.mods[f.k].ally)||"an ally")+")")).join(" · ")}</span> <button class="btn sm" data-act="tab" data-k="mods">Manage</button></dd>
      <dt>Hit dice</dt><dd class="num">${B().level-S.hdUsed} of ${B().level} d8 (+${M("con")} each)</dd>
     </div>
@@ -1339,7 +1339,7 @@ function renderRest(){
    <h2>Long rest · ${L.hours} hours <span class="cnt ${left<0?"over":left===0?"full":""}">${used} h used · ${left} h left</span><span class="sp"></span><button class="btn sm" data-act="lrCancel">Cancel rest</button></h2>
    <div class="hoursbar"><i class="${left<0?"over":""}" style="width:${pct}%"></i></div>
    <div class="btns" style="margin-top:8px;align-items:center"><span class="small muted">Hours spent on anything else (travel, a watch, an interruption)</span><button class="mini" data-act="lrOther" data-d="-1" ${+L.other?"":"disabled"}>−</button><b class="num">${+L.other||0} h</b><button class="mini" data-act="lrOther" data-d="1">+</button></div>
-   ${L.autoHeal?`<div class="ectobox" style="margin-top:8px">You used <b>${L.autoHeal.n}</b> of yesterday's hit dice to heal to max (<b>+${L.autoHeal.missing}</b> HP, ${maxHp()-(S.hp.bonus||0)} HP) before your rest. They were going to recover anyway.</div>`:""}
+   ${L.autoHeal?`<div class="ectobox" style="margin-top:8px">You used <b>${L.autoHeal.n}</b> of yesterday's hit dice to heal to max (<b>+${L.autoHeal.missing}</b> HP, ${maxHp()-(S.hp.bonus||0)+(S.hp.redDay||0)} HP) before your rest. They were going to recover anyway.</div>`:""}
    ${left<0?`<div class="redbox">You've planned ${-left} more hour${-left>1?"s":""} than the rest lasts. Skip something in the plan or check with the DM.</div>`:""}
   </div>
   <div class="grid g2">
@@ -1452,11 +1452,13 @@ function hpModal(){
  modal(`<h2>Hit points</h2>
   <div class="muted small">Current <b class="num">${S.hp.cur}</b> / ${maxHp()} · Temp <b class="num">${S.hp.temp}</b></div>
   ${S.hp.bonus?`<div class="ectobox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Max HP raised by <b>${S.hp.bonus}</b> (${B().maxHp} base). It ends at your next long rest. <button class="btn sm" data-act="bonusClear">Remove now</button></div>`:""}
+  ${S.hp.red?`<div class="warnbox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Max HP reduced by <b>${S.hp.red}</b>. A long rest does not bring it back; only something like Greater Restoration does. <button class="btn sm" data-act="redClear">Lift it all</button></div>`:""}
+  ${S.hp.redDay?`<div class="warnbox" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">Max HP lowered by <b>${S.hp.redDay}</b>. It ends at your next long rest. <button class="btn sm" data-act="redDayClear">Remove now</button></div>`:""}
   <div class="entry num" id="kpv">${KP.v||"0"}</div>
   <div class="keypad">${[7,8,9,"⌫",4,5,6,"C",1,2,3,"",0,"00","",""].map(k=>k===""?"<span></span>":`<button data-act="kp" data-k="${k}">${k}</button>`).join("")}</div>
   <div class="btns" style="margin-bottom:8px"><select id="kp-type" data-act-change="kpType">${dtypes.map(t=>`<option value="${t}" ${KP.type===t?"selected":""}>${t||"Damage type (optional)"}</option>`).join("")}</select>
    <span class="small muted">${KP.type==="fire"?"Fire: resistance halves it automatically.":""}</span></div>
-  <div class="btns"><button class="btn red" data-act="kpApply" data-k="dmg">Take damage</button><button class="btn ok" data-act="kpApply" data-k="heal">Heal</button><button class="btn ecto" data-act="kpApply" data-k="temp">Set temp HP</button><button class="btn ok" data-act="kpApply" data-k="bonus">Add to max HP</button><button class="btn" data-act="close">Close</button></div>
+  <div class="btns"><button class="btn red" data-act="kpApply" data-k="dmg">Take damage</button><button class="btn ok" data-act="kpApply" data-k="heal">Heal</button><button class="btn ecto" data-act="kpApply" data-k="temp">Set temp HP</button><button class="btn ok" data-act="kpApply" data-k="bonus">Add to max HP</button><button class="btn red" data-act="kpApply" data-k="redDay">Lower max HP until long rest</button><button class="btn red" data-act="kpApply" data-k="red">Lower max HP until lifted</button>${S.hp.red?`<button class="btn" data-act="kpApply" data-k="redUndo">Restore max HP</button>`:""}<button class="btn" data-act="close">Close</button></div>
   ${S.hp.cur===0?`<div class="sep"></div><h3>Death saves</h3><div class="btns"><span class="dsave">Successes ${[0,1,2].map(i=>`<span class="use ${i<S.ds.s?"":"spent"}" data-act="ds" data-k="s" data-i="${i}"></span>`).join("")}</span><span class="dsave">Failures ${[0,1,2].map(i=>`<span class="use ${i<S.ds.f?"":"spent"}" data-act="ds" data-k="f" data-i="${i}" style="${i<S.ds.f?"background:var(--blood);border-color:var(--blood)":""}"></span>`).join("")}</span><button class="btn sm" data-act="dsRoll">Roll death save</button></div>`:""}
   <div id="kpmsg"></div>`);
 }
@@ -1486,7 +1488,7 @@ function restModal(kind){
   <div id="hdres"></div>
   <div class="btns" style="margin-top:10px"><button class="btn pri" data-act="doRest" data-k="short">Finish short rest</button><button class="btn" data-act="close">Cancel</button></div>`);
  else modal(`<h2>Long rest</h2>
-  <ul class="small">${S.hp.bonus?`<li>Your extra ${S.hp.bonus} max HP ends (max back to ${B().maxHp})</li>`:""}<li>HP to ${maxHp()-(S.hp.bonus||0)}, regain ${Math.max(1,Math.floor(B().level/2))} hit dice, exhaustion −1</li><li>Guiding Bolt, Guiding Spark, Seriach's Fuel recover; gadgets reset (swap your load-out on the Gadgets tab)</li><li>Æther-Pack loses ${lost} of ${S.energy} energy (half, rounded up)</li></ul>
+  <ul class="small">${S.hp.bonus?`<li>Your extra ${S.hp.bonus} max HP ends (max back to ${B().maxHp})</li>`:""}<li>HP to ${maxHp()-(S.hp.bonus||0)+(S.hp.redDay||0)}, regain ${Math.max(1,Math.floor(B().level/2))} hit dice, exhaustion −1</li><li>Guiding Bolt, Guiding Spark, Seriach's Fuel recover; gadgets reset (swap your load-out on the Gadgets tab)</li><li>Æther-Pack loses ${lost} of ${S.energy} energy (half, rounded up)</li></ul>
   <div class="col">
    <button class="tog ${S.settings.lrStress==="keep"?"":"on"}" id="lr-stress" data-act="lrTog"><span class="box"></span>Clear Stress (${S.stress} → 0)</button>
    <button class="tog ${S.energy?"":"locked"}" id="lr-keep" data-act="lrTog"><span class="box"></span>Take 1 Stress to keep all ${S.energy} energy</button>
@@ -1842,7 +1844,12 @@ const ACT = {
   if(d.k==="heal") heal(n);
   if(d.k==="temp"){ S.hp.temp=n; logEv(`Temp HP set to ${n}`); }
   if(d.k==="bonus"){ S.hp.bonus=(S.hp.bonus||0)+n; S.hp.cur=Math.min(maxHp(),S.hp.cur+n); logEv(`Max HP +${n} until long rest (now ${maxHp()})`); }
+  if(d.k==="red"){ S.hp.red=(S.hp.red||0)+n; S.hp.cur=Math.min(S.hp.cur,maxHp()); logEv(`Max HP reduced by ${n} (now ${maxHp()}), stays until lifted`); }
+  if(d.k==="redDay"){ S.hp.redDay=(S.hp.redDay||0)+n; S.hp.cur=Math.min(S.hp.cur,maxHp()); logEv(`Max HP −${n} until long rest (now ${maxHp()})`); }
+  if(d.k==="redUndo"){ const u=Math.min(n,S.hp.red||0); S.hp.red=(S.hp.red||0)-u; logEv(`Max HP restored by ${u} (now ${maxHp()})`); }
   KP.v=""; save(); render(); hpModal(); if(msg) document.getElementById("kpmsg").innerHTML=msg; concPrompt(); },
+ redDayClear:()=>{ logEv(`Max HP reduction of ${S.hp.redDay} (until long rest) removed`); S.hp.redDay=0; save(); render(); hpModal(); },
+ redClear:()=>{ logEv(`Max HP reduction of ${S.hp.red} lifted`); S.hp.red=0; save(); render(); hpModal(); },
  bonusClear:()=>{ logEv(`Extra ${S.hp.bonus} max HP removed`); S.hp.bonus=0; S.hp.cur=Math.min(S.hp.cur,maxHp()); save(); render(); hpModal(); },
  ds:d=>{ const k=d.k,i=+d.i; S.ds[k]= S.ds[k]===i+1? i : i+1; save(); hpModal(); },
  dsRoll:()=>{ if(PERSON()){ askRolls("Death save",`<div class="tell">Roll a <b>d20</b> with no modifiers. 10 or higher succeeds; a natural 20 brings you back with 1 HP; a natural 1 counts as two failures.</div>`,[{k:"r",label:"Your d20 roll"}],v=>{ dsResult(Math.max(1,Math.min(20,v.r))); hpModal(); return false; }); return; } dsResult(R(20)); hpModal(); },
@@ -1897,7 +1904,7 @@ const ACT = {
  planLen:d=>{ S.rplan.hours=Math.max(1,Math.min(24,+d.v)); if(!S.lr.active && (S.lr.kind||"long")==="long") S.lr.hours=S.rplan.hours; save(); render(); },
  lrBegin:()=>{ UI.hdLast=""; const h=S.lr.hours, kind=S.lr.kind||"long"; S.lr={kind,active:true,hours:h,used:0,done:{},research:[],tinker:0,hdCur:0,useCur:false,started:Date.now(),opts:{stress:S.settings.lrStress!=="keep",keep:false,dawn:true,temp:S.hp.temp>0}}; logEv(`${kind==="short"?"Short":"Long"} rest started (${h} h)`);
   if(kind==="long"){ S.rplan.hours=h; S.lr.plan={take:[],tkDone:{}}; const f=planFit(h); f.take.forEach(id=>planTake(id,true)); if(f.take.length){ S.lr.done.research=true; logEv(`Rest plan: ${planItems().filter(it=>f.take.includes(it.id)).map(it=>itemName(it)).join(", ")}`); } }
-  if(kind==="long"){ const per=Math.max(1,1+M("con")), prior=B().level-S.hdUsed, target=maxHp()-(S.hp.bonus||0), missing=target-S.hp.cur;
+  if(kind==="long"){ const per=Math.max(1,1+M("con")), prior=B().level-S.hdUsed, target=maxHp()-(S.hp.bonus||0)+(S.hp.redDay||0), missing=target-S.hp.cur;
    if(missing>0 && prior>0 && prior*per>=missing){ const n=Math.ceil(missing/per); S.hdUsed+=n; S.hp.cur=Math.max(S.hp.cur,target); S.lr.autoHeal={missing,n,per}; logEv(`Long rest: used ${n} of yesterday's hit dice to heal to max (${target} HP)`); } } save(); render(); },
  lrCancel:()=>{ UI.restOpen=false; if(S.lr.autoHeal){ S.hp.cur-=S.lr.autoHeal.missing; S.hdUsed=Math.max(0,S.hdUsed-S.lr.autoHeal.n); S.lr.autoHeal=null; } S.lr.research.forEach(k=>{ S.researched[k]=false; }); S.lr.plan=null; logEv(`${S.lr.kind==="short"?"Short":"Long"} rest cancelled`); S.lr.active=false; save(); render(); },
  lrDone:d=>{ S.lr.done[d.k]=!S.lr.done[d.k]; save(); render(); },
@@ -1932,6 +1939,7 @@ const ACT = {
   let sum=[`${dep} gadgets reset`,"Guiding Spark back"];
   if(d.k==="long"){
    const clr=document.getElementById("lr-stress").classList.contains("on"), keep=document.getElementById("lr-keep").classList.contains("on"), dawn=document.getElementById("lr-dawn").classList.contains("on"), tmp=document.getElementById("lr-temp").classList.contains("on");
+   if(S.hp.redDay){ sum.push(`max HP back up by ${S.hp.redDay}`); logEv(`Max HP −${S.hp.redDay} ended (long rest)`); S.hp.redDay=0; }
    if(S.hp.bonus){ sum.push(`extra ${S.hp.bonus} max HP ended`); logEv(`Extra ${S.hp.bonus} max HP ended (long rest)`); S.hp.bonus=0; }
    S.hp.cur=Math.min(S.hp.cur,maxHp()); if(tmp) S.hp.temp=0; S.ds={s:0,f:0};
    S.hdUsed = (S.lr && S.lr.active) ? (S.lr.hdCur||0) : 0;
