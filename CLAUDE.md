@@ -1,4 +1,4 @@
-# Barovia Campaign Chronicle
+﻿# Barovia Campaign Chronicle
 
 A static site (GitHub Pages: https://cameron1288.github.io/Barovia/) tracking a *Curse of Strahd* D&D campaign.
 `index.html` is a tab shell that `fetch()`es one fragment per tab from `content/*.html` into `#content-area`.
@@ -30,6 +30,8 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
   a `ul.entry-facts` (what matters now; keep current by replacing bullets), and collapsed `details.entry-more`
   sections whose `ul.entry-log` items start with `<span class="entry-s">S47</span>`. Add each session's events
   as a new tagged history bullet, and refresh the summary and facts. Short cards (under ~150 words) can stay plain prose.
+- **Chronicles recaps are 2–3 short paragraphs** so players can skim them. Put the detail in the other tabs
+  (Denizens, Realm, Lore, Quests, Inventory, Companions), not in the recap.
 - **Every entry needs a session number.** Denizens, Realm, Quests, and Lore auto-sort by relevance on load
   (`sortByRelevance` in `chronicle.js`): quests by `data-status` priority, then everything by the latest session
   the entry mentions ("Session 47", an `S47` tag, or a `data-session="47"` attribute). Characters and places also
@@ -41,7 +43,7 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
 - **Canonical spellings** (the text should use these; older variants stay only as glossary aliases):
   Isek, Baba Lysaga, Arabelle, Esmeralda D'Avenir, Van Richten, Morgantha, Aragel, Esher, Anastrasya, Kirill,
   Zuleeka, Leo Delinzia, Irwin, Elrich, Stephania, Louvache, Nikolay, Vallaki, Spiggot, Ireena, Soldav, Stanimir,
-  Biltrath Cantomere, Ismark Kolyanovich, "Winter Splinter", Beucephalus (Strahd's nightmare), Diavola, Fritz von Wurz, Dostron, Cyrus Belleview ("Sirus" was a typo; never use it).
+  Biltrath Cantomere, Ismark Kolyanovich, "Winter Splinter", Beucephalus (Strahd's nightmare), Diavola, Fritz von Wurz, Dostron, Lugdanna, Ismark the Great (the statue hero; not Ismark Kolyanovich), Cyrus Belleview ("Sirus" was a typo; never use it).
 - **Overview "Goals for Next Session"** is a short checklist of party goals actionable next session only.
   Long-term quests (e.g. the Search for Mother) stay on Quests; obvious items ("get out alive") are left out;
   single-PC reminders (e.g. Vel's cryptic boon) go in the "Keep In Mind" chips.
