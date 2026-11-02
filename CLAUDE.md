@@ -32,6 +32,9 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
   as a new tagged history bullet, and refresh the summary and facts. Short cards (under ~150 words) can stay plain prose.
 - **Chronicles recaps are 2–3 short paragraphs** so players can skim them. Put the detail in the other tabs
   (Denizens, Realm, Lore, Quests, Inventory, Companions), not in the recap.
+- **Codex layout:** a short "Right Now" list (about 5 questions for the next session), then open questions grouped
+  into collapsed threads, then the collapsed reference sections ordered by relevance. Keep each question to one
+  line, and delete it once it's answered.
 - **Every entry needs a session number.** Denizens, Realm, Quests, and Lore auto-sort by relevance on load
   (`sortByRelevance` in `chronicle.js`): quests by `data-status` priority, then everything by the latest session
   the entry mentions ("Session 47", an `S47` tag, or a `data-session="47"` attribute). Characters and places also

@@ -862,3 +862,32 @@ details.npc-portrait > summary { padding-top: 2px; }
     /* Collapsible headers: easier to hit. */
     details.entry-more > summary { padding: 10px 0 8px; }
 }
+
+
+/* ===== Codex: Right Now, threads, and collapsed reference sections ===== */
+.codex-now { background: #1a1212; border: 1px solid #3f1d1d; border-radius: 8px; padding: 14px 18px 4px; margin-bottom: 26px; }
+.codex-now .mystery-list { margin-bottom: 10px; }
+.codex-thread { border-bottom: 1px solid #27272a; }
+.codex-thread > summary,
+.codex-section-head {
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    cursor: pointer; list-style: none; padding: 11px 0;
+}
+.codex-thread > summary::-webkit-details-marker,
+.codex-section-head::-webkit-details-marker { display: none; }
+.codex-thread > summary span:first-child { color: #e4e4e7; font-weight: bold; font-size: 1rem; }
+.codex-thread > summary::after,
+.codex-section-head::after { content: "▼"; font-size: 0.75em; color: #a1a1aa; margin-left: auto; }
+.codex-thread[open] > summary::after,
+.codex-section[open] > .codex-section-head::after { content: "▲"; color: #ef4444; }
+.codex-thread .mystery-list { margin: 2px 0 14px 20px; }
+.codex-count {
+    background: #2a1414; color: #f87171; font-size: 0.72rem; font-weight: bold;
+    padding: 1px 8px; border-radius: 10px;
+}
+.codex-group-label { color: #a1a1aa; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin: 30px 0 4px; }
+.codex-section { border-bottom: 1px solid #3f1d1d; }
+.codex-section-title { color: #f87171; font-size: 1.12rem; font-weight: bold; }
+.codex-section-desc { flex-basis: 100%; color: #a1a1aa; font-style: italic; font-size: 0.85rem; margin-top: -4px; }
+.codex-section[open] { padding-bottom: 12px; }
+.codex-section .codex-item { margin-left: 12px; }
