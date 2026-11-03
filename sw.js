@@ -16,7 +16,7 @@ const SHELL = [
     './', 'index.html', 'css/style.css', 'js/chronicle.js', 'manifest.webmanifest',
     'icons/icon-192.png', 'icons/icon-512.png',
     ...['overview', 'players', 'inventory', 'sessions', 'timeline', 'npcs', 'quests', 'battles',
-        'lore', 'codex', 'locations', 'map', 'tarokka', 'library'].map(f => `content/${f}.html`),
+        'lore', 'codex', 'locations', 'map', 'castle', 'tarokka', 'library'].map(f => `content/${f}.html`),
 ];
 
 self.addEventListener('install', event => {

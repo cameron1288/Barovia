@@ -1,0 +1,109 @@
+<head>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<!-- Castle Map Tab: Doru & Van Richten's map with what the party believes is where, plus the heist checklist.
+     Keep pins to what the party actually knows (table events, Sasha, the dream, the tour). Pin positions are % of the image. -->
+<div id="castle-tab" class="tab-content active">
+    <h2>Castle Ravenloft — Heist Map</h2>
+    <p style="color:#a1a1aa; margin-bottom:14px; font-style:italic;">Doru's sketch with Van Richten's additions (Session 51), marked with where we believe each objective is and where trouble waits. Strahd is away until about 5 a.m.</p>
+
+    <div class="cm-map">
+        <img src="images/maps/castle-map.webp" alt="Doru and Van Richten's hand-drawn map of Castle Ravenloft" loading="lazy">
+        <span class="cm-pin cm-entry" style="left:66%; top:13%;" title="Our way in: the servants' entrance">1</span>
+        <span class="cm-pin cm-goal" style="left:41%; top:62%;" title="Emil: probably the dungeon beneath the larders">2</span>
+        <span class="cm-pin cm-goal" style="left:48.5%; top:52%;" title="Gertruda: the King's Suite, third floor">3</span>
+        <span class="cm-pin cm-goal" style="left:61.5%; top:33%;" title="Argynvost's skull: the Hall of Bones">4</span>
+        <span class="cm-pin cm-unknown" style="left:47%; top:63.5%;" title="Icon of Dawn's Grace (guess): below the chapel">5</span>
+        <span class="cm-pin cm-info" style="left:27.5%; top:37%;" title="Sasha's chamber behind the organ">6</span>
+        <span class="cm-pin cm-danger" style="left:17.5%; top:31%;" title="Wights on the walls above the drawbridge">A</span>
+        <span class="cm-pin cm-danger" style="left:72%; top:51%;" title="Rahadin's office (in the dream): near the kitchens">B</span>
+        <span class="cm-pin cm-danger" style="left:59.5%; top:75%;" title="The catacombs and Strahd's tomb">C</span>
+        <span class="cm-pin cm-danger" style="left:49%; top:41%;" title="The catacomb stairs Strahd barred">D</span>
+    </div>
+    <p class="cm-hint">Pinch to zoom on a phone. Hover a marker for a quick label; the key below has the details.</p>
+
+    <div class="cm-grid">
+        <div class="card cm-key">
+            <h3>🎯 Objectives — where we believe they are</h3>
+            <ol class="cm-list">
+                <li><span class="cm-badge cm-entry">1</span><div><strong>Way in: the servants' entrance</strong> (off the north courtyard). Sasha: the rear servants' door leads to the servants' quarters and kitchens. Muriel's ravens fly us to the north side.</div></li>
+                <li><span class="cm-badge cm-goal">2</span><div><strong>Emil</strong>: "probably in the dungeon, on the floor beneath the larders," by the <strong>South Tower stairs</strong> (Sasha). The dungeon isn't on this map. He's being starved, so bring meat. <em>Not confirmed; the avian-eye stone could check.</em></div></li>
+                <li><span class="cm-badge cm-goal">3</span><div><strong>Gertruda</strong>: the <strong>King's Suite, third floor</strong>, reached by the South Tower stairs from the foyer (Sasha).</div></li>
+                <li><span class="cm-badge cm-goal">4</span><div><strong>Argynvost's skull</strong>: the <strong>Hall of Bones</strong>, behind the closed doors west of the kitchen (Sasha). In the dream it was mounted above the guards' hall doors near the kitchen and servants' hall: a large dragon skull, about 250 lb. Shrink it with Flint's gadget and pack it in the puzzle chest.</div></li>
+                <li><span class="cm-badge cm-unknown">5</span><div><strong>Icon of Dawn's Grace</strong>: <strong>location unknown.</strong> Best guess: below the chapel. Mel's Holy Symbol grew hotter the lower he went, Spiggot's feather flew down the catacomb stairs, and the seance said "the dungeons of Ravenloft" or the Amber Temple. Use Detect Magic.</div></li>
+                <li><span class="cm-badge cm-info">6</span><div><strong>Sasha's chamber</strong>, behind the dining-hall organ (sixth pedal from the left). She mouthed "tonight," but has said she must report intruders she sees.</div></li>
+            </ol>
+        </div>
+
+        <div class="card cm-key">
+            <h3>⚠️ Trouble — where it waits</h3>
+            <ol class="cm-list">
+                <li><span class="cm-badge cm-danger">A</span><div><strong>Wights patrol the walls above the drawbridge.</strong> Doru's diversion goes here. The drawbridge is raised, and in Session 48 its runes needed the witches' coven to recast them.</div></li>
+                <li><span class="cm-badge cm-danger">B</span><div><strong>Rahadin.</strong> Strahd's right hand "stalks the shadows" and won't let intruders leave (Sasha). In the dream his office was near the kitchens and the kingsmen hall.</div></li>
+                <li><span class="cm-badge cm-danger">C</span><div><strong>The catacombs and Strahd's tomb.</strong> "Many have visited the catacombs, and they have not come out" (Strahd). "Don't get lost down there… or open the wrong door" (Van Richten).</div></li>
+                <li><span class="cm-badge cm-danger">D</span><div><strong>The catacomb stairs</strong> behind the chapel's south door, which Strahd barred on the tour.</div></li>
+                <li><span class="cm-badge cm-danger">!</span><div><strong>Also inside:</strong> Ludmilla, Anastrasya ("fear the one who watches"), Volenta, Esher, Ludmilla's witches, and an undead garrison. The <strong>portcullises are loud</strong> (Van Richten's note).</div></li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="card cm-check">
+        <h3>✅ Heist Checklist</h3>
+        <div class="cm-check-cols">
+            <div>
+                <h4>Before crossing</h4>
+                <label><input type="checkbox"> Vel casts Aid on three of us (+5 hit points)</label>
+                <label><input type="checkbox"> Holy water handy; meat for Emil</label>
+                <label><input type="checkbox"> Puzzle chest on Spiggot's back; Flint's shrink gadget ready</label>
+                <label><input type="checkbox"> Signal Doru to start the drawbridge diversion</label>
+                <label><input type="checkbox"> Muriel's ravens fly us across in two trips (north side)</label>
+            </div>
+            <div>
+                <h4>Inside</h4>
+                <label><input type="checkbox"> In through the servants' entrance ("I come in Dostron's memory")</label>
+                <label><input type="checkbox"> Free Emil (dungeon beneath the larders)</label>
+                <label><input type="checkbox"> Free Gertruda (King's Suite, third floor)</label>
+                <label><input type="checkbox"> Take Argynvost's skull (Hall of Bones)</label>
+                <label><input type="checkbox"> Find the Icon of Dawn's Grace (Detect Magic; Clairvoyance ×3)</label>
+                <label><input type="checkbox"> Stay together; avoid Rahadin and the brides</label>
+            </div>
+            <div>
+                <h4>Getting out (before 5 a.m.)</h4>
+                <label><input type="checkbox"> Out the way we came, or: vortex warps, Polymorph, Stone Shape</label>
+                <label><input type="checkbox"> Muriel waits across the chasm to cover the retreat</label>
+                <label><input type="checkbox"> Doru and Gertruda reunited</label>
+                <label><input type="checkbox"> Head straight to Argynvostholt with the skull and light the beacon</label>
+            </div>
+        </div>
+        <p class="cm-hint">Ticks reset when the page reloads.</p>
+    </div>
+</div>
+
+<style>
+    .cm-map { position: relative; max-width: 1100px; margin: 0 auto 6px; border: 1px solid #3f3f46; border-radius: 6px; overflow: hidden; }
+    .cm-map img { display: block; width: 100%; height: auto; }
+    .cm-pin, .cm-badge {
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 26px; height: 26px; border-radius: 50%;
+        font: bold 0.8rem sans-serif; color: #fff; border: 2px solid #fff;
+        box-shadow: 0 1px 4px rgba(0,0,0,.6); flex-shrink: 0;
+    }
+    .cm-pin { position: absolute; transform: translate(-50%, -50%); cursor: help; }
+    .cm-entry  { background: #15803d; }
+    .cm-goal   { background: #b45309; }
+    .cm-unknown{ background: #6d28d9; }
+    .cm-info   { background: #1d4ed8; }
+    .cm-danger { background: #b91c1c; }
+    .cm-hint { color: #71717a; font-size: 0.78rem; font-style: italic; text-align: center; margin: 0 0 16px; }
+    .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+    .cm-key h3, .cm-check h3 { color: #f87171; font-size: 1.05rem; margin-bottom: 10px; }
+    .cm-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+    .cm-list li { display: flex; gap: 10px; align-items: flex-start; color: #d1d5db; font-size: 0.88rem; line-height: 1.45; }
+    .cm-list li > div { min-width: 0; }
+    .cm-check-cols { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .cm-check h4 { color: #e4e4e7; font-size: 0.92rem; margin: 0 0 8px; }
+    .cm-check label { display: flex; gap: 8px; align-items: flex-start; color: #d1d5db; font-size: 0.86rem; line-height: 1.4; margin-bottom: 8px; cursor: pointer; }
+    .cm-check input { margin-top: 3px; accent-color: #b91c1c; width: 16px; height: 16px; flex-shrink: 0; }
+    @media (max-width: 900px) { .cm-grid, .cm-check-cols { grid-template-columns: 1fr; } }
+    @media (max-width: 600px) { .cm-pin { width: 18px; height: 18px; font-size: 0.62rem; border-width: 1.5px; } }
+</style>

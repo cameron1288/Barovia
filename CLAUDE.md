@@ -51,6 +51,7 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
   Long-term quests (e.g. the Search for Mother) stay on Quests; obvious items ("get out alive") are left out;
   single-PC reminders (e.g. Vel's cryptic boon) go in the "Keep In Mind" chips.
 - **Quest status** is a fixed label (`span.status-select` plus the card's `data-status`), not an editable control.
+- **Castle tab** (content/castle.html): Doru and Van Richten's handout map (images/maps/castle-map.webp, the version the party was actually given) with numbered objective pins and lettered danger pins, a matching key, and the heist checklist. Pins show only what the party knows. Update them as the heist reveals where things really are.
 - **Map pins:** verify placement precisely against the map image (use a percentage grid overlay; roads are dotted
   lines, rivers are solid wavy lines). Don't resolve ambiguous placement from module lore.
 
