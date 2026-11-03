@@ -329,7 +329,7 @@
     const IGNORE_PHRASES = ['Mother Night', "Mother Night's", "Mother's Night", 'Mother & Father', 'Mother &amp; Father'];
     // The five PCs appear in nearly every paragraph; linking them would be noise.
     const GLOSS_SKIP = 'h1, h2, h3, h4, h5, h6, summary, button, select, option, a, input, textarea, ' +
-        '.gloss, .entry-s, .gothic-id, .status-badge, .badge, .ov-location-badge, #chat-panel, #global-results, script, style';
+        '.gloss, .entry-s, .gothic-id, .status-badge, .badge, .ov-location-badge, #chat-panel, #global-results, script, style, svg';
 
     let entitiesPromise = null;
 
