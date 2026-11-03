@@ -9,6 +9,19 @@
 
     <div class="cm-map">
         <img src="images/maps/castle-map.webp" alt="Doru and Van Richten's hand-drawn map of Castle Ravenloft" loading="lazy">
+        <svg class="cm-route" viewBox="0 0 153 100" preserveAspectRatio="none" aria-hidden="true">
+            <defs>
+                <marker id="cm-arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="3.2" markerHeight="3.2" orient="auto">
+                    <path d="M0,0 L10,5 L0,10 z" fill="#22c55e"/>
+                </marker>
+            </defs>
+            <polyline class="cm-route-main" points="84.2,12.5 91.8,16 98.7,17.5 104.0,20.5 103.3,28 103.3,44 103.3,51 99.5,57.5 71.9,57.5" marker-mid="url(#cm-arrow)" marker-end="url(#cm-arrow)"/>
+            <polyline class="cm-route-spur" points="101.0,33 96.4,33" marker-end="url(#cm-arrow)"/>
+            <polyline class="cm-route-spur" points="69.6,59.5 64.7,61.3" marker-end="url(#cm-arrow)"/>
+            <polyline class="cm-route-spur" points="71.6,55.2 73.7,53.3" marker-end="url(#cm-arrow)"/>
+            <polyline class="cm-route-spur" points="82.6,57.5 82.6,61 74.2,62.8" marker-end="url(#cm-arrow)"/>
+            <circle cx="84.2" cy="12.5" r="1.1" fill="#22c55e" stroke="#fff" stroke-width="0.35"/>
+        </svg>
         <span class="cm-pin cm-entry" style="left:66%; top:13%;" title="Our way in: the servants' entrance">1</span>
         <span class="cm-pin cm-goal" style="left:41%; top:62%;" title="Emil: probably the dungeon beneath the larders">2</span>
         <span class="cm-pin cm-goal" style="left:48.5%; top:52%;" title="Gertruda: the King's Suite, third floor">3</span>
@@ -20,6 +33,7 @@
         <span class="cm-pin cm-danger" style="left:59.5%; top:75%;" title="The catacombs and Strahd's tomb">C</span>
         <span class="cm-pin cm-danger" style="left:49%; top:41%;" title="The catacomb stairs Strahd barred">D</span>
     </div>
+    <p class="cm-hint cm-route-key"><span class="cm-swatch cm-swatch-main"></span> Planned route (dot = where the ravens drop us) &nbsp; <span class="cm-swatch cm-swatch-spur"></span> Side trips to each objective &nbsp;·&nbsp; Out the same way</p>
     <p class="cm-hint">Pinch to zoom on a phone. Hover a marker for a quick label; the key below has the details.</p>
 
     <div class="cm-grid">
@@ -94,6 +108,12 @@
     .cm-unknown{ background: #6d28d9; }
     .cm-info   { background: #1d4ed8; }
     .cm-danger { background: #b91c1c; }
+    .cm-route { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+    .cm-route-main { fill: none; stroke: #22c55e; stroke-width: 0.9; stroke-dasharray: 2.4 1.4; stroke-linejoin: round; stroke-linecap: round; filter: drop-shadow(0 0 0.6px #000); }
+    .cm-route-spur { fill: none; stroke: #22c55e; stroke-width: 0.7; stroke-dasharray: 0.6 1.2; stroke-linecap: round; }
+    .cm-route-key { margin-bottom: 4px !important; color: #a1a1aa !important; }
+    .cm-swatch { display: inline-block; width: 26px; height: 0; vertical-align: middle; border-top: 3px dashed #22c55e; }
+    .cm-swatch-spur { border-top-style: dotted; }
     .cm-hint { color: #71717a; font-size: 0.78rem; font-style: italic; text-align: center; margin: 0 0 16px; }
     .cm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
     .cm-key h3, .cm-check h3 { color: #f87171; font-size: 1.05rem; margin-bottom: 10px; }
