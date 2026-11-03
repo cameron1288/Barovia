@@ -834,7 +834,9 @@ function migrate(o){ if(!o||typeof o!=="object") return o; if(!o.v||o.v<2){ if(A
  if(o.v<3){ o.hp=o.hp||{}; if(o.hp.bonus===undefined){ if(o.hp.temp===5){ o.hp.bonus=5; o.hp.temp=0; o.hp.cur=(o.hp.cur||0)+5; } else o.hp.bonus=0; } o.v=3; }
  if(o.v<4){ const m={}; ["axe","rshield","pipes","mind","boots","ring"].forEach(k=>{ const it=(o.items||[]).find(i=>i.fx===k); m[k]={built:!!(it&&it.mod),holder:"flint",ally:""}; }); o.mods=m; delete o.allyMods; delete o.portrait; o.v=4; }
  return o; }
-function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DEF(),migrate(JSON.parse(r))); } }catch(e){} try{ UI.tab=localStorage.getItem(LKEY+"-tab")||UI.tab }catch(e){} }
+const XPT={2:300,3:900,4:2700,5:6500,6:14000,7:23000,8:34000,9:48000,10:64000,11:85000,12:100000,13:120000,14:140000,15:165000,16:195000,17:225000,18:265000,19:305000,20:355000};
+function fixNextXp(){ try{ const b=S&&S.base; if(!b) return; const L=+b.level||1; if(L>=20) return; const need=XPT[L+1]; if(need && (+b.nextXp||0)<=XPT[L]) b.nextXp=need; }catch(e){} }
+function loadLocal(){ try{ const r=localStorage.getItem(LKEY); if(r){ S=merge(DEF(),migrate(JSON.parse(r))); fixNextXp(); } }catch(e){} try{ UI.tab=localStorage.getItem(LKEY+"-tab")||UI.tab }catch(e){} }
 /* ---------- device-to-device sync via a private GitHub Gist ---------- */
 const SKEY=LKEY+"-sync", GH="https://api.github.com", GIST_DESC="Flint Cogsworth sync";
 let SY={token:"",gist:"",device:"",base:0,synced:0,last:0}, SYS={status:"off",msg:""}, syncTimer=null, syncBusy=false;
@@ -852,7 +854,7 @@ async function gh(path,opts={}){
 async function readRemote(){ const g=await gh("/gists/"+SY.gist); const f=g.files&&g.files["flint.json"]; if(!f) return null; let t=f.content; if(f.truncated) t=await (await fetch(f.raw_url)).text(); try{ return JSON.parse(t); }catch(e){ return null; } }
 const syncPayload = () => JSON.stringify({v:1,updated:S._t||Date.now(),device:SY.device,state:S});
 async function writeRemote(){ await gh("/gists/"+SY.gist,{method:"PATCH",body:JSON.stringify({files:{"flint.json":{content:syncPayload()}}})}); SY.base=SY.synced=S._t||0; SY.last=Date.now(); saveSync(); }
-function applyRemote(rem){ S=merge(DEF(),migrate(rem.state)); S._t=rem.updated; lastLocal=rem.updated; try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){} SY.base=SY.synced=rem.updated; SY.last=Date.now(); saveSync(); if(typeof UNDO!=="undefined") UNDO.length=0; render(); }
+function applyRemote(rem){ S=merge(DEF(),migrate(rem.state)); fixNextXp(); S._t=rem.updated; lastLocal=rem.updated; try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){} SY.base=SY.synced=rem.updated; SY.last=Date.now(); saveSync(); if(typeof UNDO!=="undefined") UNDO.length=0; render(); }
 function conflictModal(rem){
  const when=t=>t?new Date(t).toLocaleString([], {weekday:"short",hour:"2-digit",minute:"2-digit"}):"unknown";
  UI.syncRem=rem;
@@ -1090,6 +1092,7 @@ function renderTop(){
   <div class="gauge ac tap" data-act="armorModal"><div class="lab">AC</div><div class="val num">${ac()}</div><div class="sub">${S.armor?"Armour on":"No armour"}${S.shield?" · Shield":""}</div></div>
   <div class="gauge tap" data-act="init"><div class="lab">Init</div><div class="val num">${sg(M("dex"))}</div></div>
   <div class="gauge tap" data-act="speedInfo"><div class="lab">Speed</div><div class="val num">${speed()}</div></div>
+  <div class="gauge tap" data-act="passInfo"><div class="lab">Passive Perc</div><div class="val num">${10+skillBonus(["Perception","wis"])}</div></div>
   <div class="gauge tap" data-act="dcInfo"><div class="lab">DC · Atk</div><div class="val num">${DC()} · ${sg(ATK())}</div></div>
   <div class="gauge energy"><div class="lab info" data-act="energyInfo">Æther energy ${S.energy}/${eMax()}</div><div class="pips">${pips(S.energy,eMax())}</div><div class="ctl"><button class="mini" data-act="energy" data-d="-1">−</button><button class="mini" data-act="energy" data-d="1">+</button><button class="mini" data-act="soulModal" title="Soul Vacuum">Vacuum</button></div></div>
   <div class="gauge stress"><div class="lab info" data-act="stressInfo">Stress ${S.stress}/5</div><div class="pips">${pips(S.stress,5,"st")}</div><div class="ctl"><button class="mini" data-act="stress" data-d="-1">−</button><button class="mini" data-act="stress" data-d="1">+</button></div></div>
@@ -2157,7 +2160,7 @@ const ACT = {
    <p class="small dim">Also: one more hit die, and your gadget load-out limit rises to ${n+M("int")}.</p>`); },
  levelGo:d=>{ const L=B().level, n=L+1; let g;
   if(d.v==="avg") g=5+M("con"); else if(PERSON()){ const v=+((document.getElementById("lvl-roll")||{}).value||0); if(!(v>=1&&v<=8)){ toastModal("Enter your roll","<p>Type the number on your d8 (1 to 8), then tap the roll button again.</p>"); return; } g=Math.max(1,v+M("con")); } else g=Math.max(1,R(8)+M("con"));
-  S.base.level=n; S.base.maxHp=(+S.base.maxHp||0)+g; S.hp.cur=Math.min(maxHp(),S.hp.cur+g); if(n===7) S.lim.fog=fogMax();
+  S.base.level=n; if(XPT[n+1]) S.base.nextXp=XPT[n+1]; S.base.maxHp=(+S.base.maxHp||0)+g; S.hp.cur=Math.min(maxHp(),S.hp.cur+g); if(n===7) S.lim.fog=fogMax();
   logEv(`Levelled up to ${n}: +${g} max HP`); save(); render();
   toastModal(`Level ${n}`,`<p>Max HP +${g} (now ${maxHp()}). Anything new for this level is on the Character tab under <b>Artificer by level</b>.</p>${ASI_LV.includes(n)?'<p class="small">Remember your Ability Score Improvement or feat. Tap the stats panel\'s Edit to change scores.</p>':""}`); },
  limN:d=>{ const i=+d.i, cur=S.lim[d.k]??fogMax(); S.lim[d.k]= i<cur ? i : i+1; save(); render(); },
@@ -2350,6 +2353,7 @@ const ACT = {
    saves:["Saving throw traits",`<ul><li><b>Disadvantage on Wisdom saves</b> (Amber-Veined transformation).</li><li><b>Advantage on Sanity/Composure saves</b> (Grave Resilience).</li><li>Proficient in <b>Constitution</b> (${sg(saveBonus("con"))}) and <b>Intelligence</b> (${sg(saveBonus("int"))}) saves.</li></ul><p class='small muted'>The roll pop-up applies these for you.</p>`],
    immune:["Unliving Stasis","<ul><li><b>Sleepless:</b> you don't need sleep and can't be put to sleep by magic.</li><li><b>Suspended respiration:</b> you take one breath per minute and are immune to suffocation.</li></ul><p class='small muted'>Amber-Veined Gnome trait.</p>"]
   }; const t=T[d.k]; if(t) infoPop(t[0],t[1]); },
+ passInfo:()=>infoPop("Passive senses",`<div class="what">Perception ${10+skillBonus(["Perception","wis"])}</div><p>Passive Investigation <b>${10+skillBonus(["Investigation","int"])}</b>.</p><p class="small muted">10 + the skill bonus. Use it when the DM wants to know what you notice without rolling.</p>`),
  energyInfo:()=>infoPop("Æther-Pack energy",`<div class="what" style="color:var(--ecto)">${S.energy} / ${eMax()}</div>
   <ul><li><b>Capacity:</b> 5 + INT mod = ${eMax()}.</li><li><b>Gain it:</b> Soul Vacuum (reaction when a hostile CR ¼+ creature dies within 30 ft), or Seriach's Fuel at 0 energy.</li><li><b>Spend it:</b> Proton Bolt 1, Proton Stream 3, Containment Burst 4, Full Proton Overload 5.</li><li><b>Over capacity:</b> excess from Soul Vacuum burns through as 1 necrotic per point to you or an adjacent creature.</li><li><b>Long rest:</b> lose half (rounded up) unless you take 1 Stress to keep it all.</li></ul>`),
  stressInfo:()=>infoPop("Stress",`<div class="what" style="color:var(--blood)">${S.stress} / 5</div>
