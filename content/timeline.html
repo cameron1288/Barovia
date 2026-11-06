@@ -6,7 +6,7 @@
 
   <div style="margin-bottom: 24px;">
     <h2 style="color: #f87171; margin-bottom: 4px;">Chronicle of Events</h2>
-    <p style="color: #a1a1aa; font-style: italic; font-size: 0.95rem;">Year 735 of Barovia · Octyavr–Neyavr · Sessions 1–51 · Newest first, with what's coming up on top</p>
+    <p style="color: #a1a1aa; font-style: italic; font-size: 0.95rem;">Year 735 of Barovia · Octyavr–Neyavr · Sessions 1–51 · Newest first</p>
   </div>
 
   <!-- Filter Buttons -->
@@ -21,21 +21,24 @@
 
   <div class="tl-container">
 
-    <div class="tl-month-label">⏳ Tonight · 15th Neyavr, new moon · Session 52</div>
+    <details class="tl-upcoming">
+      <summary>⏳ Coming up <span class="tl-upcoming-count">3</span><span class="tl-upcoming-hint">tap to show</span></summary>
 
-    <div class="tl-entry tl-current" data-tags="strahd milestone">
-      <div class="tl-dot tl-dot-current"></div>
-      <div class="tl-card tl-card-current">
+    <div class="tl-month-label">⏳ 23rd Neyavr · 8 days away</div>
+
+    <div class="tl-entry" data-tags="lore milestone">
+      <div class="tl-dot tl-dot-upcoming"></div>
+      <div class="tl-card tl-card-upcoming">
         <div class="tl-card-header" onclick="toggleTL(this)">
           <div>
-            <span class="tl-date">Session 52 — Up next</span>
-            <h3 class="tl-title">📍 The Ravenloft Heist — Gertruda, Emil, Argynvost's Skull &amp; the Icon</h3>
-            <div class="tl-tags"><span class="tl-tag tag-strahd">Strahd</span><span class="tl-tag tag-milestone">Milestone</span></div>
+            <span class="tl-date">23rd Neyavr — Anna's deadline</span>
+            <h3 class="tl-title">⚠️ The Abbott Takes Anna's Heart</h3>
+            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-milestone">Milestone</span></div>
           </div>
           <span class="tl-arrow">▼</span>
         </div>
         <div class="tl-body">
-          <p>Strahd left at about 5 p.m. and returns around 5 a.m. The party (with Ireena and Zelly) will fly across on Muriel's wereravens to the north side while Doru distracts the wights at the drawbridge, then enter by the servants' door. Objectives: free Gertruda and Emil, take Argynvost's skull, and find the Icon of Dawn's Grace. Then they'll take the skull straight to Argynvostholt. Emil's oath comes due with the new moon.</p>
+          <p>The Abbott gave Anna Krezkov 30 days to decide — provide her own heart to complete Vasilka (the bride construct for Strahd), in exchange for her daughter Kala being brought back to life. The deadline falls on the 23rd of Neyavr.</p>
         </div>
       </div>
     </div>
@@ -59,26 +62,28 @@
       </div>
     </div>
 
-    <div class="tl-month-label">⏳ 23rd Neyavr · 8 days away</div>
+<div class="tl-month-label">⏳ Tonight · 15th Neyavr, new moon · Session 52</div>
 
-    <div class="tl-entry" data-tags="lore milestone">
-      <div class="tl-dot tl-dot-upcoming"></div>
-      <div class="tl-card tl-card-upcoming">
+    <div class="tl-entry tl-current" data-tags="strahd milestone">
+      <div class="tl-dot tl-dot-current"></div>
+      <div class="tl-card tl-card-current">
         <div class="tl-card-header" onclick="toggleTL(this)">
           <div>
-            <span class="tl-date">23rd Neyavr — Anna's deadline</span>
-            <h3 class="tl-title">⚠️ The Abbott Takes Anna's Heart</h3>
-            <div class="tl-tags"><span class="tl-tag tag-lore">Lore</span><span class="tl-tag tag-milestone">Milestone</span></div>
+            <span class="tl-date">Session 52 — Up next</span>
+            <h3 class="tl-title">📍 The Ravenloft Heist — Gertruda, Emil, Argynvost's Skull &amp; the Icon</h3>
+            <div class="tl-tags"><span class="tl-tag tag-strahd">Strahd</span><span class="tl-tag tag-milestone">Milestone</span></div>
           </div>
           <span class="tl-arrow">▼</span>
         </div>
         <div class="tl-body">
-          <p>The Abbott gave Anna Krezkov 30 days to decide — provide her own heart to complete Vasilka (the bride construct for Strahd), in exchange for her daughter Kala being brought back to life. The deadline falls on the 23rd of Neyavr.</p>
+          <p>Strahd left at about 5 p.m. and returns around 5 a.m. The party (with Ireena and Zelly) will fly across on Muriel's wereravens to the north side while Doru distracts the wights at the drawbridge, then enter by the servants' door. Objectives: free Gertruda and Emil, take Argynvost's skull, and find the Icon of Dawn's Grace. Then they'll take the skull straight to Argynvostholt. Emil's oath comes due with the new moon.</p>
         </div>
       </div>
     </div>
 
-    <div class="tl-divider">Everything so far · newest first</div>
+    </details>
+
+    <div class="tl-divider">What has happened · newest first</div>
 
     <div class="tl-month-label">15th Neyavr · Session 51</div>
 
@@ -964,6 +969,27 @@
     letter-spacing: 1px;
     font-weight: bold;
   }
+
+  .tl-upcoming {
+    margin: 0 0 0 -36px;
+    border: 1px solid #78350f;
+    border-radius: 6px;
+    background: #17120a;
+  }
+  .tl-upcoming > summary {
+    cursor: pointer;
+    padding: 10px 16px;
+    color: #fbbf24;
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .tl-upcoming-count { background: #78350f; color: #fde68a; border-radius: 10px; padding: 1px 8px; margin-left: 6px; }
+  .tl-upcoming-hint { color: #a1a1aa; font-weight: normal; text-transform: none; letter-spacing: 0; margin-left: 10px; font-style: italic; }
+  .tl-upcoming[open] .tl-upcoming-hint { display: none; }
+  .tl-upcoming[open] { padding: 0 12px 4px 48px; }
+  .tl-upcoming[open] > summary { margin-left: -48px; }
 
   .tl-divider {
     margin: 36px 0 0 -36px;
