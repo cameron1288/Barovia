@@ -34,6 +34,9 @@ to have ready. Table events and site records only, never DM material. Fact-check
   a `ul.entry-facts` (what matters now; keep current by replacing bullets), and collapsed `details.entry-more`
   sections whose `ul.entry-log` items start with `<span class="entry-s">S47</span>`. Add each session's events
   as a new tagged history bullet, and refresh the summary and facts. Short cards (under ~150 words) can stay plain prose.
+- **Timeline is newest first.** The "⏳" coming-up sections sit on top, nearest first. Below the "Everything so far"
+  divider, add each new day's section directly under the divider, with its cards newest first. Labels read
+  "15th Neyavr · Session 51". The "Long Ago" section at the bottom holds history seen in visions and dreams.
 - **Chronicles recaps are 2–3 short paragraphs** so players can skim them. Put the detail in the other tabs
   (Denizens, Realm, Lore, Quests, Inventory, Companions), not in the recap.
 - **Codex layout:** a short "Right Now" list (about 5 questions for the next session), then open questions grouped
