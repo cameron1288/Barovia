@@ -24,11 +24,16 @@
 
     let indexPromise = null;
 
+    // Every page, including the second page of a two-page tab (window.TAB_GROUPS in index.html).
     function tabList() {
-        return Array.from(document.querySelectorAll('.tab-menu .tab-btn')).map(btn => {
+        const groups = window.TAB_GROUPS || {};
+        return Array.from(document.querySelectorAll('.tab-menu .tab-btn')).flatMap(btn => {
             const m = (btn.getAttribute('onclick') || '').match(/loadFragment\('([^']+)'/);
-            return m ? { file: m[1], label: btn.textContent.trim(), btn } : null;
-        }).filter(Boolean);
+            if (!m) return [];
+            const main = btn.textContent.trim();
+            return (groups[m[1]] || [[m[1], main]]).map(([file, label]) =>
+                ({ file, label: label === main ? main : `${main} › ${label}`, btn }));
+        });
     }
 
     function norm(s) {
@@ -515,7 +520,7 @@
     async function jumpToEntity(ent) {
         const tab = tabList().find(t => t.file === ent.tab);
         if (!tab) return;
-        await window.loadFragment(tab.file, { target: tab.btn });
+        await window.loadFragment(tab.file);
         const card = Array.from(document.querySelectorAll('#content-area ' + ENTRY_SELECTOR))
             .find(c => norm(headingOf(c)) === ent.rawTitle);
         if (card) reveal(card);
@@ -557,7 +562,7 @@
     async function jumpTo(passage) {
         const tab = tabList().find(t => t.file === passage.tab);
         if (!tab || typeof window.loadFragment !== 'function') return;
-        await window.loadFragment(tab.file, { target: tab.btn });
+        await window.loadFragment(tab.file);
         const probe = passage.text.slice(0, 80);
         const target = Array.from(document.querySelectorAll('#content-area p, #content-area li, #content-area tr'))
             .find(el => norm(el.textContent).startsWith(probe));

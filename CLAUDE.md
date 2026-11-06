@@ -61,6 +61,10 @@ to have ready. Table events and site records only, never DM material. Fact-check
 
 ## Other pieces
 
+- **Two-page tabs:** Party (Companions + Inventory), Chronicles (Recaps + Timeline), Lore (Lore + Codex), Maps
+  (Barovia + Castle) and Library (Library + Tarokka) each show a page toggle under the search bar. The pairs are
+  defined once in `window.TAB_GROUPS` in `index.html`; each page keeps its own `content/*.html` file. A tab button
+  reopens the page last viewed in its group. To add a page to a tab, add it there (and to the `SHELL` list in `sw.js`).
 - **Search** ("🔎 All tabs") and the **Ask the Chronicle** chat both use the paragraph index built in `chronicle.js`.
 - **Chat relay:** `worker/` is a Cloudflare Worker (free Workers AI) at
   `https://barovia-chronicle.cameronwoodard1288-9d0.workers.dev`. Redeploy with `npx --yes wrangler@3 deploy` from

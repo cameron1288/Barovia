@@ -25,19 +25,14 @@
         <div class="tab-menu" id="tabMenu">
             <button class="tab-btn" onclick="loadFragment('overview', event)">Overview</button>
             <button class="tab-btn" onclick="loadFragment('homework', event)">Homework</button>
-            <button class="tab-btn" onclick="loadFragment('players', event)">Companions</button>
-            <button class="tab-btn" onclick="loadFragment('inventory', event)">Inventory</button>
+            <button class="tab-btn" onclick="loadFragment('players', event)">Party</button>
             <button class="tab-btn" onclick="loadFragment('sessions', event)">Chronicles</button>
-            <button class="tab-btn" onclick="loadFragment('timeline', event)">Timeline</button>
             <button class="tab-btn" onclick="loadFragment('npcs', event)">Denizens</button>
             <button class="tab-btn" onclick="loadFragment('quests', event)">Quests</button>
             <button class="tab-btn" onclick="loadFragment('battles', event)">Combat</button>
             <button class="tab-btn" onclick="loadFragment('lore', event)">Lore</button>
-            <button class="tab-btn" onclick="loadFragment('codex', event)">Codex</button>
             <button class="tab-btn" onclick="loadFragment('locations', event)">Realm</button>
-            <button class="tab-btn" onclick="loadFragment('map', event)">Map</button>
-            <button class="tab-btn" onclick="loadFragment('castle', event)">Castle</button>
-            <button class="tab-btn" onclick="loadFragment('tarokka', event)">Tarokka</button>
+            <button class="tab-btn" onclick="loadFragment('map', event)">Maps</button>
             <button class="tab-btn" onclick="loadFragment('library', event)">Library</button>
         </div>
 
@@ -49,13 +44,29 @@
             <div id="global-results" hidden></div>
         </div>
 
+        <div id="page-toggle" class="page-toggle" hidden></div>
+
         <div id="content-area" class="tab-content active" style="display: block;"></div>
     </div>
 
     <script>
         // Loads a tab's HTML fragment into #content-area, re-running any
         // <script> tags the fragment contains (e.g. map.html's own logic).
+        // Tabs that hold two pages, switched by a toggle under the search bar.
+        // The first page is the one the tab's own file name opens.
+        window.TAB_GROUPS = {
+            players: [['players', 'Companions'], ['inventory', 'Inventory']],
+            sessions: [['sessions', 'Recaps'], ['timeline', 'Timeline']],
+            lore: [['lore', 'Lore'], ['codex', 'Codex']],
+            map: [['map', 'Barovia Map'], ['castle', 'Castle Map']],
+            library: [['library', 'Library'], ['tarokka', 'Tarokka Reading']],
+        };
+        const lastPage = {};   // a tab button reopens the page last viewed in its group
+
         async function loadFragment(filename, event) {
+            const group = Object.keys(TAB_GROUPS).find(g => TAB_GROUPS[g].some(([f]) => f === filename)) || filename;
+            if (event && event.currentTarget && event.currentTarget.closest && event.currentTarget.closest('.tab-menu') && lastPage[group]) filename = lastPage[group];
+            if (TAB_GROUPS[group]) lastPage[group] = filename;
             const response = await fetch(`content/${filename}.html`);
             const html = await response.text();
 
@@ -74,8 +85,11 @@
             });
 
             document.getElementById('liveSearch').value = '';
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.toggle('active', btn.getAttribute('onclick').includes(`'${group}'`)));
+            const bar = document.getElementById('page-toggle');
+            bar.hidden = !TAB_GROUPS[group];
+            bar.innerHTML = (TAB_GROUPS[group] || []).map(([f, label]) =>
+                `<button type="button" class="page-btn${f === filename ? ' active' : ''}" onclick="loadFragment('${f}')">${label}</button>`).join('');
 
             // Relevance ordering, "Show more" for long cards, glossary links (js/chronicle.js).
             if (typeof window.chronicleAfterLoad === 'function') await window.chronicleAfterLoad(filename);

@@ -891,3 +891,11 @@ details.npc-portrait > summary { padding-top: 2px; }
 .codex-section-desc { flex-basis: 100%; color: #a1a1aa; font-style: italic; font-size: 0.85rem; margin-top: -4px; }
 .codex-section[open] { padding-bottom: 12px; }
 .codex-section .codex-item { margin-left: 12px; }
+
+/* Two-page tabs (Party, Chronicles, Lore, Maps, Library): the page toggle under the search bar. */
+.page-toggle { display: flex; gap: 6px; padding: 2px 15px 8px; flex-wrap: wrap; }
+.page-toggle[hidden] { display: none; }
+.page-btn { background: #1f1f24; border: 1px solid #3f3f46; color: #cbd5e1; padding: 5px 14px; border-radius: 14px;
+    font-family: 'Georgia', serif; font-size: 0.82rem; font-weight: bold; cursor: pointer; }
+.page-btn:hover { border-color: #7f1d1d; color: #fff; }
+.page-btn.active { background: #561c1c; border-color: #b91c1c; color: #fff; }
