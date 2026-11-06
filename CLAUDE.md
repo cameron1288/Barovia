@@ -22,7 +22,11 @@ transcript (`transaction_polish` block, paged 500 utterances at a time; results 
 When an attribution is still ambiguous, write the site text neutrally and ask the user.
 
 A full update touches: **Chronicles** (`sessions.html`, new session at the top), **Timeline**, **Denizens**, **Realm**,
-**Quests**, **Lore**, **Codex**, **Companions**, **Inventory**, **Overview**, and sometimes **Combat** and the **Map** popup text.
+**Quests**, **Lore**, **Codex**, **Companions**, **Inventory**, **Overview**, **Homework**, and sometimes **Combat** and the **Map** popup text.
+
+**Homework** (`homework.html`) is rewritten every update for the *next* session: one collapsed card per likely
+situation (most likely first), each with why it may come up, what we know (with session numbers), and questions
+to have ready. Table events and site records only, never DM material. Fact-check every citation against the site.
 
 ## Conventions
 
