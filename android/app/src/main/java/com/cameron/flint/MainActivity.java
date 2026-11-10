@@ -144,10 +144,13 @@ public class MainActivity extends Activity {
             new Thread(() -> {
                 String msg = "fail";
                 try {
-                    HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                    String m = "POST", target = url;
+                    int sp = url.indexOf(' ');
+                    if (sp > 0) { m = url.substring(0, sp); target = url.substring(sp + 1); }
+                    HttpURLConnection c = (HttpURLConnection) new URL(target).openConnection();
                     c.setConnectTimeout(1500);
                     c.setReadTimeout(2500);
-                    c.setRequestMethod("POST");
+                    c.setRequestMethod(m);
                     c.setRequestProperty("Content-Type", "application/json");
                     c.setDoOutput(true);
                     try (OutputStream os = c.getOutputStream()) { os.write(json.getBytes(StandardCharsets.UTF_8)); }
@@ -164,6 +167,63 @@ public class MainActivity extends Activity {
                 final String out = msg.replace("\n", " ").replace("\r", " ");
                 runOnUiThread(() -> {
                     try { web.evaluateJavascript("window.__lanDone&&window.__lanDone('" + out + "')", null); } catch (Throwable ignore) {}
+                });
+            }).start();
+        }
+
+        @JavascriptInterface
+        public void sendJson(final String method, final String url, final String json, final String tag) {
+            new Thread(() -> {
+                String out;
+                try {
+                    HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setConnectTimeout(2000);
+                    c.setReadTimeout(3000);
+                    c.setRequestMethod(method);
+                    c.setRequestProperty("Content-Type", "application/json");
+                    c.setDoOutput(true);
+                    try (OutputStream os = c.getOutputStream()) { os.write(json.getBytes(StandardCharsets.UTF_8)); }
+                    int code = c.getResponseCode();
+                    String body = "";
+                    try (InputStream is = code >= 400 ? c.getErrorStream() : c.getInputStream()) {
+                        if (is != null) { byte[] b = new byte[400]; int n = is.read(b); if (n > 0) body = new String(b, 0, n, StandardCharsets.UTF_8); }
+                    } catch (Exception ignore) {}
+                    c.disconnect();
+                    out = code + "\n" + body;
+                } catch (Throwable e) {
+                    out = "0\n" + String.valueOf(e.getMessage());
+                }
+                final String js = "window.__lanGot&&window.__lanGot(" + org.json.JSONObject.quote(tag) + "," + org.json.JSONObject.quote(out) + ")";
+                runOnUiThread(() -> {
+                    try { web.evaluateJavascript(js, null); } catch (Throwable ignore) {}
+                });
+            }).start();
+        }
+
+        @JavascriptInterface
+        public void getText(final String url, final String tag) {
+            new Thread(() -> {
+                String out;
+                try {
+                    HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setConnectTimeout(2000);
+                    c.setReadTimeout(4000);
+                    int code = c.getResponseCode();
+                    StringBuilder sb = new StringBuilder();
+                    try (InputStream is = code >= 400 ? c.getErrorStream() : c.getInputStream()) {
+                        if (is != null) {
+                            byte[] b = new byte[8192]; int n;
+                            while ((n = is.read(b)) > 0 && sb.length() < 300000) sb.append(new String(b, 0, n, StandardCharsets.UTF_8));
+                        }
+                    } catch (Exception ignore) {}
+                    c.disconnect();
+                    out = code + "\n" + sb;
+                } catch (Throwable e) {
+                    out = "0\n" + String.valueOf(e.getMessage());
+                }
+                final String js = "window.__lanGot&&window.__lanGot(" + org.json.JSONObject.quote(tag) + "," + org.json.JSONObject.quote(out) + ")";
+                runOnUiThread(() -> {
+                    try { web.evaluateJavascript(js, null); } catch (Throwable ignore) {}
                 });
             }).start();
         }

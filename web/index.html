@@ -631,6 +631,35 @@ function lanSend(force){ try{
  LAN.busy=true; LAN.pend=j; AndroidBridge.postJson(S.settings.lanUrl,j,!!force);
 }catch(e){ LAN.busy=false; } }
 window.__lanDone=m=>{ try{ m=String(m||""); LAN.busy=false; const ok=/^2\d\d/.test(m); LAN.msg=ok?"Sent":"Not sent: "+m; if(ok){ LAN.last=LAN.pend; LAN.wait=0; } else LAN.wait=Date.now()+30000; const el=document.getElementById("lanmsg"); if(el) el.textContent=LAN.msg+(ok?"":" (will retry when something changes)"); }catch(e){} };
+/* Looks at the display's own pages to find where it takes updates. */
+const LANC={wait:{},got:{},left:0};
+window.__lanGot=(tag,txt)=>{ try{ const i=String(txt).indexOf("\n"); LANC.got[tag]={code:+String(txt).slice(0,i),body:String(txt).slice(i+1)}; const f=LANC.wait[tag]; delete LANC.wait[tag]; if(f) f(LANC.got[tag]); }catch(e){} };
+function lanGet(url){ return new Promise(res=>{ const tag="g"+Math.random().toString(36).slice(2); LANC.wait[tag]=res; try{ AndroidBridge.getText(url,tag); }catch(e){ delete LANC.wait[tag]; res({code:0,body:String(e.message||e)}); } setTimeout(()=>{ if(LANC.wait[tag]){ delete LANC.wait[tag]; res({code:0,body:"no answer"}); } },8000); }); }
+async function lanCheck(){
+ const u=((document.getElementById("lan-url")||{}).value||S.settings.lanUrl||"").replace(/^(POST|PUT|PATCH) /,""); let origin; try{ origin=new URL(u).origin; }catch(e){ toastModal("That address doesn't look right."); return; }
+ modal(`<h2>Checking the display</h2><p class="small muted">Looking at ${esc(origin)}…</p>`);
+ const pages=[origin+"/", u], seen=new Set(), found=new Map(), report=[]; const scripts=[];
+ const scan=(txt,from)=>{ const re=/(fetch|axios\.\w+|\.open|EventSource|WebSocket|method|action|href|src|path|url)?\s*[(:=]?\s*["'`]((?:\/|https?:\/\/|wss?:\/\/)[^"'`\s<>]{1,120})["'`]/gi; let m; while((m=re.exec(txt))){ const p=m[2]; if(/\.(png|jpe?g|gif|svg|ico|woff2?|ttf|css)(\?|$)/i.test(p)) continue; const ctx=txt.slice(Math.max(0,m.index-60),m.index+m[0].length+80).replace(/\s+/g," "); if(!found.has(p)) found.set(p,{from,ctx}); } const sre=/<script[^>]+src=["']([^"']+)["']/gi; while((m=sre.exec(txt))){ try{ scripts.push(new URL(m[1],from).href); }catch(e){} } };
+ for(const pg of pages){ if(seen.has(pg)) continue; seen.add(pg); const r=await lanGet(pg); report.push(`<b>${esc(pg)}</b> answered ${r.code||"nothing"}`); scan(r.body||"",pg); if(pg===origin+"/") LANC.root=(r.body||"").replace(/<script[\s\S]*?<\/script>|<style[\s\S]*?<\/style>/gi," ").replace(/<[^>]+>/g," ").replace(/\s+/g," ").trim().slice(0,600); }
+ for(const sc of scripts.slice(0,6)){ if(seen.has(sc)) continue; seen.add(sc); const r=await lanGet(sc); report.push(`<b>${esc(sc)}</b> answered ${r.code||"nothing"}`); scan(r.body||"",sc); }
+ const rows=[...found.entries()].slice(0,40).map(([p,v])=>`<li><code>${esc(p)}</code><div class="small dim">${esc(v.ctx)}</div></li>`).join("");
+ modal(`<h2>What the display shows</h2><div class="small">${report.join("<br>")}</div>${LANC.root?`<h3>Front page text</h3><p class="small muted">${esc(LANC.root)}</p>`:""}<h3>Addresses it mentions</h3>${rows?`<ul class="small" style="padding-left:18px">${rows}</ul>`:`<p class="small muted">None found.</p>`}<p class="small dim">Take a screenshot of this and send it to Claude.</p><div class="btns" style="margin-top:10px"><button class="btn" data-act="close">Close</button></div>`);
+}
+function lanSend2(method,url,j){ return new Promise(res=>{ const tag="s"+Math.random().toString(36).slice(2); LANC.wait[tag]=res; try{ AndroidBridge.sendJson(method,url,j,tag); }catch(e){ delete LANC.wait[tag]; res({code:0,body:String(e.message||e)}); } setTimeout(()=>{ if(LANC.wait[tag]){ delete LANC.wait[tag]; res({code:0,body:"no answer"}); } },7000); }); }
+/* When the saved address answers "not found", try the usual places a display takes updates and keep the first that accepts. */
+async function lanFind(raw){
+ let U; try{ U=new URL(raw.replace(/^(POST|PUT|PATCH) /,"")); }catch(e){ return null; }
+ const o=U.origin, path=U.pathname.replace(/\/$/,""), id=path.split("/").pop()||"flint";
+ const paths=[...new Set([path, "/api"+path, path+"/update", path+"/state", "/api/p/"+id, "/api/players/"+id, "/api/player/"+id, "/api/pc/"+id, "/api/characters/"+id, "/api/update/"+id, "/update/"+id, "/api/update", "/update", "/api/state", "/state"])];
+ const j=JSON.stringify(lanPayload()); const tried=[];
+ for(const p of paths) for(const m of ["POST","PUT","PATCH"]){
+  const el=document.getElementById("lanmsg"); if(el) el.textContent=`Trying ${m} ${p}…`;
+  const r=await lanSend2(m,o+p,j); tried.push(`${m} ${p}: ${r.code||"no answer"}`);
+  if(r.code>=200 && r.code<300) return {url:(m==="POST"?"":m+" ")+o+p, tried};
+  if(r.code===0 && /refused|timed out|unreachable|no answer/i.test(r.body)) return {url:null,tried,down:true};
+ }
+ return {url:null,tried};
+}
 function lanSoon(){ try{ if(!LAN.ready) return; clearTimeout(LAN.t); LAN.t=setTimeout(()=>lanSend(false),800); }catch(e){} }
 function save(){
  lanSoon();
@@ -1700,7 +1729,7 @@ function settingsModal(){
    <p class="status" id="syncmsg" style="margin-top:6px">${SYS.status==="err"?"Couldn't connect: "+esc(SYS.msg):"Not connected."}</p>
    <p class="small dim">The token stays on this device only. It isn't saved in Flint's data or backups.</p>`}
   ${window.AndroidBridge&&AndroidBridge.postJson?`<h3>Live display</h3><div class="list">${tog("lanOn","Send HP and Stress to the display","Sends to the address below whenever they change, only while you are on that network.")}</div>
-  <div class="btns" style="margin-top:6px"><input type="text" id="lan-url" value="${esc(st.lanUrl||"")}" style="flex:1;min-width:200px" aria-label="Display address"><button class="btn" data-act="lanTest">Test</button></div>
+  <div class="btns" style="margin-top:6px"><input type="text" id="lan-url" value="${esc(st.lanUrl||"")}" style="flex:1;min-width:200px" aria-label="Display address"><button class="btn" data-act="lanTest">Test</button>${AndroidBridge.getText?`<button class="btn" data-act="lanCheck">Check display</button>`:""}</div>
   <p class="status" id="lanmsg" style="margin-top:6px">${esc(LAN.msg||"")}</p>`:""}
   <h3>History</h3>
   <div class="btns"><button class="btn" data-act="eventLog">Event log</button><button class="btn" data-act="history">Roll log</button></div>
@@ -2095,7 +2124,15 @@ const ACT = {
    saves:["Saving throw traits",`<ul><li><b>Disadvantage on Wisdom saves</b> (Amber-Veined transformation).</li><li><b>Advantage on Sanity/Composure saves</b> (Grave Resilience).</li><li>Proficient in <b>Constitution</b> (${sg(saveBonus("con"))}) and <b>Intelligence</b> (${sg(saveBonus("int"))}) saves.</li></ul><p class='small muted'>The roll pop-up applies these for you.</p>`],
    immune:["Unliving Stasis","<ul><li><b>Sleepless:</b> you don't need sleep and can't be put to sleep by magic.</li><li><b>Suspended respiration:</b> you take one breath per minute and are immune to suffocation.</li></ul><p class='small muted'>Amber-Veined Gnome trait.</p>"]
   }; const t=T[d.k]; if(t) infoPop(t[0],t[1]); },
- lanTest:()=>{ const u=(document.getElementById("lan-url").value||"").trim(); S.settings.lanUrl=u; save(); const el=document.getElementById("lanmsg"); if(el) el.textContent="Sending..."; LAN.wait=0; lanSend(true); },
+ lanCheck:()=>lanCheck(),
+ lanTest:async()=>{ const u=(document.getElementById("lan-url").value||"").trim(); S.settings.lanUrl=u; save(); const el=document.getElementById("lanmsg"); if(el) el.textContent="Sending...";
+  if(!AndroidBridge.sendJson){ LAN.wait=0; lanSend(true); return; }
+  const r=await lanSend2(u.match(/^(PUT|PATCH) /)?u.split(" ")[0]:"POST",u.replace(/^(POST|PUT|PATCH) /,""),JSON.stringify(lanPayload()));
+  if(r.code>=200&&r.code<300){ LAN.last="";LAN.wait=0; window.__lanDone(r.code+" "+r.body); return; }
+  if(el) el.textContent="That address said "+(r.code||r.body)+". Looking for the right one…";
+  const f=await lanFind(u); const el2=document.getElementById("lanmsg");
+  if(f&&f.url){ S.settings.lanUrl=f.url; save(); const inp=document.getElementById("lan-url"); if(inp) inp.value=f.url; LAN.last=""; LAN.wait=0; if(el2) el2.textContent="Found it. HP and Stress now go to "+f.url; return; }
+  if(el2) el2.innerHTML=(f&&f.down?"The display didn't answer. Check the tablet is on the same network as the display.":"The display didn't accept HP and Stress at any usual address. Tap Check display and send Claude a screenshot.")+`<details class="small dim"><summary>What was tried</summary>${esc((f&&f.tried||[]).join(" · "))}</details>`; },
  passInfo:()=>infoPop("Passive senses",`<div class="what">Perception ${10+skillBonus(["Perception","wis"])}</div><p>Passive Investigation <b>${10+skillBonus(["Investigation","int"])}</b>.</p><p class="small muted">10 + the skill bonus. Use it when the DM wants to know what you notice without rolling.</p>`),
  energyInfo:()=>infoPop("Æther-Pack energy",`<div class="what" style="color:var(--ecto)">${S.energy} / ${eMax()}</div>
   <ul><li><b>Capacity:</b> 5 + INT mod = ${eMax()}.</li><li><b>Gain it:</b> Soul Vacuum (reaction when a hostile CR ¼+ creature dies within 30 ft), or Seriach's Fuel at 0 energy.</li><li><b>Spend it:</b> Proton Bolt 1, Proton Stream 3, Containment Burst 4, Full Proton Overload 5.</li><li><b>Over capacity:</b> excess from Soul Vacuum burns through as 1 necrotic per point to you or an adjacent creature.</li><li><b>Long rest:</b> lose half (rounded up) unless you take 1 Stress to keep it all.</li></ul>`),
