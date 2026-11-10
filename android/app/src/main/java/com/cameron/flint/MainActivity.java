@@ -54,6 +54,13 @@ public class MainActivity extends Activity {
                 try { startActivity(new Intent(Intent.ACTION_VIEW, u)); } catch (Exception ignored) {}
                 return true;
             }
+
+            @Override
+            public boolean onRenderProcessGone(WebView view, android.webkit.RenderProcessGoneDetail detail) {
+                // The page's engine stopped; start the screen again instead of closing the app.
+                recreate();
+                return true;
+            }
         });
         web.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -69,8 +76,8 @@ public class MainActivity extends Activity {
             }
         });
 
-        if (savedInstanceState != null) web.restoreState(savedInstanceState);
-        else web.loadUrl("file:///android_asset/index.html");
+        // Always load the sheet fresh; everything Flint needs is kept in the page's own storage.
+        web.loadUrl("file:///android_asset/index.html");
     }
 
     @Override
@@ -81,12 +88,6 @@ public class MainActivity extends Activity {
             return;
         }
         super.onActivityResult(requestCode, resultCode, data);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        web.saveState(outState);
     }
 
     @Override
@@ -141,7 +142,7 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void postJson(final String url, final String json, final boolean report) {
             new Thread(() -> {
-                String msg;
+                String msg = "fail";
                 try {
                     HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
                     c.setConnectTimeout(1500);
@@ -157,11 +158,13 @@ public class MainActivity extends Activity {
                     } catch (Exception ignore) {}
                     msg = code + (body.isEmpty() ? "" : " " + body.replace("\n", " ").replace("'", " ").replace("\\", " "));
                     c.disconnect();
-                } catch (Exception e) {
+                } catch (Throwable e) {
                     msg = "fail " + String.valueOf(e.getMessage()).replace("'", " ").replace("\\", " ");
                 }
-                final String out = msg;
-                runOnUiThread(() -> web.evaluateJavascript("window.__lanDone&&window.__lanDone('" + out.replace("\n", " ") + "')", null));
+                final String out = msg.replace("\n", " ").replace("\r", " ");
+                runOnUiThread(() -> {
+                    try { web.evaluateJavascript("window.__lanDone&&window.__lanDone('" + out + "')", null); } catch (Throwable ignore) {}
+                });
             }).start();
         }
 
