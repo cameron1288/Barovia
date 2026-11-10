@@ -498,7 +498,7 @@ function DEF(){
   v:4, _t:0, lastAutoBackup:0,
   lr:{kind:"long",active:false,hours:8,used:0,done:{},research:[],tinker:0,opts:{stress:true,keep:false,dawn:true,temp:false}},
   rplan:{items:[]},
-  settings:{autoBackup:true,loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
+  settings:{lanOn:true,lanUrl:"http://192.168.2.61:8765/p/flint",autoBackup:true,loadDetails:true,catDetails:true,bpResOnly:false,rollMode:"app",haptics:true,autoCombatTab:true,confirmSpend:false,concReminder:true,lrStress:"clear",textSize:"normal",showFlavour:true,showLocked:true,keepAwake:true},
   mods:{axe:{built:false,holder:"flint",ally:""},rshield:{built:true,holder:"flint",ally:""},pipes:{built:false,holder:"flint",ally:""},mind:{built:false,holder:"flint",ally:""},boots:{built:false,holder:"flint",ally:""},ring:{built:false,holder:"flint",ally:""}},
   base:{level:6,xp:19550,nextXp:23000,str:10,dex:14,con:16,int:18,wis:12,cha:11,san:9,maxHp:40,speed:25,acMisc:0,martialProf:false},
   hp:{cur:45,temp:0,bonus:5}, ds:{s:0,f:0}, hdUsed:0,
@@ -615,7 +615,17 @@ async function syncConnect(token){
 window.addEventListener("online",()=>{ syncPull(); });
 document.addEventListener("visibilitychange",()=>{ if(!SY.gist) return; if(document.visibilityState==="visible") syncPull(); else syncPush(); });
 
+const LAN={last:"",t:0,wait:0,msg:"",busy:false};
+function lanPayload(){ return {id:"flint",name:"Flint Cogsworth",hp:S.hp.cur,maxHp:maxHp(),tempHp:S.hp.temp||0,stress:S.stress,stressMax:5}; }
+function lanSend(force){ try{
+ if(!(window.AndroidBridge&&AndroidBridge.postJson)||!S.settings.lanOn||!S.settings.lanUrl) return;
+ const j=JSON.stringify(lanPayload()); if(!force){ if(j===LAN.last||LAN.busy||Date.now()<LAN.wait) return; }
+ LAN.busy=true; LAN.pend=j; AndroidBridge.postJson(S.settings.lanUrl,j,!!force);
+}catch(e){ LAN.busy=false; } }
+window.__lanDone=m=>{ LAN.busy=false; const ok=/^2\d\d/.test(m); LAN.msg=ok?"Sent":"Not sent: "+m; if(ok){ LAN.last=LAN.pend; LAN.wait=0; } else LAN.wait=Date.now()+30000; const el=document.getElementById("lanmsg"); if(el) el.textContent=LAN.msg+(ok?"":" (will retry when something changes)"); };
+function lanSoon(){ clearTimeout(LAN.t); LAN.t=setTimeout(()=>lanSend(false),500); }
 function save(){
+ lanSoon();
  pendingRemote=null; lastLocal=Date.now(); S._t=lastLocal;
  try{ localStorage.setItem(LKEY,JSON.stringify(S)); }catch(e){}
  syncSoon(10000);
@@ -1681,6 +1691,9 @@ function settingsModal(){
    <div class="btns" style="margin-top:8px"><input id="sync-token" type="password" autocomplete="off" placeholder="Paste your token (ghp_…)" style="flex:1;min-width:200px"><button class="btn pri" data-act="syncConnect">Connect</button></div>
    <p class="status" id="syncmsg" style="margin-top:6px">${SYS.status==="err"?"Couldn't connect: "+esc(SYS.msg):"Not connected."}</p>
    <p class="small dim">The token stays on this device only. It isn't saved in Flint's data or backups.</p>`}
+  ${window.AndroidBridge&&AndroidBridge.postJson?`<h3>Live display</h3><div class="list">${tog("lanOn","Send HP and Stress to the display","Sends to the address below whenever they change, only while you are on that network.")}</div>
+  <div class="btns" style="margin-top:6px"><input type="text" id="lan-url" value="${esc(st.lanUrl||"")}" style="flex:1;min-width:200px" aria-label="Display address"><button class="btn" data-act="lanTest">Test</button></div>
+  <p class="status" id="lanmsg" style="margin-top:6px">${esc(LAN.msg||"")}</p>`:""}
   <h3>History</h3>
   <div class="btns"><button class="btn" data-act="eventLog">Event log</button><button class="btn" data-act="history">Roll log</button></div>
   <h3>Backup</h3>
@@ -2074,6 +2087,7 @@ const ACT = {
    saves:["Saving throw traits",`<ul><li><b>Disadvantage on Wisdom saves</b> (Amber-Veined transformation).</li><li><b>Advantage on Sanity/Composure saves</b> (Grave Resilience).</li><li>Proficient in <b>Constitution</b> (${sg(saveBonus("con"))}) and <b>Intelligence</b> (${sg(saveBonus("int"))}) saves.</li></ul><p class='small muted'>The roll pop-up applies these for you.</p>`],
    immune:["Unliving Stasis","<ul><li><b>Sleepless:</b> you don't need sleep and can't be put to sleep by magic.</li><li><b>Suspended respiration:</b> you take one breath per minute and are immune to suffocation.</li></ul><p class='small muted'>Amber-Veined Gnome trait.</p>"]
   }; const t=T[d.k]; if(t) infoPop(t[0],t[1]); },
+ lanTest:()=>{ const u=(document.getElementById("lan-url").value||"").trim(); S.settings.lanUrl=u; save(); const el=document.getElementById("lanmsg"); if(el) el.textContent="Sending..."; LAN.wait=0; lanSend(true); },
  passInfo:()=>infoPop("Passive senses",`<div class="what">Perception ${10+skillBonus(["Perception","wis"])}</div><p>Passive Investigation <b>${10+skillBonus(["Investigation","int"])}</b>.</p><p class="small muted">10 + the skill bonus. Use it when the DM wants to know what you notice without rolling.</p>`),
  energyInfo:()=>infoPop("Æther-Pack energy",`<div class="what" style="color:var(--ecto)">${S.energy} / ${eMax()}</div>
   <ul><li><b>Capacity:</b> 5 + INT mod = ${eMax()}.</li><li><b>Gain it:</b> Soul Vacuum (reaction when a hostile CR ¼+ creature dies within 30 ft), or Seriach's Fuel at 0 energy.</li><li><b>Spend it:</b> Proton Bolt 1, Proton Stream 3, Containment Burst 4, Full Proton Overload 5.</li><li><b>Over capacity:</b> excess from Soul Vacuum burns through as 1 necrotic per point to you or an adjacent creature.</li><li><b>Long rest:</b> lose half (rounded up) unless you take 1 Stress to keep it all.</li></ul>`),

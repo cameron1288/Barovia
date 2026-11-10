@@ -17,7 +17,10 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
 
 public class MainActivity extends Activity {
@@ -133,6 +136,33 @@ public class MainActivity extends Activity {
                 }
             } catch (Exception ignored) { }
             return "ok";
+        }
+
+        @JavascriptInterface
+        public void postJson(final String url, final String json, final boolean report) {
+            new Thread(() -> {
+                String msg;
+                try {
+                    HttpURLConnection c = (HttpURLConnection) new URL(url).openConnection();
+                    c.setConnectTimeout(1500);
+                    c.setReadTimeout(2500);
+                    c.setRequestMethod("POST");
+                    c.setRequestProperty("Content-Type", "application/json");
+                    c.setDoOutput(true);
+                    try (OutputStream os = c.getOutputStream()) { os.write(json.getBytes(StandardCharsets.UTF_8)); }
+                    int code = c.getResponseCode();
+                    String body = "";
+                    try (InputStream is = code >= 400 ? c.getErrorStream() : c.getInputStream()) {
+                        if (is != null) { byte[] b = new byte[300]; int n = is.read(b); if (n > 0) body = new String(b, 0, n, StandardCharsets.UTF_8); }
+                    } catch (Exception ignore) {}
+                    msg = code + (body.isEmpty() ? "" : " " + body.replace("\n", " ").replace("'", " ").replace("\\", " "));
+                    c.disconnect();
+                } catch (Exception e) {
+                    msg = "fail " + String.valueOf(e.getMessage()).replace("'", " ").replace("\\", " ");
+                }
+                final String out = msg;
+                runOnUiThread(() -> web.evaluateJavascript("window.__lanDone&&window.__lanDone('" + out.replace("\n", " ") + "')", null));
+            }).start();
         }
 
         @JavascriptInterface

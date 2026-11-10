@@ -6,6 +6,7 @@
         android:label="Flint"
         android:icon="@mipmap/ic_launcher"
         android:allowBackup="true"
+        android:usesCleartextTraffic="true"
         android:theme="@style/FlintTheme"
         android:hardwareAccelerated="true">
         <activity
