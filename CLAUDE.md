@@ -38,7 +38,8 @@ No quiz or Q&A section. Keep every line short and tag each fact with its session
   as a new tagged history bullet, and refresh the summary and facts. Short cards (under ~150 words) can stay plain prose.
 - **Timeline is newest first.** Coming-up events sit in the collapsed "⏳ Coming up" box on top, furthest first, so the
   next event sits just above the latest session. Below the "What has happened"
-  divider, add each new day's section directly under the divider, with its cards newest first. Labels read
+  divider, add each new day's section directly under the divider, with its cards newest first. Each session gets **one card**,
+  with its scenes as paragraphs in the order they happened (split a session only when it spans two days). Labels read
   "15th Neyavr · Session 51". The "Long Ago" section at the bottom holds history seen in visions and dreams.
 - **Chronicles recaps are 2–3 short paragraphs** so players can skim them. Put the detail in the other tabs
   (Denizens, Realm, Lore, Quests, Inventory, Companions), not in the recap.
