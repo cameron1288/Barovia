@@ -2,7 +2,8 @@
     <link rel="stylesheet" href="./css/style.css">
 </head>
 <!-- Homework Tab: rewritten before every session as a quick cheat sheet for what may come up next time:
-     the plan at a glance, faces we may meet, "if this happens" plans, and a tap-to-reveal quick check.
+     a "last time" recap, the plan at a glance,
+     faces we may meet, and "if this happens" plans.
      Only table events and site records, never DM material. -->
 <div id="homework-tab" class="tab-content active">
 
@@ -16,6 +17,18 @@
             <span class="hw-chip hw-chip-warn">⚠️ Emil's oath due tomorrow (16th)</span>
         </div>
     </div>
+
+    <h3 class="hw-h">📜 Last time (Session 52)</h3>
+    <ul class="hw-last">
+        <li>Doru's war horn drew the wights to the front, and Muriel's ravens flew us up to the <strong>east overlook</strong>. Ripley shouldered open the servants' door.</li>
+        <li>Mel's <strong>Holy Symbol went cold</strong> on the way in. It seems to disapprove of something.</li>
+        <li>We slipped past <strong>Cyrus</strong> the cook. He agreed to "plausible deniability" and asked for his favourite spoon back.</li>
+        <li>In the <strong>Hall of Bones</strong>, Flint shrank the dragon skull. Spiggot touched it, froze, and heard <em>"You came back."</em> Skeletons rose. <strong>The skull is ours</strong>, in the puzzle chest.</li>
+        <li>Mel grabbed the spoon from the <strong>garrison</strong> (36 undead). Turn Undead and Flint's projector got him out, and we barricaded the door. Ripley is poisoned and failed a sanity save.</li>
+        <li>For the spoon, Cyrus showed us the way to the <strong>South Tower stairs</strong>.</li>
+        <li><strong>Rahadin's office</strong> was empty. His farewell letter to Strahd says he will serve "one final time."</li>
+        <li>Vel found a hidden stair going down. A figure ducked out of sight below, and Mel saw <strong>a second shadow</strong> copying Zelly's.</li>
+    </ul>
 
     <h3 class="hw-h">🎯 What's left tonight</h3>
     <div class="hw-goals">
@@ -176,22 +189,6 @@
         <div class="hw-if"><div class="hw-if-q">Strahd comes back early</div><div class="hw-if-a">"My benevolence… has its eventual and inevitable end" (S51). Grab who we can and run.</div></div>
     </div>
 
-    <h3 class="hw-h">🧠 Quick check <span class="hw-h-sub">Practical numbers for tonight. Tap to reveal</span></h3>
-    <div class="hw-quiz">
-        <details><summary>How much time is left?</summary><p>About six hours. It was around 11 p.m. in Rahadin's office (Session 52), and Strahd is back around 5 a.m. (Session 51).</p></details>
-        <details><summary>How do we call Muriel?</summary><p>Blow the whistle. She's hiding in the woods until morning and listening for it (Session 52). Mel carries Davian's obsidian whistle.</p></details>
-        <details><summary>How many raven trips to get out?</summary><p>Three, if Emil and Gertruda come too: nine of us, two swarms per medium person, and Small Flint needs one (Session 51). Doru fits on the last trip.</p></details>
-        <details><summary>Where's the skull?</summary><p>Shrunk inside the puzzle chest on Spiggot's back (Session 52). Whoever carries the chest goes on an early raven trip.</p></details>
-        <details><summary>Who can't see in the dark?</summary><p>Mel, Ireena, and Zelly (Session 52). Spiggot's axe sheds 30 ft of bright light and 30 ft of dim as a bonus action, and he can turn it off.</p></details>
-        <details><summary>What warns us Emil is close?</summary><p>Mel's enchanted finger tickles him within 30 feet of a werewolf (Session 52).</p></details>
-        <details><summary>What warns us Rahadin is close?</summary><p>Mel's hidden blade points at him and hums harder as he gets nearer (Sessions 47–48).</p></details>
-        <details><summary>Can the Holy Symbol help tonight?</summary><p>Not right now. It's gone cold and feels powerless (Session 52). Mel's Turn Undead still worked in the garrison.</p></details>
-        <details><summary>What healing do we have?</summary><p>Two potions of healing (Session 50), Mel's healer's kit with about five charges and Ireena's own kit (Session 52), holy water (Session 51), and Mel's spells. Ireena carries her own healer's kit too. Ripley is poisoned and can't regain hit points (Session 52).</p></details>
-        <details><summary>How many Clairvoyance looks are left?</summary><p>All three. Vel is attuned to the avian-eye stone, and it crumbles after the third (Session 51).</p></details>
-        <details><summary>Where do we not go?</summary><p>The garrison door off the Hall of Bones (barricaded, Session 52). Avoid the loud portcullises too (Session 51).</p></details>
-        <details><summary>What if we miss Emil's oath?</summary><p>From the 16th: maximum hit points drop by one-seventh, and a cumulative −1 to all stats every day until it's done (Session 41).</p></details>
-    </div>
-
     <p class="hw-foot">Rewritten before every session from what's happened at the table. Full details are on Quests, Lore › Codex, and Maps › Castle Map.</p>
 </div>
 
@@ -206,6 +203,9 @@
     .hw-chip-warn { background: #451a03; color: #fcd34d; }
 
     .hw-h { color: #f87171; font-size: 1.05rem; margin: 26px 0 10px; }
+    .hw-last { margin: 0; padding: 12px 16px 12px 34px; background: #16161a; border: 1px solid #2e2e33; border-radius: 8px; }
+    .hw-last li { color: #d1d5db; font-size: 0.88rem; line-height: 1.5; margin: 3px 0; }
+    .hw-last strong { color: #fff; }
     .hw-h-sub { color: #71717a; font-size: 0.78rem; font-weight: normal; font-style: italic; margin-left: 6px; }
     .hw-note, .hw-foot { color: #71717a; font-size: 0.8rem; font-style: italic; margin-top: 8px; }
 
@@ -244,18 +244,10 @@
     .hw-if-q::before { content: "If "; color: #a1a1aa; font-weight: normal; }
     .hw-if-a { color: #d1d5db; font-size: 0.86rem; line-height: 1.45; }
 
-    .hw-quiz { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .hw-quiz details { background: #16161a; border: 1px dashed #3f3f46; border-radius: 8px; padding: 10px 14px; }
-    .hw-quiz summary { cursor: pointer; color: #e4e4e7; font-size: 0.9rem; list-style: none; }
-    .hw-quiz summary::-webkit-details-marker { display: none; }
-    .hw-quiz summary::before { content: "❓ "; }
-    .hw-quiz details[open] { border-style: solid; border-color: #10b981; }
-    .hw-quiz details[open] summary::before { content: "✅ "; }
-    .hw-quiz details p { margin: 8px 0 0; color: #6ee7b7; font-size: 0.88rem; }
 
     @media (max-width: 900px) { .hw-goals { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 600px) {
-        .hw-goals, .hw-ifs, .hw-quiz, .hw-faces { grid-template-columns: 1fr; }
+        .hw-goals, .hw-ifs, .hw-faces { grid-template-columns: 1fr; }
         .hw-hero { padding: 16px; }
         .hw-hero h2 { font-size: 1.3rem; }
     }
