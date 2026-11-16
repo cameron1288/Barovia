@@ -26,7 +26,9 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
 
 **Homework** (`homework.html`) is rewritten every update for the *next* session as a cheat sheet: a hero banner, the
 "Last time" recap of the previous session (short bullets, like the DM's pre-session message), the objectives at a glance,
-"Faces we may meet" (portraits, one line each, colour-coded danger/unsure/rescue/ally), and "If this happens…" plans.
+a "Background you may need" section (the main focus: short cards explaining the people, places and mysteries the next
+session turns on, each with a one-line "why it matters"), a compact "Faces we may meet" list (one line each,
+colour-coded danger/unsure/rescue/ally), and "If this happens…" plans.
 No quiz or Q&A section. Keep every line short and tag each fact with its session
 (S48). Table events and site records only, never DM material. Fact-check every citation against the site.
 
