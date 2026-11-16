@@ -24,12 +24,10 @@ When an attribution is still ambiguous, write the site text neutrally and ask th
 A full update touches: **Chronicles** (`sessions.html`, new session at the top), **Timeline**, **Denizens**, **Realm**,
 **Quests**, **Lore**, **Codex**, **Companions**, **Inventory**, **Overview**, **Homework**, and sometimes **Combat** and the **Map** popup text.
 
-**Homework** (`homework.html`) is rewritten every update for the *next* session as a cheat sheet: a hero banner, the
-"Last time" recap of the previous session (short bullets, like the DM's pre-session message), the objectives at a glance,
-a "Background you may need" section (the main focus: short cards explaining the people, places and mysteries the next
-session turns on, each with a one-line "why it matters"), a compact "Faces we may meet" list (one line each,
-colour-coded danger/unsure/rescue/ally), and "If this happens…" plans.
-No quiz or Q&A section. Keep every line short and tag each fact with its session
+**Homework** (`homework.html`) is rewritten every update for the *next* session as a **short** cheat sheet that fits a phone
+screen or two: a hero banner, a "Last time" recap (about 5 bullets), the goals, a few collapsed background cards
+(3 bullets each) on what the next session turns on, a one-line "Who we may meet" row of tags, and about 4
+"If this happens…" plans. No quiz. Don't let it grow. Keep every line short and tag each fact with its session
 (S48). Table events and site records only, never DM material. Fact-check every citation against the site.
 
 ## Conventions
