@@ -17,6 +17,7 @@
         </div>
     </div>
 
+    <div class="hw-row"><div>
     <h3 class="hw-h">📜 Last time (Session 52)</h3>
     <ul class="hw-list">
         <li>Doru's horn drew the wights away, and the ravens flew us in by the servants' door.</li>
@@ -26,6 +27,7 @@
         <li>Mel's Holy Symbol has gone cold. A second shadow is copying Zelly's.</li>
     </ul>
 
+    </div><div>
     <h3 class="hw-h">🎯 Still to do tonight</h3>
     <ul class="hw-list hw-goals">
         <li>🐺 <strong>Free Emil:</strong> the dungeon, below the servants' wing (S48, S52). Bring meat.</li>
@@ -33,6 +35,8 @@
         <li>✨ <strong>Find the Icon of Dawn's Grace:</strong> location unknown. Use Detect Magic and the eye stone.</li>
         <li>🚪 <strong>Get out before 5 a.m.:</strong> whistle for Muriel (S52).</li>
     </ul>
+
+    </div></div>
 
     <h3 class="hw-h">📚 Background</h3>
     <div class="hw-bgs">
@@ -120,6 +124,7 @@
         </div>
     </div>
 
+    <div class="hw-row"><div>
     <h3 class="hw-h">👥 Who we may meet</h3>
     <p class="hw-who">
         <span class="hw-tag hw-danger">Rahadin</span>
@@ -131,6 +136,7 @@
         <span class="hw-tag hw-ally">Doru</span>
     </p>
 
+    </div><div>
     <h3 class="hw-h">🤔 If this happens…</h3>
     <ul class="hw-list">
         <li><strong>Rahadin finds us:</strong> he doesn't let intruders leave (S48). Run.</li>
@@ -139,11 +145,16 @@
         <li><strong>Strahd comes back early:</strong> grab who we can and go.</li>
     </ul>
 
+    </div></div>
+
     <p class="hw-foot">Full details: Quests, Lore, Denizens, and Maps › Castle Map.</p>
 </div>
 
 <style>
-    #homework-tab { max-width: 980px; margin: 0 auto; }
+    #homework-tab { max-width: none; }
+    .hw-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+    .hw-row > div { min-width: 0; }
+    @media (max-width: 800px) { .hw-row { grid-template-columns: 1fr; } }
     .hw-hero { background: linear-gradient(135deg, #2a0f0f, #16161a 70%); border: 1px solid #561c1c; border-radius: 10px; padding: 16px 18px; margin-bottom: 18px; }
     .hw-kicker { color: #fca5a5; font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; font-weight: bold; }
     .hw-hero h2 { margin: 4px 0 6px; color: #fff; font-size: 1.4rem; }
@@ -161,8 +172,7 @@
     .hw-list strong { color: #fff; }
     .hw-goals { list-style: none; padding-left: 14px; border-left: 3px solid #b91c1c; }
 
-    .hw-bgs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    @media (max-width: 600px) { .hw-bgs { grid-template-columns: 1fr; } }
+    .hw-bgs { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(400px, 100%), 1fr)); gap: 8px; }
     .hw-bg { background: #16161a; border: 1px solid #2e2e33; border-left: 3px solid #7c3aed; border-radius: 8px; padding: 9px 14px; }
     .hw-bg-hot { border-left-color: #dc2626; }
     .hw-bg h4 { margin: 0; color: #fff; font-size: 0.92rem; }
