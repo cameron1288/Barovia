@@ -25,7 +25,7 @@ A full update touches: **Chronicles** (`sessions.html`, new session at the top),
 **Quests**, **Lore**, **Codex**, **Companions**, **Inventory**, **Overview**, **Homework**, and sometimes **Combat** and the **Map** popup text.
 
 **Homework** (`homework.html`) is rewritten every update for the *next* session as a **short** cheat sheet that fits a phone
-screen or two: a hero banner, a "Last time" recap (about 5 bullets), the goals, a few collapsed background cards
+screen or two: a hero banner, a "Last time" recap (about 5 bullets), the goals, a few always-open background cards (no tap-to-open)
 (3 bullets each) on what the next session turns on, a one-line "Who we may meet" row of tags, and about 4
 "If this happens…" plans. No quiz. Don't let it grow. Keep every line short and tag each fact with its session
 (S48). Table events and site records only, never DM material. Fact-check every citation against the site.
