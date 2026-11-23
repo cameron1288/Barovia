@@ -69,11 +69,17 @@
 
         <div class="hw-bg">
             <h4>🔥 The seven stones <span>a way out?</span></h4>
-            <ul>
-                <li>"Cast a stone into the fire." Each colour names a place: <strong>green</strong> "where the coffins trade," <strong>blue</strong> "where the grapes grow sweet," <strong>yellow</strong> "the mountain keep" (S53).</li>
-                <li>Also violet "the cursed mire," orange "the lonely tower," indigo "castle shade," and red, a line about monks and flowers (S53).</li>
-                <li>Untested. We don't know if it's one-way, or if it takes everyone. Flint has the green stone (S53).</li>
+            <p class="hw-stone-intro">"Cast a stone into the fire" (S53):</p>
+            <ul class="hw-stones">
+                <li><span class="hw-dot" style="background:#8b5cf6"></span><b>Violet</b> the cursed mire</li>
+                <li><span class="hw-dot" style="background:#f97316"></span><b>Orange</b> the lonely tower</li>
+                <li><span class="hw-dot" style="background:#ef4444"></span><b>Red</b> monks &amp; flowers <i>(unclear)</i></li>
+                <li class="hw-held"><span class="hw-dot" style="background:#22c55e"></span><b>Green</b> where the coffins trade <i>(Flint has it)</i></li>
+                <li><span class="hw-dot" style="background:#4f46e5"></span><b>Indigo</b> castle shade</li>
+                <li><span class="hw-dot" style="background:#3b82f6"></span><b>Blue</b> where the grapes grow sweet</li>
+                <li><span class="hw-dot" style="background:#eab308"></span><b>Yellow</b> the mountain keep</li>
             </ul>
+            <p class="hw-stone-note">Untested: one-way? Does it take everyone?</p>
         </div>
 
         <div class="hw-bg">
@@ -181,6 +187,13 @@
     .hw-bg ul { margin: 8px 0 2px; padding-left: 18px; }
     .hw-bg li { color: #d1d5db; font-size: 0.86rem; line-height: 1.45; margin: 2px 0; }
     .hw-bg li strong { color: #fff; }
+    .hw-stone-intro, .hw-stone-note { margin: 6px 0 4px; color: #a1a1aa; font-size: 0.8rem; font-style: italic; }
+    .hw-stones { list-style: none; padding-left: 0 !important; margin: 0 !important; }
+    .hw-stones li { display: flex; align-items: center; gap: 8px; margin: 3px 0; }
+    .hw-stones b { width: 52px; flex: 0 0 52px; color: #fff; font-size: 0.82rem; }
+    .hw-stones i { color: #a1a1aa; font-size: 0.78rem; }
+    .hw-dot { width: 12px; height: 12px; flex: 0 0 12px; border-radius: 50%; box-shadow: 0 0 6px currentColor; }
+    .hw-held { background: #052e16; border-radius: 6px; padding: 1px 6px; margin-left: -6px !important; }
 
     .hw-who { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; }
     .hw-tag { font-size: 0.8rem; padding: 3px 10px; border-radius: 12px; background: #27272a; color: #d4d4d8; }
